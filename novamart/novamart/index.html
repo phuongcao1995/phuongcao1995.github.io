@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>NovaMart – Mua sắm thông minh, giá tốt mỗi ngày</title>
+  <meta name="description" content="Sàn thương mại điện tử NovaMart: điện thoại, laptop, thời trang, mỹ phẩm, gia dụng chính hãng, giá tốt, giao nhanh.">
+  <meta name="theme-color" content="#FF5A36">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23FF5A36'/%3E%3Cpath d='M20 7c1.3 7.2 5.8 11.7 13 13-7.2 1.3-11.7 5.8-13 13-1.3-7.2-5.8-11.7-13-13 7.2-1.3 11.7-5.8 13-13z' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="home">
+  <div id="app-header"></div>
+
+  <main id="main" class="home">
+    <div class="container">
+      <section class="hero" id="hero" aria-label="Khuyến mãi"></section>
+
+      <ul class="services" aria-label="Cam kết của NovaMart">
+        <li><span aria-hidden="true">✓</span><div><strong>100% chính hãng</strong><small>Hoàn tiền 200% nếu phát hiện hàng giả</small></div></li>
+        <li><span aria-hidden="true">🚚</span><div><strong>Freeship từ ₫500K</strong><small>Hoặc với sản phẩm có nhãn Freeship</small></div></li>
+        <li><span aria-hidden="true">↺</span><div><strong>Đổi trả 15 ngày</strong><small>Miễn phí, lấy hàng tận nơi</small></div></li>
+        <li><span aria-hidden="true">🛡</span><div><strong>Thanh toán an toàn</strong><small>COD, thẻ, ví điện tử</small></div></li>
+      </ul>
+
+      <section class="section card section--cats" aria-labelledby="catTitle">
+        <div class="section__head"><h2 class="section__title" id="catTitle">Danh mục</h2><a class="section__more" href="products.html">Tất cả sản phẩm</a></div>
+        <div class="cat-grid" id="categoryGrid"></div>
+      </section>
+
+      <section class="flash" id="flash-sale" aria-label="Flash Sale"><div id="flashSale"></div></section>
+
+      <section class="section" id="vouchers" aria-labelledby="vTitle">
+        <div class="section__head"><h2 class="section__title" id="vTitle">Mã giảm giá hôm nay</h2><a class="section__more" href="account.html#vouchers">Kho voucher của tôi</a></div>
+        <div class="voucher-rail" id="voucherList"></div>
+      </section>
+
+      <section class="section" aria-labelledby="recTitle">
+        <div class="section__head"><h2 class="section__title" id="recTitle">Gợi ý hôm nay</h2><a class="section__more" href="products.html">Xem tất cả</a></div>
+        <div class="product-grid" id="recommendedGrid" aria-live="polite"></div>
+        <div class="center"><button type="button" class="btn btn--outline load-more" id="recommendedMore" hidden>Xem thêm sản phẩm</button></div>
+      </section>
+
+      <section class="promo-row" aria-label="Chương trình khuyến mãi">
+        <a class="promo promo--a" href="products.html?cat=gia-dung"><strong>Bếp nhà gọn nhẹ</strong><span>Nồi chiên, nồi cơm, máy xay giảm đến 40%</span><em aria-hidden="true">🍳</em></a>
+        <a class="promo promo--b" href="products.html?section=mall"><strong>NovaMall chính hãng</strong><span>Hơn 200 thương hiệu, bảo hành đầy đủ</span><em aria-hidden="true">🏬</em></a>
+        <a class="promo promo--c" href="products.html?cat=sach"><strong>Tủ sách tháng 9</strong><span>Sách bán chạy chỉ từ ₫69K</span><em aria-hidden="true">📚</em></a>
+      </section>
+
+      <section class="section" aria-labelledby="bestTitle">
+        <div class="section__head"><h2 class="section__title" id="bestTitle">Bán chạy nhất tuần</h2><a class="section__more" href="products.html?section=best">Xem bảng xếp hạng</a></div>
+        <div class="product-grid" id="bestGrid"></div>
+      </section>
+
+      <section class="section" aria-labelledby="brandTitle">
+        <div class="section__head"><h2 class="section__title" id="brandTitle">Thương hiệu nổi bật</h2><a class="section__more" href="products.html?section=mall">NovaMall</a></div>
+        <div class="brand-grid" id="brandGrid"></div>
+      </section>
+
+      <section class="section" id="recentSection" aria-labelledby="recentTitle" hidden>
+        <div class="section__head"><h2 class="section__title" id="recentTitle">Bạn đã xem gần đây</h2><button type="button" class="section__more link-btn" id="recentClear">Xóa lịch sử</button></div>
+        <div class="product-grid product-grid--6" id="recentGrid"></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="app-footer"></div>
+
+  <script src="js/utils.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/wishlist.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/filters.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/checkout.js"></script>
+  <script src="js/orders.js"></script>
+  <script src="js/account.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

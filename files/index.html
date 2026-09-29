@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IrriCourse – Hệ thống quản lý tưới sân golf</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Bộ biểu tượng SVG dùng chung -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V3"/><path d="M5 4h12l-2.5 4L17 12H5"/></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-pump" viewBox="0 0 24 24"><circle cx="10" cy="13" r="6"/><path d="M16 13h5M10 7V3h5"/><path d="m10 13 3.5-3"/></symbol>
+    <symbol id="i-sensor" viewBox="0 0 24 24"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/></symbol>
+    <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol>
+    <symbol id="i-report" viewBox="0 0 24 24"><path d="M5 20V11M11 20V5M17 20v-7M3 20h18"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 6.5 2.5 8 2.5 8h-17S6 15.5 6 9"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol>
+    <symbol id="i-chev-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-sidebar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3s6.5 7.2 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10.2 12 3 12 3z"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5M12 17.2v.3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5 13a10 10 0 0 1 14 0M8.5 16.5a5 5 0 0 1 7 0"/><circle cx="12" cy="20" r=".8"/></symbol>
+    <symbol id="i-radio" viewBox="0 0 24 24"><path d="M12 12v9M9 21h6"/><circle cx="12" cy="10" r="2"/><path d="M7.8 5.8a6 6 0 0 0 0 8.4M16.2 5.8a6 6 0 0 1 0 8.4M5 3a10 10 0 0 0 0 14M19 3a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M3.5 18a9 9 0 1 1 17 0"/><path d="m12 14 4-5"/><circle cx="12" cy="14.5" r="1"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.3"/></symbol>
+    <symbol id="i-sprout" viewBox="0 0 24 24"><path d="M12 21v-9"/><path d="M12 12C12 8 9 5 4 5c0 4 3 7 8 7zM12 12c0-3.5 2.3-6.5 7.5-6.5 0 3.5-2.5 6.5-7.5 6.5z"/></symbol>
+    <symbol id="i-rain" viewBox="0 0 24 24"><path d="M7 15.5a4 4 0 0 1-.4-8A6 6 0 0 1 18 8.5a3.5 3.5 0 0 1-.6 7"/><path d="m9 18-1 2.5M13 18l-1 2.5M17 18l-1 2.5"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 13c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 18c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M12 3v5"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></symbol>
+    <symbol id="i-station" viewBox="0 0 24 24"><circle cx="12" cy="15" r="3"/><path d="M12 12V4M8 7c1.2-1.4 2.5-2 4-2s2.8.6 4 2M5.5 9.5C7.3 7 9.5 6 12 6"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3 5 13h6l-1 8 8-10h-6l1-8z"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app">
+
+  <!-- ============ THANH ĐIỀU HƯỚNG TRÁI ============ -->
+  <aside class="sidebar" id="sidebar" aria-label="Điều hướng chính">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="16" cy="16" r="15" fill="#135040"/>
+        <path d="M16 6s6 6.6 6 10.6a6 6 0 0 1-12 0C10 12.6 16 6 16 6z" fill="#5CB3F0"/>
+        <path d="M6 23c3.3-2 6.7-2 10 0s6.7 2 10 0" stroke="#9FD8A8" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="brand-text">
+        <strong>IrriCourse</strong>
+        <span>Điều khiển tưới sân golf</span>
+      </div>
+    </div>
+
+    <nav class="nav" id="nav">
+      <a class="nav-item" href="#/dashboard" data-nav="dashboard" data-tip-side="Tổng quan"><svg class="ic"><use href="#i-dash"/></svg><span>Tổng quan</span></a>
+      <a class="nav-item" href="#/map" data-nav="map" data-tip-side="Bản đồ tưới"><svg class="ic"><use href="#i-map"/></svg><span>Bản đồ tưới</span></a>
+
+      <div class="nav-group open" data-group="structure">
+        <button class="nav-item nav-toggle" type="button" aria-expanded="true" data-nav-parent="structure" data-tip-side="Sân &amp; Khu vực"><svg class="ic"><use href="#i-flag"/></svg><span>Sân &amp; Khu vực</span><svg class="ic caret"><use href="#i-chev-down"/></svg></button>
+        <div class="nav-sub">
+          <a href="#/structure/courses" data-nav="structure/courses">Sân golf (Course)</a>
+          <a href="#/structure/sites" data-nav="structure/sites">Khu vực (Site)</a>
+          <a href="#/structure/holes" data-nav="structure/holes">Hố golf (Hole)</a>
+          <a href="#/structure/areas" data-nav="structure/areas">Khu tưới (Area)</a>
+        </div>
+      </div>
+
+      <div class="nav-group open" data-group="equipment">
+        <button class="nav-item nav-toggle" type="button" aria-expanded="true" data-nav-parent="equipment" data-tip-side="Thiết bị hiện trường"><svg class="ic"><use href="#i-chip"/></svg><span>Thiết bị hiện trường</span><svg class="ic caret"><use href="#i-chev-down"/></svg></button>
+        <div class="nav-sub">
+          <a href="#/equipment/satellites" data-nav="equipment/satellites">Bộ điều khiển</a>
+          <a href="#/equipment/decoders" data-nav="equipment/decoders">Bộ giải mã</a>
+          <a href="#/equipment/radios" data-nav="equipment/radios">Thiết bị Radio</a>
+          <a href="#/equipment/stations" data-nav="equipment/stations">Trạm tưới</a>
+        </div>
+      </div>
+
+      <a class="nav-item" href="#/schedule" data-nav="schedule" data-tip-side="Lịch tưới"><svg class="ic"><use href="#i-cal"/></svg><span>Lịch tưới</span></a>
+      <a class="nav-item" href="#/pumps" data-nav="pumps" data-tip-side="Lưu lượng &amp; Máy bơm"><svg class="ic"><use href="#i-pump"/></svg><span>Lưu lượng &amp; Máy bơm</span></a>
+      <a class="nav-item" href="#/sensors" data-nav="sensors" data-tip-side="Cảm biến"><svg class="ic"><use href="#i-sensor"/></svg><span>Cảm biến</span></a>
+      <a class="nav-item" href="#/diagnostics" data-nav="diagnostics" data-tip-side="Chẩn đoán"><svg class="ic"><use href="#i-pulse"/></svg><span>Chẩn đoán</span></a>
+      <a class="nav-item" href="#/reports" data-nav="reports" data-tip-side="Báo cáo"><svg class="ic"><use href="#i-report"/></svg><span>Báo cáo</span></a>
+      <a class="nav-item" href="#/settings" data-nav="settings" data-tip-side="Cài đặt"><svg class="ic"><use href="#i-gear"/></svg><span>Cài đặt</span></a>
+    </nav>
+
+    <div class="side-foot">
+      <div class="weather" id="side-weather">
+        <svg class="ic"><use href="#i-rain"/></svg>
+        <div><strong id="side-temp">31,4 °C</strong><span>Mưa 24h: 0,0 mm</span></div>
+      </div>
+      <button class="collapse-btn" id="collapse-btn" type="button" aria-label="Thu gọn thanh điều hướng">
+        <svg class="ic"><use href="#i-sidebar"/></svg><span>Thu gọn</span>
+      </button>
+    </div>
+  </aside>
+  <div class="side-backdrop" id="side-backdrop"></div>
+
+  <!-- ============ KHU VỰC CHÍNH ============ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn mobile-menu" id="mobile-menu" type="button" aria-label="Mở menu"><svg class="ic"><use href="#i-menu"/></svg></button>
+
+      <div class="ctx">
+        <div class="ctx-club">
+          <strong id="club-name">Riverside Golf Club</strong>
+          <span>Hòa Vang, Đà Nẵng</span>
+        </div>
+        <div class="ctx-selects">
+          <label class="sr-only" for="ctx-course">Chọn sân</label>
+          <select id="ctx-course" class="select select-sm"></select>
+          <label class="sr-only" for="ctx-site">Chọn khu vực</label>
+          <select id="ctx-site" class="select select-sm"></select>
+        </div>
+      </div>
+
+      <div class="gsearch" id="gsearch">
+        <svg class="ic"><use href="#i-search"/></svg>
+        <input id="g-search" type="search" placeholder="Tìm sân, hố, trạm, thiết bị, cảm biến…" autocomplete="off" aria-label="Tìm kiếm toàn hệ thống">
+        <kbd>/</kbd>
+        <div class="dropdown gs-results" id="gs-results" hidden></div>
+      </div>
+
+      <div class="top-right">
+        <div class="live" data-tip="Dữ liệu được mô phỏng và cập nhật tự động">
+          <span class="live-dot"></span>
+          <div><strong>Live Demo</strong><span>Cập nhật: <b id="last-updated">--:--:--</b></span></div>
+        </div>
+
+        <div class="sys-status" id="sys-status"><span class="dot"></span><span id="sys-status-text">Trạng thái hệ thống: Bình thường</span></div>
+
+        <div class="clock"><strong id="clock-time">--:--:--</strong><span id="clock-date"></span></div>
+
+        <div class="dd-wrap">
+          <button class="icon-btn bell" id="bell-btn" type="button" aria-label="Thông báo" aria-expanded="false" data-dd="notif-dd">
+            <svg class="ic"><use href="#i-bell"/></svg><span class="bell-badge" id="bell-badge" hidden>0</span>
+          </button>
+          <div class="dropdown notif-dd" id="notif-dd" hidden></div>
+        </div>
+
+        <div class="dd-wrap">
+          <button class="user-btn" type="button" aria-expanded="false" data-dd="user-dd">
+            <span class="avatar">NM</span>
+            <span class="user-meta"><strong>Nguyễn Văn Minh</strong><span>Kỹ thuật viên tưới</span></span>
+            <svg class="ic"><use href="#i-chev-down"/></svg>
+          </button>
+          <div class="dropdown user-dd" id="user-dd" hidden>
+            <div class="user-card"><span class="avatar lg">NM</span><div><strong>Nguyễn Văn Minh</strong><span>minh.nv@riversidegolf.vn</span><span>Ca vận hành: 04:00 – 12:00</span></div></div>
+            <button class="dd-item" data-action="profile"><svg class="ic"><use href="#i-user"/></svg>Hồ sơ cá nhân</button>
+            <a class="dd-item" href="#/settings"><svg class="ic"><use href="#i-gear"/></svg>Cài đặt hệ thống</a>
+            <button class="dd-item" data-action="logout"><svg class="ic"><use href="#i-logout"/></svg>Đăng xuất</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="content" id="content" tabindex="-1">
+      <section class="page" id="page-dashboard" hidden></section>
+      <section class="page" id="page-structure" hidden></section>
+      <section class="page" id="page-equipment" hidden></section>
+      <section class="page" id="page-schedule" hidden></section>
+      <section class="page" id="page-pumps" hidden></section>
+      <section class="page" id="page-sensors" hidden></section>
+      <section class="page" id="page-map" hidden></section>
+      <section class="page" id="page-diagnostics" hidden></section>
+      <section class="page" id="page-reports" hidden></section>
+      <section class="page" id="page-settings" hidden></section>
+    </main>
+  </div>
+</div>
+
+<!-- Lớp phủ dùng chung -->
+<div class="drawer" id="drawer" hidden></div>
+<div class="modal-backdrop" id="modal" hidden></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+
+<script src="script.js"></script>
+</body>
+</html>

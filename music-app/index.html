@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sóng · Music for every moment</title>
+  <meta name="description" content="Sóng is a music streaming prototype: browse, search, play and build playlists of Vietnamese and international music.">
+  <meta name="theme-color" content="#0d1220">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23f2b544'/%3E%3Cpath d='M6 19c3-5 6-5 9 0s6 5 11-2' fill='none' stroke='%230d1220' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Apply the saved theme before first paint to avoid a flash -->
+  <script>
+    (function () {
+      try {
+        var t = JSON.parse(localStorage.getItem('song:theme'));
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) { /* storage unavailable */ }
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#view">Skip to content</a>
+
+  <!-- ===================== Icon sprite ===================== -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 10.5 12 3.5l8.5 7V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></symbol>
+    <symbol id="i-library" viewBox="0 0 24 24"><path d="M5 4v16M10 4v16M14.5 4.5l5 15"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.2-4.4-9.3-8.8C1.2 8.1 3 4.5 6.6 4.5c2.1 0 3.6 1.2 5.4 3.4 1.8-2.2 3.3-3.4 5.4-3.4 3.6 0 5.4 3.6 3.9 6.7C19.2 15.6 12 20 12 20z"/></symbol>
+    <symbol id="i-heart-fill" viewBox="0 0 24 24"><path fill="currentColor" d="M12 20s-7.2-4.4-9.3-8.8C1.2 8.1 3 4.5 6.6 4.5c2.1 0 3.6 1.2 5.4 3.4 1.8-2.2 3.3-3.4 5.4-3.4 3.6 0 5.4 3.6 3.9 6.7C19.2 15.6 12 20 12 20z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
+    <symbol id="i-playlist" viewBox="0 0 24 24"><path d="M3 6h13M3 11h13M3 16h7"/><path d="M19.5 7v10"/><circle cx="17" cy="17.2" r="2.5"/></symbol>
+    <symbol id="i-disc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M8 5.6v12.8a1 1 0 0 0 1.52.85l10.3-6.4a1 1 0 0 0 0-1.7L9.52 4.75A1 1 0 0 0 8 5.6z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect fill="currentColor" stroke="none" x="6" y="5" width="4.2" height="14" rx="1.3"/><rect fill="currentColor" stroke="none" x="13.8" y="5" width="4.2" height="14" rx="1.3"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M5 6.3v11.4a1 1 0 0 0 1.55.83l8.4-5.7a1 1 0 0 0 0-1.66l-8.4-5.7A1 1 0 0 0 5 6.3z"/><rect fill="currentColor" stroke="none" x="16.5" y="5" width="2.6" height="14" rx="1.1"/></symbol>
+    <symbol id="i-prev" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M19 6.3v11.4a1 1 0 0 1-1.55.83l-8.4-5.7a1 1 0 0 1 0-1.66l8.4-5.7A1 1 0 0 1 19 6.3z"/><rect fill="currentColor" stroke="none" x="4.9" y="5" width="2.6" height="14" rx="1.1"/></symbol>
+    <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M16 3.5h4.5V8M4 20 20.5 3.5M20.5 16v4.5H16M14.5 14.5l6 6M4 4l5 5"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2.5 3.5 3.5L17 9.5"/><path d="M3.5 11V9.5a3.5 3.5 0 0 1 3.5-3.5h13.5"/><path d="M7 21.5 3.5 18 7 14.5"/><path d="M20.5 13v1.5a3.5 3.5 0 0 1-3.5 3.5H3.5"/></symbol>
+    <symbol id="i-repeat-one" viewBox="0 0 24 24"><path d="m17 2.5 3.5 3.5L17 9.5"/><path d="M3.5 11V9.5a3.5 3.5 0 0 1 3.5-3.5h13.5"/><path d="M7 21.5 3.5 18 7 14.5"/><path d="M20.5 13v1.5a3.5 3.5 0 0 1-3.5 3.5H3.5"/><path d="M11 10.5l1.5-1v5.5"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3.5v6h3L11 19z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6M18.5 6a8.5 8.5 0 0 1 0 12"/></symbol>
+    <symbol id="i-volume-low" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3.5v6h3L11 19z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6"/></symbol>
+    <symbol id="i-volume-x" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3.5v6h3L11 19z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/></symbol>
+    <symbol id="i-queue" viewBox="0 0 24 24"><path d="M3 6h14M3 11h14M3 16h8"/><path d="m15 14 6 3.5-6 3.5z"/></symbol>
+    <symbol id="i-play-next" viewBox="0 0 24 24"><path d="M3 6h12M3 11h12M3 16h7"/><path d="M18 13v8M14 17h8"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle fill="currentColor" stroke="none" cx="5" cy="12" r="1.8"/><circle fill="currentColor" stroke="none" cx="12" cy="12" r="1.8"/><circle fill="currentColor" stroke="none" cx="19" cy="12" r="1.8"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4 8.2 8.2 0 1 0 20 14.6z"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.83 2.83 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-minus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  </svg>
+
+  <div class="app">
+    <!-- ===================== Sidebar ===================== -->
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+      <div class="sidebar__brand">
+        <a class="brand" href="#/home" aria-label="Sóng home">
+          <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true">
+            <rect width="40" height="40" rx="12" fill="#f2b544"/>
+            <path d="M7 23.5c3.6-6.2 7.4-6.2 11 0s7.6 6.2 15-3" fill="none" stroke="#0d1220" stroke-width="3.4" stroke-linecap="round"/>
+            <path d="M7 16c3.6-4.6 7.4-4.6 11 0s7.6 4.6 15-2" fill="none" stroke="#0d1220" stroke-width="2.2" stroke-linecap="round" opacity=".45"/>
+          </svg>
+          <span class="brand__name">sóng</span>
+        </a>
+        <button type="button" class="icon-btn sidebar__close" data-action="close-sidebar" aria-label="Close menu">
+          <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+        </button>
+      </div>
+
+      <nav class="sidebar__nav">
+        <ul class="nav">
+          <li><a href="#/home" data-nav="home"><svg class="icon" aria-hidden="true"><use href="#i-home"></use></svg><span>Home</span></a></li>
+          <li><a href="#/discover" data-nav="discover"><svg class="icon" aria-hidden="true"><use href="#i-compass"></use></svg><span>Discover</span></a></li>
+          <li><a href="#/search" data-nav="search"><svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg><span>Search</span></a></li>
+        </ul>
+        <p class="nav__label" id="nav-collection">Your collection</p>
+        <ul class="nav" aria-labelledby="nav-collection">
+          <li><a href="#/library" data-nav="library"><svg class="icon" aria-hidden="true"><use href="#i-library"></use></svg><span>Library</span></a></li>
+          <li><a href="#/favorites" data-nav="favorites"><svg class="icon" aria-hidden="true"><use href="#i-heart"></use></svg><span>Favorites</span><span class="nav__count" data-count="favorites"></span></a></li>
+          <li><a href="#/recent" data-nav="recent"><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg><span>Recently Played</span></a></li>
+          <li><a href="#/playlists" data-nav="playlists"><svg class="icon" aria-hidden="true"><use href="#i-playlist"></use></svg><span>Playlists</span></a></li>
+          <li><a href="#/albums" data-nav="albums"><svg class="icon" aria-hidden="true"><use href="#i-disc"></use></svg><span>Albums</span></a></li>
+          <li><a href="#/artists" data-nav="artists"><svg class="icon" aria-hidden="true"><use href="#i-mic"></use></svg><span>Artists</span></a></li>
+        </ul>
+      </nav>
+
+      <section class="sidebar__playlists" aria-labelledby="yp-title">
+        <div class="sidebar__section-head">
+          <h2 id="yp-title">Your Playlists</h2>
+          <button type="button" class="icon-btn icon-btn--sm" data-action="create-playlist" aria-label="Create playlist">
+            <svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>
+          </button>
+        </div>
+        <ul class="pl-list" id="sidebar-playlists"></ul>
+      </section>
+    </aside>
+    <div class="scrim" data-action="close-sidebar" aria-hidden="true"></div>
+
+    <!-- ===================== Main ===================== -->
+    <main class="main" id="main">
+      <header class="topbar">
+        <button type="button" class="icon-btn topbar__menu" id="btn-menu" data-action="toggle-sidebar" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
+          <svg class="icon" aria-hidden="true"><use href="#i-menu"></use></svg>
+        </button>
+        <div class="topbar__history">
+          <button type="button" class="icon-btn icon-btn--sm" data-action="history-back" aria-label="Go back"><svg class="icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg></button>
+          <button type="button" class="icon-btn icon-btn--sm" data-action="history-forward" aria-label="Go forward"><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg></button>
+        </div>
+        <a class="brand brand--compact" href="#/home" aria-label="Sóng home">
+          <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true">
+            <rect width="40" height="40" rx="12" fill="#f2b544"/>
+            <path d="M7 23.5c3.6-6.2 7.4-6.2 11 0s7.6 6.2 15-3" fill="none" stroke="#0d1220" stroke-width="3.4" stroke-linecap="round"/>
+          </svg>
+          <span class="brand__name">sóng</span>
+        </a>
+        <form class="search" id="search-form" role="search" autocomplete="off">
+          <label class="sr-only" for="search-input">Search songs, artists, albums and playlists</label>
+          <svg class="icon search__icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          <input class="search__input" id="search-input" type="search" placeholder="Songs, artists, albums, playlists" spellcheck="false">
+          <kbd class="search__kbd" aria-hidden="true">/</kbd>
+        </form>
+        <div class="topbar__actions">
+          <button type="button" class="icon-btn theme-toggle" id="btn-theme" data-action="toggle-theme" aria-label="Switch to light mode">
+            <svg class="icon ico-sun" aria-hidden="true"><use href="#i-sun"></use></svg>
+            <svg class="icon ico-moon" aria-hidden="true"><use href="#i-moon"></use></svg>
+          </button>
+          <span class="avatar" aria-hidden="true">
+            <svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg>
+          </span>
+        </div>
+      </header>
+
+      <div class="view" id="view" tabindex="-1"></div>
+    </main>
+
+    <!-- ===================== Queue drawer ===================== -->
+    <aside class="queue" id="queue" aria-labelledby="queue-title" inert>
+      <div class="queue__head">
+        <h2 id="queue-title">Queue</h2>
+        <button type="button" class="icon-btn" data-action="close-queue" aria-label="Close queue">
+          <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+        </button>
+      </div>
+      <div class="queue__body" id="queue-body"></div>
+    </aside>
+
+    <!-- ===================== Player ===================== -->
+    <footer class="player" id="player" aria-label="Music player">
+      <div class="player__track">
+        <a class="player__art" id="player-art-link" href="#/home" aria-label="Open album">
+          <img id="player-art" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="" width="56" height="56">
+        </a>
+        <div class="player__meta">
+          <a class="player__title" id="player-title" href="#/home">Pick a song</a>
+          <a class="player__artist" id="player-artist" href="#/artists">Sóng</a>
+        </div>
+        <button type="button" class="icon-btn like-btn player__like" id="player-like" data-action="toggle-like" data-id="" data-like-id="" aria-pressed="false" aria-label="Favorite current song">
+          <svg class="icon ico-heart" aria-hidden="true"><use href="#i-heart"></use></svg>
+          <svg class="icon ico-heart-fill" aria-hidden="true"><use href="#i-heart-fill"></use></svg>
+        </button>
+      </div>
+
+      <div class="player__center">
+        <div class="player__controls">
+          <button type="button" class="icon-btn ctrl ctrl--mode" id="btn-shuffle" aria-pressed="false" aria-label="Shuffle">
+            <svg class="icon" aria-hidden="true"><use href="#i-shuffle"></use></svg>
+          </button>
+          <button type="button" class="icon-btn ctrl" id="btn-prev" aria-label="Previous track">
+            <svg class="icon" aria-hidden="true"><use href="#i-prev"></use></svg>
+          </button>
+          <button type="button" class="ctrl-play is-source" id="btn-play" aria-label="Play">
+            <svg class="icon ico-play" aria-hidden="true"><use href="#i-play"></use></svg>
+            <svg class="icon ico-pause" aria-hidden="true"><use href="#i-pause"></use></svg>
+          </button>
+          <button type="button" class="icon-btn ctrl" id="btn-next" aria-label="Next track">
+            <svg class="icon" aria-hidden="true"><use href="#i-next"></use></svg>
+          </button>
+          <button type="button" class="icon-btn ctrl ctrl--mode" id="btn-repeat" data-mode="off" aria-pressed="false" aria-label="Repeat: off">
+            <svg class="icon ico-repeat" aria-hidden="true"><use href="#i-repeat"></use></svg>
+            <svg class="icon ico-repeat-one" aria-hidden="true"><use href="#i-repeat-one"></use></svg>
+          </button>
+        </div>
+        <div class="player__timeline">
+          <span class="time" id="time-current">0:00</span>
+          <input type="range" class="range range--seek" id="seek" min="0" max="1000" step="1" value="0" aria-label="Seek" aria-valuetext="0:00 of 0:00">
+          <span class="time" id="time-total">0:00</span>
+        </div>
+      </div>
+
+      <div class="player__extras">
+        <button type="button" class="icon-btn" id="btn-mute" data-level="high" aria-label="Mute">
+          <svg class="icon ico-vol-high" aria-hidden="true"><use href="#i-volume"></use></svg>
+          <svg class="icon ico-vol-low" aria-hidden="true"><use href="#i-volume-low"></use></svg>
+          <svg class="icon ico-vol-x" aria-hidden="true"><use href="#i-volume-x"></use></svg>
+        </button>
+        <input type="range" class="range range--volume" id="volume" min="0" max="100" step="1" value="80" aria-label="Volume">
+        <button type="button" class="icon-btn" id="btn-queue" aria-label="Queue" aria-expanded="false" aria-controls="queue">
+          <svg class="icon" aria-hidden="true"><use href="#i-queue"></use></svg>
+        </button>
+        <button type="button" class="icon-btn" id="btn-more" aria-label="More options" aria-haspopup="menu" aria-expanded="false">
+          <svg class="icon" aria-hidden="true"><use href="#i-more"></use></svg>
+        </button>
+      </div>
+    </footer>
+
+    <!-- ===================== Mobile tab bar ===================== -->
+    <nav class="mobile-nav" aria-label="Quick navigation">
+      <a href="#/home" data-nav="home"><svg class="icon" aria-hidden="true"><use href="#i-home"></use></svg><span>Home</span></a>
+      <a href="#/discover" data-nav="discover"><svg class="icon" aria-hidden="true"><use href="#i-compass"></use></svg><span>Discover</span></a>
+      <a href="#/search" data-nav="search"><svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg><span>Search</span></a>
+      <a href="#/library" data-nav="library"><svg class="icon" aria-hidden="true"><use href="#i-library"></use></svg><span>Library</span></a>
+      <a href="#/favorites" data-nav="favorites"><svg class="icon" aria-hidden="true"><use href="#i-heart"></use></svg><span>Favorites</span></a>
+    </nav>
+  </div>
+
+  <audio id="audio" preload="metadata"></audio>
+
+  <!-- ===================== Dialogs ===================== -->
+  <dialog class="dialog" id="dlg-name" aria-labelledby="dlg-name-title">
+    <form method="dialog" class="dialog__body">
+      <h2 class="dialog__title" id="dlg-name-title">Create playlist</h2>
+      <label class="field">
+        <span class="field__label">Playlist name</span>
+        <input class="field__input" id="dlg-name-input" type="text" maxlength="40" required autocomplete="off">
+      </label>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+        <button type="submit" class="btn btn--primary" value="ok" id="dlg-name-ok">Create</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog" id="dlg-confirm" aria-labelledby="dlg-confirm-title" aria-describedby="dlg-confirm-msg">
+    <form method="dialog" class="dialog__body">
+      <h2 class="dialog__title" id="dlg-confirm-title">Delete playlist?</h2>
+      <p class="dialog__text" id="dlg-confirm-msg"></p>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+        <button type="submit" class="btn btn--danger" value="ok" id="dlg-confirm-ok">Delete</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog" id="dlg-add" aria-labelledby="dlg-add-title">
+    <div class="dialog__body">
+      <h2 class="dialog__title" id="dlg-add-title">Add to playlist</h2>
+      <p class="dialog__text" id="dlg-add-sub"></p>
+      <button type="button" class="pick pick--new" id="dlg-add-new">
+        <span class="pick__art pick__art--new"><svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg></span>
+        <span class="pick__text"><span class="pick__name">New playlist</span></span>
+      </button>
+      <ul class="pick-list" id="dlg-add-list"></ul>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost" data-close>Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="menu" id="ctx-menu" role="menu" aria-label="Options" hidden></div>
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+  <script src="js/music-data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
