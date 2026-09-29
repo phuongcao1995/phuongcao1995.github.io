@@ -1,0 +1,39 @@
+// Add a new project by adding one entry here — the homepage renders itself from this list.
+const PROJECTS = [
+  {
+    tag: "Social Network",
+    title: "Connect",
+    description: "A friendly social network prototype for sharing moments, chatting with friends and finding what's happening nearby.",
+    href: "connect/index.html",
+  },
+  {
+    tag: "Hotel Management",
+    title: "Sunrise HMS",
+    description: "A hotel management system for hotels and resorts — front office, billing, restaurant, services and customers.",
+    href: "hotel-management/index.html",
+  },
+  {
+    tag: "Irrigation",
+    title: "IrriCourse",
+    description: "Hệ thống quản lý tưới sân golf — a golf course irrigation management dashboard.",
+    href: "irri-course/index.html",
+  },
+  {
+    tag: "Music Streaming",
+    title: "Sóng",
+    description: "A music streaming prototype — browse, search, play and build playlists of Vietnamese and international music.",
+    href: "music-app/index.html",
+  },
+  {
+    tag: "ERP",
+    title: "NEXUS ERP",
+    description: "A complete business management and finance platform — sales, finance, HR and reporting in one dashboard.",
+    href: "nexus-erp/index.html",
+  },
+  {
+    tag: "E-commerce",
+    title: "NovaMart",
+    description: "Sàn thương mại điện tử — an online store demo with products, cart, checkout and order tracking.",
+    href: "novamart/index.html",
+  },
+];
