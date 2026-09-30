@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-hints="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EnglishUp — Learn English. Speak with Confidence.</title>
+<meta name="description" content="Personalized English learning designed for Vietnamese learners: AI pronunciation coach, speaking practice, vocabulary, grammar and live classes.">
+<meta name="theme-color" content="#4F46E5">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%234F46E5'/%3E%3Cpath d='M9 21.5V11a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-8.5z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  /* Apply saved theme before paint to avoid a flash */
+  try { var st = JSON.parse(localStorage.getItem('englishup_state') || 'null');
+    if (st && st.settings) { document.documentElement.setAttribute('data-theme', st.settings.dark ? 'dark' : 'light'); document.documentElement.setAttribute('data-hints', st.settings.hints || 'vi'); }
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="landing">
+<a href="#main" class="skip-link">Skip to content</a>
+<header class="site-header">
+  <div class="wrap">
+    <a href="index.html" class="logo" aria-label="EnglishUp home"><svg class="logo-mark" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="var(--primary)"/><path d="M9 21.5V11a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-8.5z" fill="#fff"/><path d="M13 16.5 16 13.5l3 3M16 13.8V19" stroke="var(--primary)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>English<b>Up</b></span></a>
+    <button class="icon-btn nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="site-nav"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <a href="#features">Features</a>
+      <a href="#paths">Courses</a>
+      <a href="#why">Why EnglishUp</a>
+      <a href="#pricing">Pricing</a>
+      <a href="login.html" data-auth-cta="label">Log in</a>
+      <a href="register.html" class="btn btn-primary btn-sm" data-auth-cta>Start Learning</a>
+    </nav>
+  </div>
+</header>
+<main id="main">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <span class="hero-kicker"><b>New</b> AI Pronunciation Coach for Vietnamese speakers</span>
+        <h1>Improve Your English. <em>Speak With Confidence.</em></h1>
+        <p class="hero-sub">Personalized English learning designed for Vietnamese learners.</p>
+        <p class="hero-sub-vi">Học tiếng Anh cá nhân hóa — luyện nói, phát âm và giao tiếp mỗi ngày chỉ 20 phút.</p>
+        <div class="btn-row">
+          <a href="register.html" class="btn btn-primary btn-lg" data-auth-cta>Start Learning</a>
+          <a href="level-test.html" class="btn btn-secondary btn-lg">Take a Free Level Test</a>
+        </div>
+        <div class="hero-proof">
+          <span class="avatar-stack" aria-hidden="true"><span class="avatar" style="--h:340">NT</span><span class="avatar" style="--h:200">LB</span><span class="avatar" style="--h:150">PL</span><span class="avatar" style="--h:265">TK</span></span>
+          <span><strong>250,000+</strong> Vietnamese learners · <span class="rating">★ 4.8</span> average rating</span>
+        </div>
+      </div>
+      <div class="hero-card" aria-label="Example of pronunciation feedback">
+        <span class="float-badge xp">⚡ +15 XP</span>
+        <span class="float-badge streak">🔥 12-day streak</span>
+        <div class="hero-card-head"><span class="ai-avatar" aria-hidden="true">🎙</span><div><strong>AI Pronunciation Coach</strong><span class="muted small">You said:</span></div></div>
+        <div class="hero-sentence"><span class="hero-word">I</span><span class="hero-word">would</span><span class="hero-word">like</span><span class="hero-word warn">to</span><span class="hero-word">improve</span><span class="hero-word">my</span><span class="hero-word">English.</span></div>
+        <div class="hero-scores">
+          <div class="ring" style="width:108px;height:108px"><svg width="108" height="108" viewBox="0 0 108 108" aria-hidden="true"><circle cx="54" cy="54" r="48" stroke="var(--ring-track)" stroke-width="10" fill="none"/><circle cx="54" cy="54" r="48" stroke="var(--success)" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="301.6" stroke-dashoffset="39.2" transform="rotate(-90 54 54)"/></svg><div class="ring-text"><strong>87</strong><span>Score</span></div></div>
+          <div>
+            <div class="skill-row"><span>Accuracy</span><div class="progress ok"><span style="width:92%"></span></div><strong>92%</strong></div>
+            <div class="skill-row"><span>Fluency</span><div class="progress mid"><span style="width:81%"></span></div><strong>81%</strong></div>
+            <div class="skill-row"><span>Intonation</span><div class="progress ok"><span style="width:88%"></span></div><strong>88%</strong></div>
+          </div>
+        </div>
+        <p class="hero-tip">⚠ <strong>“to”</strong> — Âm /t/ trong 'to' cần phát âm rõ hơn.</p>
+        <div class="hero-card-actions"><button class="btn btn-sm btn-secondary" id="hero-listen" type="button">🔊 Listen</button><a class="btn btn-sm btn-primary" href="register.html" data-auth-cta>Try it free</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="logos" aria-label="Where our learners work">
+    <div class="wrap">Trusted by learners working at
+      <div class="logo-row"><span>FPT Software</span><span>VNG</span><span>Tiki</span><span>MoMo</span><span>Viettel</span><span>Shopee VN</span></div>
+    </div>
+  </section>
+
+  <section class="section alt" id="features">
+    <div class="wrap">
+      <div class="section-head"><h2>Everything you need to speak English</h2><p>One app for speaking, pronunciation, vocabulary, grammar and listening — built around the mistakes Vietnamese learners actually make.</p></div>
+      <div class="feature-grid"><article class="feature"><div class="feature-ic" style="--h:250" aria-hidden="true">🎙</div><h3>AI Pronunciation Coach</h3><p>Say a sentence and get a score for every word, with tips in Vietnamese for sounds like /θ/, /ʃ/ and final consonants.</p></article><article class="feature"><div class="feature-ic" style="--h:25" aria-hidden="true">🗣</div><h3>Real-life Speaking Practice</h3><p>Order coffee, check in at the airport or ace a job interview with an AI partner that corrects you kindly.</p></article><article class="feature"><div class="feature-ic" style="--h:160" aria-hidden="true">📚</div><h3>Smart Vocabulary</h3><p>Flashcards with spaced repetition show you each word right before you forget it.</p></article><article class="feature"><div class="feature-ic" style="--h:320" aria-hidden="true">✍️</div><h3>Grammar Made Simple</h3><p>Short explanations in English and Vietnamese, then instant-feedback practice.</p></article><article class="feature"><div class="feature-ic" style="--h:205" aria-hidden="true">🎥</div><h3>Live Classes</h3><p>1-on-1 classes with experienced teachers from 180,000đ. Book in two taps.</p></article><article class="feature"><div class="feature-ic" style="--h:45" aria-hidden="true">📈</div><h3>Progress You Can See</h3><p>Daily goals, streaks, XP and weekly reports keep you motivated.</p></article></div>
+    </div>
+  </section>
+
+  <section class="section" id="why">
+    <div class="wrap why-grid">
+      <div>
+        <div class="section-head" style="text-align:left;margin:0 0 28px"><h2>Why EnglishUp?</h2><p>Most apps are built for everyone. EnglishUp is built for you.</p></div>
+        <div class="why-list">
+          <div class="why-item"><span class="why-num">1</span><div><h3>Designed for Vietnamese speakers</h3><p>We focus on the sounds and grammar that are hardest for Vietnamese learners — ending sounds, stress, tenses and articles.</p></div></div>
+          <div class="why-item"><span class="why-num">2</span><div><h3>Explanations in Vietnamese</h3><p>Stuck? Switch on Vietnamese hints anytime. Switch them off as your confidence grows.</p></div></div>
+          <div class="why-item"><span class="why-num">3</span><div><h3>20 minutes a day is enough</h3><p>A personalised daily plan with short lessons that fit your commute or lunch break.</p></div></div>
+          <div class="why-item"><span class="why-num">4</span><div><h3>Practice speaking without fear</h3><p>Talk to AI first, then join live classes with real teachers when you are ready.</p></div></div>
+        </div>
+      </div>
+      <div class="compare-card">
+        <h3>Common mistakes we fix every day</h3>
+        <p class="muted small">Lỗi thường gặp của người Việt — và cách nói đúng.</p>
+        <div class="mistake"><span class="w">I very like this movie.</span><span class="r">I really like this movie.</span></div>
+        <div class="mistake"><span class="w">She go to work every day.</span><span class="r">She goes to work every day.</span></div>
+        <div class="mistake"><span class="w">I have 25 years old.</span><span class="r">I am 25 years old.</span></div>
+        <div class="mistake"><span class="w">Let's discuss about the plan.</span><span class="r">Let's discuss the plan.</span></div>
+        <div class="mistake"><span class="w">I am boring today.</span><span class="r">I'm bored today.</span></div>
+        <a href="register.html" class="btn btn-secondary btn-block" style="margin-top:8px" data-auth-cta>Check my English for free</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt" id="paths">
+    <div class="wrap">
+      <div class="section-head"><h2>Learning paths for every goal</h2><p>Take the level test and we'll recommend the right path — from your first words to fluent presentations.</p></div>
+      <div class="path-grid"><a class="path-card" href="register.html"><span class="thumb-emoji" aria-hidden="true">💬</span><h3>Daily Communication</h3><p>Small talk, shopping, phone calls and making friends.</p><span class="badge badge-soft">A1 – B1</span></a><a class="path-card" href="register.html"><span class="thumb-emoji" aria-hidden="true">💼</span><h3>English for Work</h3><p>Emails, meetings, presentations and interviews.</p><span class="badge badge-soft">B1 – C1</span></a><a class="path-card" href="register.html"><span class="thumb-emoji" aria-hidden="true">🎓</span><h3>IELTS & TOEIC</h3><p>Band-focused speaking, writing and test strategies.</p><span class="badge badge-soft">B1 – C1</span></a><a class="path-card" href="register.html"><span class="thumb-emoji" aria-hidden="true">💻</span><h3>English for Developers</h3><p>Stand-ups, code reviews and tech interviews.</p><span class="badge badge-soft">B1 – B2</span></a></div>
+      <p class="trial-note"><a href="level-test.html">Not sure where to start? Take the free level test</a></p>
+    </div>
+  </section>
+
+  <section class="section" id="testimonials">
+    <div class="wrap">
+      <div class="section-head"><h2>Loved by learners across Vietnam</h2><p>From Hà Nội to Cần Thơ, people are speaking English with confidence.</p></div>
+      <div class="testimonial-grid"><figure class="testimonial"><blockquote>“Mình từng rất sợ nói tiếng Anh. Sau 2 tháng luyện với AI coach mỗi sáng, mình đã tự tin họp với khách hàng Singapore.”</blockquote><figcaption><span class="avatar" style="--h:340">NT</span><span><strong>Nguyen Thu Trang</strong><span class="muted small">Marketing Executive, Hà Nội</span></span></figcaption><span class="result">Speaking B1 → B2</span></figure><figure class="testimonial"><blockquote>“The pronunciation feedback is incredibly specific. It finally fixed my missing final sounds — “work” vs “wor”.”</blockquote><figcaption><span class="avatar" style="--h:200">LB</span><span><strong>Le Quoc Bao</strong><span class="muted small">Software Engineer, Đà Nẵng</span></span></figcaption><span class="result">Pronunciation 68 → 89</span></figure><figure class="testimonial"><blockquote>“Học 20 phút mỗi ngày trên xe buýt. Giải thích bằng tiếng Việt giúp mình hiểu ngữ pháp nhanh hơn nhiều.”</blockquote><figcaption><span class="avatar" style="--h:150">PL</span><span><strong>Pham My Linh</strong><span class="muted small">University student, TP.HCM</span></span></figcaption><span class="result">120-day streak 🔥</span></figure><figure class="testimonial"><blockquote>“I prepared for my IELTS speaking test with the mock interviews and live classes. Got 7.0!”</blockquote><figcaption><span class="avatar" style="--h:265">TK</span><span><strong>Tran Minh Khoa</strong><span class="muted small">Product Manager, TP.HCM</span></span></figcaption><span class="result">IELTS Speaking 7.0</span></figure><figure class="testimonial"><blockquote>“Con gái mình học các bài giao tiếp hằng ngày và rất thích hệ thống huy hiệu. Bé tự nhắc mình học mỗi tối.”</blockquote><figcaption><span class="avatar" style="--h:25">HM</span><span><strong>Hoang Thi Mai</strong><span class="muted small">Parent, Cần Thơ</span></span></figcaption><span class="result">Family plan</span></figure></div>
+    </div>
+  </section>
+
+  <section class="section alt" id="pricing">
+    <div class="wrap">
+      <div class="section-head"><h2>Simple pricing</h2><p>Start free. Upgrade when you're ready — every paid plan includes a 7-day free trial.</p>
+        <div class="billing-toggle"><span>Monthly</span><button class="toggle" id="billing-switch" role="switch" aria-checked="false" aria-label="Yearly billing"></button><span>Yearly <span class="badge badge-success">Save 30%</span></span></div>
+      </div>
+      <div class="plan-grid" id="pricing-grid"></div>
+      <p class="trial-note">7-day free trial · Cancel anytime · Pay with MoMo, ZaloPay, card or bank transfer</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="cta-band">
+      <div><h2>Your first lesson takes 5 minutes.</h2><p>Bắt đầu miễn phí hôm nay — không cần thẻ tín dụng.</p></div>
+      <div class="btn-row" style="margin:0"><a href="register.html" class="btn btn-primary btn-lg" data-auth-cta>Start Learning</a><a href="level-test.html" class="btn btn-secondary btn-lg">Take a Free Level Test</a></div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer" id="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand"><a href="index.html" class="logo" aria-label="EnglishUp home"><svg class="logo-mark" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="var(--primary)"/><path d="M9 21.5V11a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-8.5z" fill="#fff"/><path d="M13 16.5 16 13.5l3 3M16 13.8V19" stroke="var(--primary)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>English<b>Up</b></span></a><p>Learn English. Speak with Confidence. Personalized English learning designed for Vietnamese learners.</p>
+        <div class="socials"><a href="#" data-soon aria-label="Facebook">Fb</a><a href="#" data-soon aria-label="YouTube">YT</a><a href="#" data-soon aria-label="TikTok">TT</a></div></div>
+      <div><h3>Company</h3><ul><li><a href="#" data-soon>About</a></li><li><a href="#" data-soon>Blog</a></li><li><a href="#" data-soon>Contact</a></li></ul></div>
+      <div><h3>Learn</h3><ul><li><a href="courses.html">Courses</a></li><li><a href="live-classes.html">Teachers</a></li><li><a href="#pricing">Pricing</a></li><li><a href="level-test.html">Level Test</a></li></ul></div>
+      <div><h3>Support</h3><ul><li><a href="#" data-soon>Help Center</a></li><li><a href="#" data-soon>Terms</a></li><li><a href="#" data-soon>Privacy</a></li></ul></div>
+      <div><h3>Weekly English tips</h3><p class="muted small">Mẹo học tiếng Anh mỗi tuần, gửi thẳng vào email.</p>
+        <form class="newsletter" id="newsletter" novalidate><label class="sr-only" for="nl-email">Email</label><input id="nl-email" class="input" type="email" placeholder="Your email"><button class="btn btn-primary btn-sm" type="submit" style="height:40px">Subscribe</button></form></div>
+    </div>
+    <div class="footer-bottom"><span>© <span id="footer-year">2026</span> EnglishUp. Made with ❤ in Vietnam.</span><span>Hà Nội, Đà Nẵng, TP. Hồ Chí Minh</span></div>
+  </div>
+</footer>
+<script src="js/utils.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

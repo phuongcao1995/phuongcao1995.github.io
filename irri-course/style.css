@@ -1,5 +1,5 @@
 /* =========================================================
-   IrriCourse – Hệ thống quản lý tưới sân golf
+   IrriCourse – Golf Course Irrigation Management System
    ========================================================= */
 :root {
   --bg: #EBF0ED;
@@ -72,7 +72,7 @@ button { cursor: pointer; }
 .nowrap { white-space: nowrap; }
 .num { text-align: right; white-space: nowrap; }
 
-/* ================= Khung ứng dụng ================= */
+/* ================= Application shell ================= */
 .app { display: grid; grid-template-columns: var(--side-w) 1fr; min-height: 100vh; transition: grid-template-columns .22s ease; }
 body.side-collapsed .app { grid-template-columns: var(--side-wc) 1fr; }
 
@@ -217,7 +217,7 @@ mark { background: #FFE8A3; color: inherit; border-radius: 2px; padding: 0 1px; 
 .sev-info { background: var(--water-bg); color: var(--water-2); }
 .sev-success { background: var(--turf-bg); color: var(--turf); }
 
-/* ================= Nội dung ================= */
+/* ================= Content ================= */
 .content { padding: 22px 24px 40px; outline: none; }
 .page { animation: pageIn .2s ease-out; }
 @keyframes pageIn { from { opacity: 0; } }

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-hints="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vocabulary Builder — EnglishUp</title>
+<meta name="description" content="Learn English words with flashcards and spaced repetition.">
+<meta name="theme-color" content="#4F46E5">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%234F46E5'/%3E%3Cpath d='M9 21.5V11a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-8.5z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  /* Apply saved theme before paint to avoid a flash */
+  try { var st = JSON.parse(localStorage.getItem('englishup_state') || 'null');
+    if (st && st.settings) { document.documentElement.setAttribute('data-theme', st.settings.dark ? 'dark' : 'light'); document.documentElement.setAttribute('data-hints', st.settings.hints || 'vi'); }
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="vocabulary">
+<main class="main" id="main" tabindex="-1">
+<header class="page-head"><div><h1>Vocabulary Builder</h1><p>Flashcards, quizzes and spaced repetition so new words stick.</p><span class="vi-hint">Hệ thống ôn tập ngắt quãng giúp bạn nhớ từ lâu hơn.</span></div></header>
+<div class="vocab-stats" id="vocab-stats"></div>
+<div class="vocab-layout">
+  <section class="card vocab-main" aria-label="Practice">
+    <div class="tabs" id="mode-tabs" role="tablist" aria-label="Practice modes" style="margin-top:0"></div>
+    <div class="vocab-stage" id="vocab-stage" aria-live="polite"></div>
+  </section>
+  <aside class="card word-panel" aria-labelledby="bank-title">
+    <div class="card-head"><h2 id="bank-title">Word bank</h2><button class="btn btn-sm btn-secondary toggle-btn" id="fav-toggle" aria-pressed="false">⭐ Favorites</button></div>
+    <div class="vocab-toolbar">
+      <label class="sr-only" for="topic-filter">Topic</label><select id="topic-filter" class="input"></select>
+      <div class="input-icon grow"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><label class="sr-only" for="word-search">Search words</label><input id="word-search" class="input" type="search" placeholder="Search words" style="height:38px"></div>
+    </div>
+    <ul class="word-list" id="word-list"></ul>
+  </aside>
+</div>
+</main>
+<noscript><p style="padding:20px">EnglishUp needs JavaScript enabled to work.</p></noscript>
+<script src="js/utils.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/vocabulary.js"></script>
+</body>
+</html>

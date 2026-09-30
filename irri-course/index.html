@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>IrriCourse – Hệ thống quản lý tưới sân golf</title>
+  <title>IrriCourse – Golf Course Irrigation Management System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
 </head>
 <body>
 
-<!-- Bộ biểu tượng SVG dùng chung -->
+<!-- Shared SVG icon set -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
@@ -63,8 +63,8 @@
 
 <div class="app" id="app">
 
-  <!-- ============ THANH ĐIỀU HƯỚNG TRÁI ============ -->
-  <aside class="sidebar" id="sidebar" aria-label="Điều hướng chính">
+  <!-- ============ LEFT NAVIGATION BAR ============ -->
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
     <div class="brand">
       <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
         <circle cx="16" cy="16" r="15" fill="#135040"/>
@@ -73,91 +73,91 @@
       </svg>
       <div class="brand-text">
         <strong>IrriCourse</strong>
-        <span>Điều khiển tưới sân golf</span>
+        <span>Golf Course Irrigation Control</span>
       </div>
     </div>
 
     <nav class="nav" id="nav">
-      <a class="nav-item" href="#/dashboard" data-nav="dashboard" data-tip-side="Tổng quan"><svg class="ic"><use href="#i-dash"/></svg><span>Tổng quan</span></a>
-      <a class="nav-item" href="#/map" data-nav="map" data-tip-side="Bản đồ tưới"><svg class="ic"><use href="#i-map"/></svg><span>Bản đồ tưới</span></a>
+      <a class="nav-item" href="#/dashboard" data-nav="dashboard" data-tip-side="Overview"><svg class="ic"><use href="#i-dash"/></svg><span>Overview</span></a>
+      <a class="nav-item" href="#/map" data-nav="map" data-tip-side="Irrigation Map"><svg class="ic"><use href="#i-map"/></svg><span>Irrigation Map</span></a>
 
       <div class="nav-group open" data-group="structure">
-        <button class="nav-item nav-toggle" type="button" aria-expanded="true" data-nav-parent="structure" data-tip-side="Sân &amp; Khu vực"><svg class="ic"><use href="#i-flag"/></svg><span>Sân &amp; Khu vực</span><svg class="ic caret"><use href="#i-chev-down"/></svg></button>
+        <button class="nav-item nav-toggle" type="button" aria-expanded="true" data-nav-parent="structure" data-tip-side="Courses &amp; Areas"><svg class="ic"><use href="#i-flag"/></svg><span>Courses &amp; Areas</span><svg class="ic caret"><use href="#i-chev-down"/></svg></button>
         <div class="nav-sub">
-          <a href="#/structure/courses" data-nav="structure/courses">Sân golf (Course)</a>
-          <a href="#/structure/sites" data-nav="structure/sites">Khu vực (Site)</a>
-          <a href="#/structure/holes" data-nav="structure/holes">Hố golf (Hole)</a>
-          <a href="#/structure/areas" data-nav="structure/areas">Khu tưới (Area)</a>
+          <a href="#/structure/courses" data-nav="structure/courses">Golf Course (Course)</a>
+          <a href="#/structure/sites" data-nav="structure/sites">Area (Site)</a>
+          <a href="#/structure/holes" data-nav="structure/holes">Golf Hole (Hole)</a>
+          <a href="#/structure/areas" data-nav="structure/areas">Irrigation Zone (Area)</a>
         </div>
       </div>
 
       <div class="nav-group open" data-group="equipment">
-        <button class="nav-item nav-toggle" type="button" aria-expanded="true" data-nav-parent="equipment" data-tip-side="Thiết bị hiện trường"><svg class="ic"><use href="#i-chip"/></svg><span>Thiết bị hiện trường</span><svg class="ic caret"><use href="#i-chev-down"/></svg></button>
+        <button class="nav-item nav-toggle" type="button" aria-expanded="true" data-nav-parent="equipment" data-tip-side="Field Equipment"><svg class="ic"><use href="#i-chip"/></svg><span>Field Equipment</span><svg class="ic caret"><use href="#i-chev-down"/></svg></button>
         <div class="nav-sub">
-          <a href="#/equipment/satellites" data-nav="equipment/satellites">Bộ điều khiển</a>
-          <a href="#/equipment/decoders" data-nav="equipment/decoders">Bộ giải mã</a>
-          <a href="#/equipment/radios" data-nav="equipment/radios">Thiết bị Radio</a>
-          <a href="#/equipment/stations" data-nav="equipment/stations">Trạm tưới</a>
+          <a href="#/equipment/satellites" data-nav="equipment/satellites">Controllers</a>
+          <a href="#/equipment/decoders" data-nav="equipment/decoders">Decoders</a>
+          <a href="#/equipment/radios" data-nav="equipment/radios">Radio Devices</a>
+          <a href="#/equipment/stations" data-nav="equipment/stations">Irrigation Stations</a>
         </div>
       </div>
 
-      <a class="nav-item" href="#/schedule" data-nav="schedule" data-tip-side="Lịch tưới"><svg class="ic"><use href="#i-cal"/></svg><span>Lịch tưới</span></a>
-      <a class="nav-item" href="#/pumps" data-nav="pumps" data-tip-side="Lưu lượng &amp; Máy bơm"><svg class="ic"><use href="#i-pump"/></svg><span>Lưu lượng &amp; Máy bơm</span></a>
-      <a class="nav-item" href="#/sensors" data-nav="sensors" data-tip-side="Cảm biến"><svg class="ic"><use href="#i-sensor"/></svg><span>Cảm biến</span></a>
-      <a class="nav-item" href="#/diagnostics" data-nav="diagnostics" data-tip-side="Chẩn đoán"><svg class="ic"><use href="#i-pulse"/></svg><span>Chẩn đoán</span></a>
-      <a class="nav-item" href="#/reports" data-nav="reports" data-tip-side="Báo cáo"><svg class="ic"><use href="#i-report"/></svg><span>Báo cáo</span></a>
-      <a class="nav-item" href="#/settings" data-nav="settings" data-tip-side="Cài đặt"><svg class="ic"><use href="#i-gear"/></svg><span>Cài đặt</span></a>
+      <a class="nav-item" href="#/schedule" data-nav="schedule" data-tip-side="Irrigation Schedule"><svg class="ic"><use href="#i-cal"/></svg><span>Irrigation Schedule</span></a>
+      <a class="nav-item" href="#/pumps" data-nav="pumps" data-tip-side="Flow &amp; Pumps"><svg class="ic"><use href="#i-pump"/></svg><span>Flow &amp; Pumps</span></a>
+      <a class="nav-item" href="#/sensors" data-nav="sensors" data-tip-side="Sensors"><svg class="ic"><use href="#i-sensor"/></svg><span>Sensors</span></a>
+      <a class="nav-item" href="#/diagnostics" data-nav="diagnostics" data-tip-side="Diagnostics"><svg class="ic"><use href="#i-pulse"/></svg><span>Diagnostics</span></a>
+      <a class="nav-item" href="#/reports" data-nav="reports" data-tip-side="Reports"><svg class="ic"><use href="#i-report"/></svg><span>Reports</span></a>
+      <a class="nav-item" href="#/settings" data-nav="settings" data-tip-side="Settings"><svg class="ic"><use href="#i-gear"/></svg><span>Settings</span></a>
     </nav>
 
     <div class="side-foot">
       <div class="weather" id="side-weather">
         <svg class="ic"><use href="#i-rain"/></svg>
-        <div><strong id="side-temp">31,4 °C</strong><span>Mưa 24h: 0,0 mm</span></div>
+        <div><strong id="side-temp">31.4 °C</strong><span>Rain 24h: 0.0 mm</span></div>
       </div>
-      <button class="collapse-btn" id="collapse-btn" type="button" aria-label="Thu gọn thanh điều hướng">
-        <svg class="ic"><use href="#i-sidebar"/></svg><span>Thu gọn</span>
+      <button class="collapse-btn" id="collapse-btn" type="button" aria-label="Collapse navigation">
+        <svg class="ic"><use href="#i-sidebar"/></svg><span>Collapse</span>
       </button>
     </div>
   </aside>
   <div class="side-backdrop" id="side-backdrop"></div>
 
-  <!-- ============ KHU VỰC CHÍNH ============ -->
+  <!-- ============ MAIN AREA ============ -->
   <div class="main">
     <header class="topbar">
-      <button class="icon-btn mobile-menu" id="mobile-menu" type="button" aria-label="Mở menu"><svg class="ic"><use href="#i-menu"/></svg></button>
+      <button class="icon-btn mobile-menu" id="mobile-menu" type="button" aria-label="Open menu"><svg class="ic"><use href="#i-menu"/></svg></button>
 
       <div class="ctx">
         <div class="ctx-club">
           <strong id="club-name">Riverside Golf Club</strong>
-          <span>Hòa Vang, Đà Nẵng</span>
+          <span>Hoa Vang, Da Nang</span>
         </div>
         <div class="ctx-selects">
-          <label class="sr-only" for="ctx-course">Chọn sân</label>
+          <label class="sr-only" for="ctx-course">Select course</label>
           <select id="ctx-course" class="select select-sm"></select>
-          <label class="sr-only" for="ctx-site">Chọn khu vực</label>
+          <label class="sr-only" for="ctx-site">Select area</label>
           <select id="ctx-site" class="select select-sm"></select>
         </div>
       </div>
 
       <div class="gsearch" id="gsearch">
         <svg class="ic"><use href="#i-search"/></svg>
-        <input id="g-search" type="search" placeholder="Tìm sân, hố, trạm, thiết bị, cảm biến…" autocomplete="off" aria-label="Tìm kiếm toàn hệ thống">
+        <input id="g-search" type="search" placeholder="Search courses, holes, stations, equipment, sensors…" autocomplete="off" aria-label="Search entire system">
         <kbd>/</kbd>
         <div class="dropdown gs-results" id="gs-results" hidden></div>
       </div>
 
       <div class="top-right">
-        <div class="live" data-tip="Dữ liệu được mô phỏng và cập nhật tự động">
+        <div class="live" data-tip="Data is simulated and updates automatically">
           <span class="live-dot"></span>
-          <div><strong>Live Demo</strong><span>Cập nhật: <b id="last-updated">--:--:--</b></span></div>
+          <div><strong>Live Demo</strong><span>Updated: <b id="last-updated">--:--:--</b></span></div>
         </div>
 
-        <div class="sys-status" id="sys-status"><span class="dot"></span><span id="sys-status-text">Trạng thái hệ thống: Bình thường</span></div>
+        <div class="sys-status" id="sys-status"><span class="dot"></span><span id="sys-status-text">System status: Normal</span></div>
 
         <div class="clock"><strong id="clock-time">--:--:--</strong><span id="clock-date"></span></div>
 
         <div class="dd-wrap">
-          <button class="icon-btn bell" id="bell-btn" type="button" aria-label="Thông báo" aria-expanded="false" data-dd="notif-dd">
+          <button class="icon-btn bell" id="bell-btn" type="button" aria-label="Notifications" aria-expanded="false" data-dd="notif-dd">
             <svg class="ic"><use href="#i-bell"/></svg><span class="bell-badge" id="bell-badge" hidden>0</span>
           </button>
           <div class="dropdown notif-dd" id="notif-dd" hidden></div>
@@ -166,14 +166,14 @@
         <div class="dd-wrap">
           <button class="user-btn" type="button" aria-expanded="false" data-dd="user-dd">
             <span class="avatar">NM</span>
-            <span class="user-meta"><strong>Nguyễn Văn Minh</strong><span>Kỹ thuật viên tưới</span></span>
+            <span class="user-meta"><strong>Nguyen Van Minh</strong><span>Irrigation Technician</span></span>
             <svg class="ic"><use href="#i-chev-down"/></svg>
           </button>
           <div class="dropdown user-dd" id="user-dd" hidden>
-            <div class="user-card"><span class="avatar lg">NM</span><div><strong>Nguyễn Văn Minh</strong><span>minh.nv@riversidegolf.vn</span><span>Ca vận hành: 04:00 – 12:00</span></div></div>
-            <button class="dd-item" data-action="profile"><svg class="ic"><use href="#i-user"/></svg>Hồ sơ cá nhân</button>
-            <a class="dd-item" href="#/settings"><svg class="ic"><use href="#i-gear"/></svg>Cài đặt hệ thống</a>
-            <button class="dd-item" data-action="logout"><svg class="ic"><use href="#i-logout"/></svg>Đăng xuất</button>
+            <div class="user-card"><span class="avatar lg">NM</span><div><strong>Nguyen Van Minh</strong><span>minh.nv@riversidegolf.vn</span><span>Shift: 04:00 – 12:00</span></div></div>
+            <button class="dd-item" data-action="profile"><svg class="ic"><use href="#i-user"/></svg>My Profile</button>
+            <a class="dd-item" href="#/settings"><svg class="ic"><use href="#i-gear"/></svg>System Settings</a>
+            <button class="dd-item" data-action="logout"><svg class="ic"><use href="#i-logout"/></svg>Log Out</button>
           </div>
         </div>
       </div>
@@ -194,7 +194,7 @@
   </div>
 </div>
 
-<!-- Lớp phủ dùng chung -->
+<!-- Shared overlays -->
 <div class="drawer" id="drawer" hidden></div>
 <div class="modal-backdrop" id="modal" hidden></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>

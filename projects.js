@@ -13,6 +13,12 @@ const PROJECTS = [
     href: "hotel-management/index.html",
   },
   {
+    tag: "Hospital Management",
+    title: "MediPlus HIS",
+    description: "A hospital management system for hospitals and clinics — patients, appointments, inpatient care, laboratory, pharmacy and billing.",
+    href: "hospital-management/index.html",
+  },
+  {
     tag: "Irrigation",
     title: "IrriCourse",
     description: "Hệ thống quản lý tưới sân golf — a golf course irrigation management dashboard.",
@@ -35,5 +41,17 @@ const PROJECTS = [
     title: "NovaMart",
     description: "Sàn thương mại điện tử — an online store demo with products, cart, checkout and order tracking.",
     href: "novamart/index.html",
+  },
+  {
+    tag: "e-Government",
+    title: "e-Gov Administration",
+    description: "Nền tảng hành chính số — a digital government administration demo with role-based access, citizen records and document processing.",
+    href: "egov-admin/index.html",
+  },
+  {
+    tag: "E-learning",
+    title: "EnglishUp",
+    description: "Learn English, speak with confidence — courses, level tests, AI pronunciation coach, grammar, vocabulary and live classes for Vietnamese learners.",
+    href: "englishup/index.html",
   },
 ];

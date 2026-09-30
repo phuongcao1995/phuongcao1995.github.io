@@ -1,0 +1,194 @@
+/* =========================================================
+   Module styles: login, dashboard hero, bed board, outpatient
+   queue, emergency triage board, EMR/profile, invoicing, print
+   ========================================================= */
+
+/* ---------- Login ---------- */
+.login { min-height: 100vh; display: grid; grid-template-columns: 1.1fr 1fr; background: var(--surface); }
+.login-art { position: relative; background: var(--side-bg); color: #E4EEF5; overflow: hidden; display: flex; align-items: center; padding: 48px; }
+.login-art-inner { position: relative; z-index: 1; max-width: 440px; }
+.login-art h1 { font-size: 2.6rem; font-weight: 700; margin: 22px 0 12px; color: #fff; letter-spacing: -.03em; }
+.login-art p { color: #A6C0D2; font-size: 1.05rem; line-height: 1.6; }
+.login-points { list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-direction: column; gap: 10px; }
+.login-points li { padding-left: 22px; position: relative; color: #CFE0EB; }
+.login-points li::before { content: ""; position: absolute; left: 0; top: .55em; width: 10px; height: 10px; border-radius: 3px; background: var(--lantern); }
+.login-waves { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 180px; }
+.login-waves path:first-child { fill: rgba(255,255,255,.04); }
+.login-waves path:last-child { fill: rgba(14,165,160,.12); }
+.login-panel { display: flex; align-items: center; justify-content: center; padding: 32px 24px; }
+.login-form { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 14px; }
+.login-form h2 { font-size: var(--fs-2xl); }
+.login-form > p { margin: -6px 0 4px; }
+.demo-accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+.demo-acc { text-align: left; border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; background: var(--surface-2); }
+.demo-acc:hover { border-color: var(--primary); background: var(--primary-soft); }
+.demo-acc strong { display: block; font-size: var(--fs-md); }
+.demo-acc span { font-size: var(--fs-xs); color: var(--muted); }
+
+/* ---------- Dashboard hero ---------- */
+.dash-hero { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; margin-bottom: 16px; }
+.occ-card { padding: 20px 22px; display: flex; gap: 24px; align-items: center; }
+.occ-ring { position: relative; width: 132px; height: 132px; flex: none; }
+.occ-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.occ-ring .ring-bg { stroke: var(--surface-3); }
+.occ-ring .ring-fg { stroke: var(--lantern); stroke-linecap: round; transition: stroke-dasharray .8s ease; }
+.occ-ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.occ-ring-label strong { font-size: 1.7rem; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.occ-ring-label span { font-size: var(--fs-xs); color: var(--muted); text-align: center; }
+.occ-stats { flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px 20px; }
+.occ-stat span { display: block; font-size: var(--fs-sm); color: var(--muted); }
+.occ-stat strong { font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.today-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.today-strip > div { padding: 18px 20px; border-right: 1px solid var(--line-2); }
+.today-strip > div:last-child { border-right: 0; }
+.today-strip span { display: block; font-size: var(--fs-sm); color: var(--muted); }
+.today-strip strong { display: block; font-size: 2rem; font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.today-strip a { font-size: var(--fs-sm); font-weight: 600; }
+.today-revenue { border-top: 1px solid var(--line-2); padding: 14px 20px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.today-revenue strong { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+
+/* ---------- Bed board ---------- */
+.status-legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.bed-board { display: flex; flex-direction: column; gap: 16px; }
+.floor-row { display: grid; grid-template-columns: 150px 1fr; gap: 12px; align-items: start; }
+.floor-label { font-size: var(--fs-sm); font-weight: 600; color: var(--muted); padding-top: 8px; }
+.floor-label small { display: block; font-weight: 400; font-size: var(--fs-xs); }
+.bed-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.bed-tile {
+  --c: var(--st-available);
+  position: relative;
+  text-align: left;
+  padding: 8px 10px 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  min-height: 72px;
+  display: flex; flex-direction: column; gap: 1px;
+  overflow: hidden;
+  transition: border-color .15s, transform .1s;
+}
+.bed-tile::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--c); }
+.bed-tile:hover { border-color: var(--c); }
+.bed-tile:active { transform: scale(.98); }
+.bed-tile .bt-num { font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; color: var(--ink); }
+.bed-tile .bt-dept { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bed-tile .bt-patient { font-size: 11px; font-weight: 600; color: var(--c); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: auto; }
+.bed-tile[data-status="Available"] { --c: var(--st-available); }
+.bed-tile[data-status="Reserved"] { --c: var(--st-reserved); }
+.bed-tile[data-status="Occupied"] { --c: var(--st-occupied); background: color-mix(in srgb, var(--st-occupied) 7%, var(--surface)); }
+.bed-tile[data-status="Cleaning"] { --c: var(--st-cleaning); }
+.bed-tile[data-status="Maintenance"] { --c: var(--st-maintenance); background: repeating-linear-gradient(135deg, var(--surface), var(--surface) 6px, var(--surface-2) 6px, var(--surface-2) 12px); }
+.swatch[data-status="Available"] { background: var(--st-available); }
+.swatch[data-status="Occupied"] { background: var(--st-occupied); }
+.swatch[data-status="Reserved"] { background: var(--st-reserved); }
+.swatch[data-status="Cleaning"] { background: var(--st-cleaning); }
+.swatch[data-status="Maintenance"] { background: var(--st-maintenance); }
+
+/* ---------- Outpatient queue (kanban) ---------- */
+.queue-board { display: grid; grid-template-columns: repeat(5, minmax(200px, 1fr)); gap: 12px; overflow-x: auto; padding-bottom: 4px; }
+.queue-col { background: var(--surface-2); border: 1px solid var(--line-2); border-radius: var(--radius); min-height: 120px; display: flex; flex-direction: column; }
+.queue-col-head { padding: 10px 12px; font-size: var(--fs-sm); font-weight: 600; color: var(--ink-2); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line-2); }
+.queue-col-head .count { font-size: 11px; font-weight: 700; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--surface-3); color: var(--muted); display: inline-grid; place-items: center; }
+.queue-col-body { padding: 8px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.queue-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 11px; text-align: left; display: flex; flex-direction: column; gap: 4px; }
+.queue-card:hover { border-color: var(--primary); }
+.queue-card .qc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.queue-card .qc-num { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--primary); }
+.queue-card .qc-name { font-weight: 600; font-size: var(--fs-sm); }
+.queue-card .qc-meta { font-size: 11px; color: var(--muted); }
+
+/* ---------- Appointment calendar (month grid) ---------- */
+.cal-month-head { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px; }
+.cal-month-head span { text-align: center; font-size: var(--fs-xs); color: var(--muted); font-weight: 600; }
+.cal-month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-day-cell { position: relative; aspect-ratio: 1.05; border: 1px solid var(--line-2); border-radius: var(--radius-sm); background: var(--surface); display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; padding: 6px; text-align: left; }
+.cal-day-cell.empty { border: 0; background: transparent; }
+.cal-day-cell:not(.empty):hover { border-color: var(--primary); }
+.cal-day-cell .cdn { font-size: var(--fs-sm); font-weight: 600; font-variant-numeric: tabular-nums; }
+.cal-day-cell .cdc { position: absolute; bottom: 6px; right: 6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--primary-soft); color: var(--primary); font-size: 10px; font-weight: 700; display: inline-grid; place-items: center; }
+.cal-day-cell.is-today { border-color: var(--lantern); box-shadow: inset 0 0 0 1px var(--lantern); }
+.cal-day-cell.is-today .cdn { color: var(--lantern-ink); }
+.cal-day-cell.is-sel { background: var(--primary-soft); border-color: var(--primary); }
+
+/* ---------- Emergency triage board ---------- */
+.er-board { display: flex; flex-direction: column; gap: 10px; }
+.er-card { --c: var(--tri-moderate); background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--c); border-radius: var(--radius-sm); padding: 12px 14px; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; }
+.er-card[data-triage="Critical"] { --c: var(--tri-critical); background: color-mix(in srgb, var(--tri-critical) 6%, var(--surface)); }
+.er-card[data-triage="Urgent"] { --c: var(--tri-urgent); }
+.er-card[data-triage="Moderate"] { --c: var(--tri-moderate); }
+.er-card[data-triage="Non-Urgent"] { --c: var(--tri-nonurgent); }
+.er-card .er-name { font-weight: 600; }
+.er-card .er-meta { font-size: var(--fs-xs); color: var(--muted); margin-top: 2px; }
+.triage-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: var(--c); }
+
+/* ---------- Vitals & EMR ---------- */
+.vitals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+.vital-tile { background: var(--surface-2); border: 1px solid var(--line-2); border-radius: var(--radius-sm); padding: 8px 10px; text-align: center; }
+.vital-tile span { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+.vital-tile strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.rx-lines { display: flex; flex-direction: column; gap: 8px; }
+.rx-line { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--line-2); border-radius: var(--radius-sm); background: var(--surface-2); font-size: var(--fs-sm); }
+.rx-line .rl-meta { color: var(--muted); font-size: var(--fs-xs); }
+
+/* ---------- Pharmacy stock bar ---------- */
+.stock-bar { height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; width: 90px; }
+.stock-bar > i { display: block; height: 100%; background: var(--success); }
+
+/* ---------- Folio & invoice ---------- */
+.folio { font-variant-numeric: tabular-nums; }
+.folio-line { display: flex; justify-content: space-between; gap: 16px; padding: 7px 0; font-size: var(--fs-md); }
+.folio-line span:first-child { color: var(--ink-2); }
+.folio-line.rule { border-top: 1px dashed var(--line); margin-top: 4px; padding-top: 10px; }
+.folio-line.total { font-weight: 700; font-size: var(--fs-base); }
+.folio-line.grand { border-top: 2px solid var(--ink); margin-top: 6px; padding-top: 12px; font-size: 1.15rem; font-weight: 700; }
+.folio-line.grand span:first-child { color: var(--ink); }
+.folio-line .neg { color: var(--success); }
+.invoice-doc { background: var(--surface); color: var(--ink); }
+.invoice-head { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 2px solid var(--ink); margin-bottom: 16px; }
+.invoice-head h3 { font-size: 1.3rem; }
+.invoice-meta { text-align: right; font-size: var(--fs-sm); }
+.invoice-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: var(--fs-sm); margin-bottom: 16px; }
+.invoice-parties h4 { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+.invoice-totals { margin-left: auto; max-width: 340px; margin-top: 12px; }
+
+/* ---------- Profile & timeline ---------- */
+.profile-head { display: flex; gap: 18px; align-items: center; padding: 20px; flex-wrap: wrap; }
+.profile-head h2 { font-size: var(--fs-xl); }
+.profile-head .grow { flex: 1; min-width: 200px; }
+.profile-stats { display: flex; gap: 28px; flex-wrap: wrap; }
+.profile-stats span { display: block; font-size: var(--fs-xs); color: var(--muted); }
+.profile-stats strong { font-size: var(--fs-lg); font-variant-numeric: tabular-nums; }
+.timeline { position: relative; padding-left: 18px; }
+.timeline::before { content: ""; position: absolute; left: 5px; top: 6px; bottom: 6px; width: 2px; background: var(--line-2); }
+.tl-item { position: relative; padding: 0 0 14px; font-size: var(--fs-md); }
+.tl-item::before { content: ""; position: absolute; left: -17px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid var(--primary); }
+.tl-item small { display: block; color: var(--muted); font-size: var(--fs-xs); }
+
+/* ---------- Workflow stepper (outpatient journey) ---------- */
+.flow-strip { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-bottom: 16px; }
+.flow-step { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line-2); font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
+.flow-step.done { background: var(--success-soft); color: var(--success); border-color: transparent; }
+.flow-step.current { background: var(--primary); color: var(--primary-ink); border-color: transparent; }
+.flow-arrow { color: var(--line); }
+
+.settings-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; align-items: start; }
+.settings-nav { display: flex; flex-direction: column; gap: 2px; position: sticky; top: calc(var(--top-h) + 20px); }
+.settings-nav button { border: 0; background: none; text-align: left; padding: 9px 12px; border-radius: 8px; font-size: var(--fs-md); font-weight: 500; color: var(--ink-2); }
+.settings-nav button:hover { background: var(--surface-3); }
+.settings-nav button.active { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+.perm-table td, .perm-table th { text-align: center; }
+.perm-table td:first-child, .perm-table th:first-child { text-align: left; }
+
+/* ---------- Print ---------- */
+@media print {
+  body { background: #fff; }
+  .sidebar, .topbar, .bottom-nav, .toast-root, .page-actions, .table-toolbar, .table-foot, .tabs, .no-print { display: none !important; }
+  .main { margin: 0 !important; }
+  .view { padding: 0; }
+  body.print-modal .app { display: none !important; }
+  body.print-modal .modal-backdrop { position: static; background: none; padding: 0; }
+  body.print-modal .modal { box-shadow: none; max-height: none; max-width: none; }
+  body.print-modal .modal-head, body.print-modal .modal-foot { display: none; }
+  body.print-modal .modal-body { overflow: visible; }
+  .card, .table-card { box-shadow: none; break-inside: avoid; }
+}

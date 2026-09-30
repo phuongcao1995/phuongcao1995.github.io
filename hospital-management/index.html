@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="MediPlus HIS — hospital management system for hospitals and clinics in Vietnam">
+  <title>MediPlus HIS · Hospital Management</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <!-- ===== Demo login (UI simulation only — no real authentication) ===== -->
+  <section id="login-screen" class="login" hidden>
+    <div class="login-art" aria-hidden="true">
+      <div class="login-art-inner">
+        <div class="brand-mark lg">M</div>
+        <h1>MediPlus HIS</h1>
+        <p>Patient records, appointments, inpatient care, laboratory, pharmacy and billing for hospitals and clinics across Vietnam.</p>
+        <ul class="login-points">
+          <li>Live outpatient queue and bed occupancy board</li>
+          <li>Electronic medical records with ICD-10 diagnosis</li>
+          <li>Vietnamese health insurance (BHYT) aware billing</li>
+        </ul>
+      </div>
+      <svg class="login-waves" viewBox="0 0 600 200" preserveAspectRatio="none"><path d="M0 120 C 120 80, 220 160, 340 120 S 520 80, 600 110 L600 200 L0 200 Z"/><path d="M0 150 C 140 120, 260 190, 380 150 S 540 120, 600 145 L600 200 L0 200 Z"/></svg>
+    </div>
+    <div class="login-panel">
+      <form id="login-form" class="login-form" novalidate>
+        <h2>Sign in</h2>
+        <p class="muted">Use one of the demo accounts below.</p>
+        <div class="field">
+          <label for="login-user">Username</label>
+          <input id="login-user" name="username" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="login-pass">Password</label>
+          <input id="login-pass" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <p class="form-error" id="login-error" role="alert" hidden></p>
+        <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+        <div class="demo-accounts" id="demo-accounts"></div>
+        <p class="tiny muted">Demo system. All patient, medical, financial and insurance data shown are fictional and stored only in this browser's localStorage.</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== Application ===== -->
+  <div id="app" class="app" hidden>
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+      <div class="sidebar-brand">
+        <div class="brand-mark">M</div>
+        <div class="brand-text"><strong>MediPlus HIS</strong><span id="brand-branch">Da Nang</span></div>
+      </div>
+      <nav class="nav" id="nav"></nav>
+      <div class="sidebar-foot">
+        <button class="nav-link" id="logout-side" type="button"><span class="nav-ico" data-icon="logout"></span><span class="nav-label">Log out</span></button>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-label="Open menu"></button>
+        <button class="icon-btn collapse-btn" id="collapse-btn" type="button" aria-label="Collapse sidebar"></button>
+        <label class="branch-select">
+          <span class="sr-only">Hospital branch</span>
+          <span data-icon="building"></span>
+          <select id="branch-select"></select>
+        </label>
+        <div class="global-search" id="global-search">
+          <span data-icon="search"></span>
+          <input type="search" id="global-search-input" placeholder="Search patients, doctors, invoices, medicines…" aria-label="Global search" autocomplete="off">
+          <div class="search-results" id="search-results" hidden></div>
+        </div>
+        <div class="top-right">
+          <div class="clock" aria-live="off"><span id="clock-date"></span><strong id="clock-time"></strong></div>
+          <label class="lang-select">
+            <span class="sr-only">Language</span>
+            <select id="lang-select"><option value="en">EN</option><option value="vi">VI</option></select>
+          </label>
+          <button class="icon-btn" id="theme-btn" type="button" aria-label="Toggle dark mode"></button>
+          <div class="dropdown" id="notif-dd">
+            <button class="icon-btn" type="button" data-dd-toggle aria-label="Notifications"><span data-icon="bell"></span><span class="count-dot" id="notif-count" hidden></span></button>
+            <div class="dropdown-menu notif-menu" id="notif-menu"></div>
+          </div>
+          <div class="dropdown" id="user-dd">
+            <button class="user-btn" type="button" data-dd-toggle>
+              <span class="avatar" id="user-avatar"></span>
+              <span class="user-meta"><strong id="user-name"></strong><small id="user-role"></small></span>
+            </button>
+            <div class="dropdown-menu" id="user-menu"></div>
+          </div>
+        </div>
+      </header>
+      <main id="view" class="view" tabindex="-1"></main>
+      <footer class="no-print" style="padding:14px 28px 26px;color:var(--muted);font-size:var(--fs-xs)">Demo system — All patient, medical, financial and insurance data shown are fictional.</footer>
+    </div>
+
+    <nav class="bottom-nav" id="bottom-nav" aria-label="Quick navigation"></nav>
+  </div>
+
+  <div id="modal-root"></div>
+  <div id="toast-root" class="toast-root" aria-live="polite"></div>
+
+  <!-- Core -->
+  <script src="js/utils.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/clinic.js"></script>
+  <script src="js/data.js"></script>
+  <!-- Modules -->
+  <script src="js/dashboard.js"></script>
+  <script src="js/patients.js"></script>
+  <script src="js/appointments.js"></script>
+  <script src="js/doctors.js"></script>
+  <script src="js/departments.js"></script>
+  <script src="js/visits.js"></script>
+  <script src="js/records.js"></script>
+  <script src="js/admissions.js"></script>
+  <script src="js/beds.js"></script>
+  <script src="js/emergency.js"></script>
+  <script src="js/lab.js"></script>
+  <script src="js/imaging.js"></script>
+  <script src="js/pharmacy.js"></script>
+  <script src="js/prescriptions.js"></script>
+  <script src="js/billing.js"></script>
+  <script src="js/insurance.js"></script>
+  <script src="js/staff.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/settings.js"></script>
+  <!-- Boot -->
+  <script src="js/app.js"></script>
+</body>
+</html>

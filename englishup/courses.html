@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-hints="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Courses — EnglishUp</title>
+<meta name="description" content="Browse English courses for every level and goal.">
+<meta name="theme-color" content="#4F46E5">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%234F46E5'/%3E%3Cpath d='M9 21.5V11a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-8.5z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  /* Apply saved theme before paint to avoid a flash */
+  try { var st = JSON.parse(localStorage.getItem('englishup_state') || 'null');
+    if (st && st.settings) { document.documentElement.setAttribute('data-theme', st.settings.dark ? 'dark' : 'light'); document.documentElement.setAttribute('data-hints', st.settings.hints || 'vi'); }
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="courses">
+<main class="main" id="main" tabindex="-1">
+<header class="page-head"><div><h1>Courses</h1><p>Structured courses from A1 to C2 — for work, travel, exams and daily life.</p><span class="vi-hint">Khóa học được thiết kế riêng cho người Việt, có giải thích tiếng Việt.</span></div></header>
+<div class="cat-tabs" id="cat-tabs" role="tablist" aria-label="Course categories"></div>
+<div class="course-toolbar">
+  <div class="input-icon"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><label class="sr-only" for="course-search">Search courses</label><input id="course-search" class="input" type="search" placeholder="Search courses…"></div>
+  <label class="sr-only" for="level-filter">Level</label>
+  <select id="level-filter" class="input"><option value="all">All levels</option><option value="A1">A1 — Beginner</option><option value="A2">A2 — Elementary</option><option value="B1">B1 — Intermediate</option><option value="B2">B2 — Upper Intermediate</option><option value="C1">C1 — Advanced</option><option value="C2">C2 — Proficient</option></select>
+  <label class="sr-only" for="sort-select">Sort</label>
+  <select id="sort-select" class="input"><option value="popular">Most popular</option><option value="rating">Highest rated</option><option value="price">Lowest price</option><option value="level">Level</option></select>
+  <button class="btn btn-secondary toggle-btn" id="mine-toggle" aria-pressed="false">My courses</button>
+</div>
+<p class="rec-note" id="rec-note"></p>
+<div class="list-head"><p class="muted small" id="result-count" aria-live="polite"></p></div>
+<div id="course-grid"></div>
+</main>
+<noscript><p style="padding:20px">EnglishUp needs JavaScript enabled to work.</p></noscript>
+<script src="js/utils.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/courses.js"></script>
+</body>
+</html>

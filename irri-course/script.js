@@ -1,11 +1,11 @@
 'use strict';
 /* =========================================================
-   IrriCourse – Hệ thống quản lý tưới sân golf (bản mẫu tĩnh)
-   Toàn bộ dữ liệu là dữ liệu mô phỏng lưu trong bộ nhớ trình duyệt.
-   Không có backend, không gọi API.
+   IrriCourse – Golf Course Irrigation Management System (static demo)
+   All data is simulated data stored in the browser's memory.
+   No backend, no API calls.
    ========================================================= */
 
-/* ================= 1. Tiện ích ================= */
+/* ================= 1. Utilities ================= */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -18,7 +18,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const pad = n => String(n).padStart(2, '0');
 const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
 const sum = arr => arr.reduce((a, b) => a + b, 0);
-const fmt = (n, d = 0) => (n == null || isNaN(n)) ? '—' : Number(n).toLocaleString('vi-VN', { minimumFractionDigits: d, maximumFractionDigits: d });
+const fmt = (n, d = 0) => (n == null || isNaN(n)) ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
 const fmtTime = d => `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 const fmtHM = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 const fmtDate = d => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
@@ -27,29 +27,29 @@ const isoDate = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDat
 const minToHM = m => `${pad(Math.floor(((m % 1440) + 1440) % 1440 / 60))}:${pad(Math.round(((m % 60) + 60) % 60))}`;
 const hmToMin = s => { const [h, m] = String(s).split(':').map(Number); return h * 60 + (m || 0); };
 const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
-const weekday = d => (d.getDay() + 6) % 7; // 0 = Thứ Hai
+const weekday = d => (d.getDay() + 6) % 7; // 0 = Monday
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
 const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-const DOW = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-const DOW_LONG = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ nhật'];
+const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DOW_LONG = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const GAL_TO_M3 = 0.0037854;
 function ago(ts) {
   const s = Math.round((Date.now() - ts) / 1000);
-  if (s < 10) return 'Vừa xong';
-  if (s < 60) return `${s} giây trước`;
+  if (s < 10) return 'Just now';
+  if (s < 60) return `${s} sec ago`;
   const m = Math.round(s / 60);
-  if (m < 60) return `${m} phút trước`;
+  if (m < 60) return `${m} min ago`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h} giờ trước`;
-  return `${Math.floor(h / 24)} ngày trước`;
+  if (h < 24) return `${h} hr ago`;
+  return `${Math.floor(h / 24)} d ago`;
 }
 function durText(min) {
   min = Math.max(0, Math.round(min));
-  if (min < 60) return `${min} phút`;
+  if (min < 60) return `${min} min`;
   const h = Math.floor(min / 60), m = min % 60;
-  return m ? `${h} giờ ${m} phút` : `${h} giờ`;
+  return m ? `${h} hr ${m} min` : `${h} hr`;
 }
-function hoursText(h) { const hh = Math.floor(h), mm = Math.round((h - hh) * 60); return `${hh} giờ ${pad(mm)} phút`; }
+function hoursText(h) { const hh = Math.floor(h), mm = Math.round((h - hh) * 60); return `${hh} hr ${pad(mm)} min`; }
 const icon = (n, cls = '') => `<svg class="ic ${cls}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
 const hl = (text, q) => { const t = esc(text); if (!q) return t; const i = String(text).toLowerCase().indexOf(q.toLowerCase()); if (i < 0) return t; return esc(String(text).slice(0, i)) + '<mark>' + esc(String(text).slice(i, i + q.length)) + '</mark>' + esc(String(text).slice(i + q.length)); };
 const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
@@ -57,63 +57,63 @@ const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = se
 const COLORS = { water: '#1B7BD3', ink: '#15302A', muted: '#63766E', grid: '#E5ECE8', turf: '#2E9A5E', amber: '#E2A11A', red: '#CF3F2E', pine: '#1D6A55', violet: '#6D5BD0', teal: '#139C9C', slate: '#9AA8A3' };
 const SERIES = [COLORS.water, COLORS.turf, COLORS.amber, COLORS.violet, COLORS.teal, COLORS.red];
 
-/* ================= 2. Từ điển trạng thái ================= */
+/* ================= 2. Status dictionaries ================= */
 const STATION_ST = {
-  idle: { label: 'Sẵn sàng', cls: 'ok', dot: 'ok' },
-  running: { label: 'Đang tưới', cls: 'run', dot: 'run' },
-  waiting: { label: 'Đang chờ', cls: 'wait', dot: 'wait' },
-  completed: { label: 'Hoàn thành', cls: 'done', dot: 'done' },
-  error: { label: 'Lỗi', cls: 'err', dot: 'err' },
-  offline: { label: 'Mất kết nối', cls: 'err', dot: 'err' }
+  idle: { label: 'Ready', cls: 'ok', dot: 'ok' },
+  running: { label: 'Irrigating', cls: 'run', dot: 'run' },
+  waiting: { label: 'Waiting', cls: 'wait', dot: 'wait' },
+  completed: { label: 'Completed', cls: 'done', dot: 'done' },
+  error: { label: 'Error', cls: 'err', dot: 'err' },
+  offline: { label: 'Disconnected', cls: 'err', dot: 'err' }
 };
 const EQ_ST = {
-  online: { label: 'Trực tuyến', cls: 'ok' },
-  warning: { label: 'Cảnh báo', cls: 'warn' },
-  offline: { label: 'Ngoại tuyến', cls: 'err' }
+  online: { label: 'Online', cls: 'ok' },
+  warning: { label: 'Warning', cls: 'warn' },
+  offline: { label: 'Offline', cls: 'err' }
 };
 const SENSOR_ST = {
-  normal: { label: 'Bình thường', cls: 'ok' },
-  warning: { label: 'Cảnh báo', cls: 'warn' },
-  offline: { label: 'Mất tín hiệu', cls: 'err' }
+  normal: { label: 'Normal', cls: 'ok' },
+  warning: { label: 'Warning', cls: 'warn' },
+  offline: { label: 'Signal Lost', cls: 'err' }
 };
 const PUMP_ST = {
-  running: { label: 'Đang chạy', cls: 'run' },
-  stopped: { label: 'Đã dừng', cls: 'idle' },
-  fault: { label: 'Sự cố', cls: 'err' }
+  running: { label: 'Running', cls: 'run' },
+  stopped: { label: 'Stopped', cls: 'idle' },
+  fault: { label: 'Fault', cls: 'err' }
 };
-const PRIO = { high: { label: 'Cao', cls: 'p-high' }, mid: { label: 'Trung bình', cls: 'p-mid' }, low: { label: 'Thấp', cls: 'p-low' } };
+const PRIO = { high: { label: 'High', cls: 'p-high' }, mid: { label: 'Medium', cls: 'p-mid' }, low: { label: 'Low', cls: 'p-low' } };
 const b = (cls, label) => `<span class="badge b-${cls}">${esc(label)}</span>`;
 const stBadge = s => b(STATION_ST[s].cls, STATION_ST[s].label);
 const eqBadge = s => b(EQ_ST[s].cls, EQ_ST[s].label);
 const senBadge = s => b(SENSOR_ST[s].cls, SENSOR_ST[s].label);
 const prioHTML = p => `<span class="prio ${PRIO[p].cls}"><i></i>${PRIO[p].label}</span>`;
 
-/* ================= 3. Dữ liệu mẫu ================= */
-const CLUB = { id: 'CLUB', name: 'Riverside Golf Club', location: 'Hòa Vang, Đà Nẵng' };
+/* ================= 3. Sample data ================= */
+const CLUB = { id: 'CLUB', name: 'Riverside Golf Club', location: 'Hoa Vang, Da Nang' };
 const DB = { courses: [], sites: [], holes: [], areas: [], stations: [], sensors: [], satellites: [], decoders: [], radios: [], pumps: [], programs: [], alerts: [] };
 let byId = {};
 function reindex() { byId = {}; for (const k of ['courses', 'sites', 'holes', 'areas', 'stations', 'sensors', 'satellites', 'decoders', 'radios', 'pumps', 'programs']) DB[k].forEach(o => { byId[o.id] = o; }); }
 const get = id => byId[id];
 
 const AREA = {
-  tee: { code: 'TE', name: 'Tee', vi: 'Khu phát bóng', n: 1, flow: [15, 20], run: 10, turf: 'Cỏ Zoysia Matrella' },
-  fairway: { code: 'FW', name: 'Fairway', vi: 'Đường bóng chính', n: 3, flow: [42, 55], run: 18, turf: 'Cỏ Bermuda 419' },
-  green: { code: 'GR', name: 'Green', vi: 'Khu gạt bóng', n: 2, flow: [18, 24], run: 12, turf: 'Cỏ Bermuda TifEagle' },
-  rough: { code: 'RO', name: 'Rough', vi: 'Vùng cỏ rậm', n: 1, flow: [30, 38], run: 15, turf: 'Cỏ Paspalum' }
+  tee: { code: 'TE', name: 'Tee', desc: 'Tee area', n: 1, flow: [15, 20], run: 10, turf: 'Zoysia Matrella grass' },
+  fairway: { code: 'FW', name: 'Fairway', desc: 'Main fairway', n: 3, flow: [42, 55], run: 18, turf: 'Bermuda 419 grass' },
+  green: { code: 'GR', name: 'Green', desc: 'Putting green', n: 2, flow: [18, 24], run: 12, turf: 'Bermuda TifEagle grass' },
+  rough: { code: 'RO', name: 'Rough', desc: 'Rough area', n: 1, flow: [30, 38], run: 15, turf: 'Paspalum grass' }
 };
 const AREA_KEYS = ['tee', 'fairway', 'green', 'rough'];
-const HEADS = { tee: 'Đầu tưới xoay 1″ – toàn vòng', fairway: 'Đầu tưới xoay 1,5″ – toàn vòng', green: 'Đầu tưới xoay 1″ – bán nguyệt', rough: 'Đầu tưới xoay 1,5″ – cung 180°' };
+const HEADS = { tee: '1″ rotor sprinkler head – full circle', fairway: '1.5″ rotor sprinkler head – full circle', green: '1″ rotor sprinkler head – half circle', rough: '1.5″ rotor sprinkler head – 180° arc' };
 
 const SENSOR_TYPES = {
-  flow: { name: 'Cảm biến lưu lượng', short: 'Lưu lượng', unit: 'GPM', icon: 'drop', dec: 0 },
-  pressure: { name: 'Cảm biến áp suất', short: 'Áp suất', unit: 'PSI', icon: 'gauge', dec: 1 },
-  moisture: { name: 'Cảm biến độ ẩm đất', short: 'Độ ẩm đất', unit: '%', icon: 'sprout', dec: 1 },
-  temperature: { name: 'Cảm biến nhiệt độ', short: 'Nhiệt độ', unit: '°C', icon: 'sensor', dec: 1 },
-  rain: { name: 'Cảm biến mưa', short: 'Lượng mưa', unit: 'mm', icon: 'rain', dec: 1 },
-  level: { name: 'Cảm biến mực nước', short: 'Mực nước', unit: 'm', icon: 'wave', dec: 2 }
+  flow: { name: 'Flow Sensor', short: 'Flow', unit: 'GPM', icon: 'drop', dec: 0 },
+  pressure: { name: 'Pressure Sensor', short: 'Pressure', unit: 'PSI', icon: 'gauge', dec: 1 },
+  moisture: { name: 'Soil Moisture Sensor', short: 'Soil Moisture', unit: '%', icon: 'sprout', dec: 1 },
+  temperature: { name: 'Temperature Sensor', short: 'Temperature', unit: '°C', icon: 'sensor', dec: 1 },
+  rain: { name: 'Rain Sensor', short: 'Rainfall', unit: 'mm', icon: 'rain', dec: 1 },
+  level: { name: 'Water Level Sensor', short: 'Water Level', unit: 'm', icon: 'wave', dec: 2 }
 };
 
-// Bố cục 6 hố trên bản đồ (hệ tọa độ 1000 × 620): điểm phát bóng, điểm điều khiển đường cong, green
+// Layout of 6 holes on the map (1000 × 620 coordinate system): tee point, curve control point, green
 const LAYOUT = [
   { t: [90, 545], c: [120, 370], g: [215, 210] },
   { t: [270, 110], c: [380, 70], g: [480, 150] },
@@ -135,9 +135,9 @@ function stationPos(g, type, n) {
 function buildData() {
   const now = Date.now();
   const courseDefs = [
-    ['C01', 'Sân Bắc', 'North Course', 'Phân khu Bắc, ven sông Cổ Cò'],
-    ['C02', 'Sân Nam', 'South Course', 'Phân khu Nam, giáp đồi cát ven biển'],
-    ['C03', 'Sân Hồ', 'Lake Course', 'Phân khu Đông, quanh hồ điều hòa']
+    ['C01', 'North Course', 'North Course', 'Northern section, along the Co Co River'],
+    ['C02', 'South Course', 'South Course', 'Southern section, next to the coastal dunes'],
+    ['C03', 'Lake Course', 'Lake Course', 'Eastern section, around the retention lake']
   ];
   let holeNo = 0, siteNo = 0;
   courseDefs.forEach(([id, name, en, location], ci) => {
@@ -145,7 +145,7 @@ function buildData() {
     for (let s = 0; s < 2; s++) {
       siteNo++;
       const sid = 'S' + pad(siteNo);
-      const site = { id: sid, courseId: id, name: 'Site ' + pad(siteNo), location: `${name}, cụm hố ${pad(holeNo + 1)}–${pad(holeNo + 3)}`, status: 'online' };
+      const site = { id: sid, courseId: id, name: 'Site ' + pad(siteNo), location: `${name}, Holes ${pad(holeNo + 1)}–${pad(holeNo + 3)}`, status: 'online' };
       DB.sites.push(site);
       for (let k = 0; k < 3; k++) {
         holeNo++;
@@ -153,15 +153,15 @@ function buildData() {
         const geo = { t: mapPt(L.t, ci), c: mapPt(L.c, ci), g: mapPt(L.g, ci), idx: s * 3 + k };
         const len = Math.hypot(geo.g[0] - geo.t[0], geo.g[1] - geo.t[1]);
         const par = len < 230 ? 3 : len < 340 ? 4 : 5;
-        DB.holes.push({ id: hid, no: holeNo, courseId: id, siteId: sid, name: 'Hố ' + pad(holeNo), par, length: Math.round(len * (par === 3 ? 0.82 : 1.32) + rnd(0, 18)), status: 'online', geo, location: `${name}, ${site.name}` });
+        DB.holes.push({ id: hid, no: holeNo, courseId: id, siteId: sid, name: 'Hole ' + pad(holeNo), par, length: Math.round(len * (par === 3 ? 0.82 : 1.32) + rnd(0, 18)), status: 'online', geo, location: `${name}, ${site.name}` });
         let stNo = 0;
         AREA_KEYS.forEach(type => {
           const A = AREA[type], aid = `A${pad(holeNo)}-${A.code}`;
-          DB.areas.push({ id: aid, holeId: hid, siteId: sid, courseId: id, type, name: A.name, vi: A.vi, turf: A.turf, status: 'online', location: `Hố ${pad(holeNo)}, ${A.vi.toLowerCase()}` });
+          DB.areas.push({ id: aid, holeId: hid, siteId: sid, courseId: id, type, name: A.name, desc: A.desc, turf: A.turf, status: 'online', location: `Hole ${pad(holeNo)}, ${A.desc.toLowerCase()}` });
           for (let n = 0; n < A.n; n++) {
             stNo++;
             DB.stations.push({
-              id: `ST-${pad(holeNo)}${pad(stNo)}`, name: `Trạm ${pad(holeNo)}-${pad(stNo)}`, holeId: hid, areaId: aid, siteId: sid, courseId: id, type,
+              id: `ST-${pad(holeNo)}${pad(stNo)}`, name: `Station ${pad(holeNo)}-${pad(stNo)}`, holeId: hid, areaId: aid, siteId: sid, courseId: id, type,
               flow: Math.round(rnd(A.flow[0], A.flow[1])), defRun: A.run, head: HEADS[type],
               status: 'idle', elapsed: 0, duration: 0, program: null, lastRun: now - rint(8, 30) * 3600e3, runsToday: 0,
               pos: stationPos(geo, type, n), satelliteId: null, decoderId: null, fault: ''
@@ -172,9 +172,9 @@ function buildData() {
     }
   });
 
-  // Bộ điều khiển (Satellite), Bộ giải mã (Decoder), Radio
+  // Controllers (Satellite), Decoders, Radios
   const satPerSite = [2, 2, 2, 1, 2, 1];
-  const comms = ['Cáp quang', 'Cáp tín hiệu 2 dây', 'Radio UHF'];
+  const comms = ['Fiber optic', '2-wire signal cable', 'UHF Radio'];
   let satNo = 0, decNo = 100, radNo = 200;
   DB.sites.forEach((site, si) => {
     const holes = DB.holes.filter(h => h.siteId === site.id);
@@ -186,12 +186,12 @@ function buildData() {
       const sts = DB.stations.filter(s => myHoles.some(h => h.id === s.holeId));
       sts.forEach(s => { s.satelliteId = id; });
       const cx = avg(sts.map(s => s.pos[0])), cy = avg(sts.map(s => s.pos[1]));
-      const label = myHoles.length > 1 ? `Hố ${pad(myHoles[0].no)}–${pad(myHoles[myHoles.length - 1].no)}` : `Hố ${pad(myHoles[0].no)}`;
+      const label = myHoles.length > 1 ? `Hole ${pad(myHoles[0].no)}–${pad(myHoles[myHoles.length - 1].no)}` : `Hole ${pad(myHoles[0].no)}`;
       const seen = now - rint(3, 40) * 1000;
       DB.satellites.push({
-        id, name: `Tủ điều khiển ${label}`, siteId: site.id, courseId: site.courseId, status: 'online',
+        id, name: `Controller Cabinet ${label}`, siteId: site.id, courseId: site.courseId, status: 'online',
         ip: `10.20.${si + 1}.${11 + k}`, comm: comms[(satNo + k) % 3], firmware: (satNo === 4 || satNo === 9) ? 'v5.2.8' : 'v5.3.2',
-        model: 'Bộ điều khiển hiện trường 48 kênh', lastSeen: seen, lastOk: seen, ping: rint(14, 42), signal: rint(80, 98),
+        model: '48-channel field controller', lastSeen: seen, lastOk: seen, ping: rint(14, 42), signal: rint(80, 98),
         errorCode: '', errorMsg: '', holeIds: myHoles.map(h => h.id), pos: [cx + 22, cy - 26]
       });
       for (let d = 0; d < 2; d++) {
@@ -202,7 +202,7 @@ function buildData() {
         const seenD = now - rint(4, 55) * 1000;
         DB.decoders.push({
           id: did, siteId: site.id, courseId: site.courseId, satelliteId: id,
-          address: '0x' + rint(0x1000, 0xFFFF).toString(16).toUpperCase(), model: `Bộ giải mã ${half.length <= 4 ? 4 : half.length <= 8 ? 8 : 12} kênh`,
+          address: '0x' + rint(0x1000, 0xFFFF).toString(16).toUpperCase(), model: `${half.length <= 4 ? 4 : half.length <= 8 ? 8 : 12}-channel decoder`,
           status: 'online', current: rint(18, 31), voltage: +rnd(33.4, 35.8).toFixed(1), ping: rint(40, 120),
           lastSeen: seenD, lastOk: seenD, errorCode: '', errorMsg: ''
         });
@@ -210,8 +210,8 @@ function buildData() {
       radNo++;
       const seenR = now - rint(2, 30) * 1000;
       DB.radios.push({
-        id: 'RAD-' + radNo, type: radNo === 203 ? 'Bộ lặp tín hiệu UHF' : (radNo === 206 || radNo === 209) ? 'LoRa 923 MHz' : 'Radio UHF 450 MHz',
-        freq: (radNo === 206 || radNo === 209) ? '923,2 MHz' : `${(450 + (radNo - 200) * 0.125).toFixed(3).replace('.', ',')} MHz`,
+        id: 'RAD-' + radNo, type: radNo === 203 ? 'UHF Signal Repeater' : (radNo === 206 || radNo === 209) ? 'LoRa 923 MHz' : 'UHF Radio 450 MHz',
+        freq: (radNo === 206 || radNo === 209) ? '923.2 MHz' : `${(450 + (radNo - 200) * 0.125).toFixed(3)} MHz`,
         siteId: site.id, courseId: site.courseId, satelliteId: id, signal: -rint(58, 76), ping: rint(60, 180),
         status: 'online', lastSeen: seenR, lastOk: seenR, errorCode: '', errorMsg: ''
       });
@@ -219,44 +219,44 @@ function buildData() {
   });
   reindex();
 
-  // Tình trạng bất thường có chủ đích để minh họa
+  // Intentional anomalies for demonstration purposes
   const dec102 = get('DEC-102');
-  Object.assign(dec102, { status: 'warning', errorCode: 'E-305', errorMsg: 'Dòng điện solenoid bất thường trên 2 kênh', current: 58 });
-  DB.stations.filter(s => s.decoderId === 'DEC-102').slice(0, 2).forEach(s => { s.status = 'error'; s.fault = 'Solenoid không phản hồi – dòng điện thấp hơn ngưỡng'; });
+  Object.assign(dec102, { status: 'warning', errorCode: 'E-305', errorMsg: 'Abnormal solenoid current on 2 channels', current: 58 });
+  DB.stations.filter(s => s.decoderId === 'DEC-102').slice(0, 2).forEach(s => { s.status = 'error'; s.fault = 'Solenoid not responding – current below threshold'; });
   const dec114 = get('DEC-114');
-  Object.assign(dec114, { status: 'offline', errorCode: 'E-401', errorMsg: 'Không phản hồi lệnh truy vấn', ping: null, lastOk: now - 48 * 60e3, lastSeen: now - 48 * 60e3 });
-  DB.stations.filter(s => s.decoderId === 'DEC-114').forEach(s => { s.status = 'offline'; s.fault = 'Bộ giải mã DEC-114 ngoại tuyến'; });
-  Object.assign(get('SAT-007'), { status: 'warning', errorCode: 'E-214', errorMsg: 'Thời gian phản hồi cao (> 800 ms)', ping: 840, signal: 54, lastOk: now - 130 * 60e3 });
-  Object.assign(get('RAD-203'), { status: 'offline', errorCode: 'E-502', errorMsg: 'Mất liên kết vô tuyến với trung tâm', signal: null, ping: null, lastOk: now - 12 * 60e3, lastSeen: now - 12 * 60e3 });
-  Object.assign(get('RAD-208'), { status: 'warning', errorCode: 'E-510', errorMsg: 'Tín hiệu yếu dưới ngưỡng -85 dBm', signal: -87 });
+  Object.assign(dec114, { status: 'offline', errorCode: 'E-401', errorMsg: 'Not responding to query commands', ping: null, lastOk: now - 48 * 60e3, lastSeen: now - 48 * 60e3 });
+  DB.stations.filter(s => s.decoderId === 'DEC-114').forEach(s => { s.status = 'offline'; s.fault = 'Decoder DEC-114 offline'; });
+  Object.assign(get('SAT-007'), { status: 'warning', errorCode: 'E-214', errorMsg: 'High response time (> 800 ms)', ping: 840, signal: 54, lastOk: now - 130 * 60e3 });
+  Object.assign(get('RAD-203'), { status: 'offline', errorCode: 'E-502', errorMsg: 'Lost radio link with central controller', signal: null, ping: null, lastOk: now - 12 * 60e3, lastSeen: now - 12 * 60e3 });
+  Object.assign(get('RAD-208'), { status: 'warning', errorCode: 'E-510', errorMsg: 'Weak signal below -85 dBm threshold', signal: -87 });
 
-  // Cảm biến
+  // Sensors
   const H = n => DB.holes[n - 1];
   const areaOf = (n, type) => `A${pad(n)}-${AREA[type].code}`;
   const S = (id, type, location, opt) => DB.sensors.push(Object.assign({ id, type, location, holeId: null, areaId: null, courseId: null, status: 'normal', lo: null, hi: null, battery: null, sticky: null, lastUpdate: now - rint(2, 20) * 1000 }, opt));
-  S('FS-01', 'flow', 'Trạm bơm chính, ống xả tổng', { mapCourse: 'C01', where: 'pump', value: 0 });
-  S('FS-02', 'flow', 'Đường ống chính Sân Bắc', { courseId: 'C01', where: 'main', value: 0 });
-  S('FS-03', 'flow', 'Đường ống chính Sân Nam', { courseId: 'C02', where: 'main', value: 0 });
-  S('FS-04', 'flow', 'Đường ống chính Sân Hồ', { courseId: 'C03', where: 'main', value: 0 });
-  S('FS-05', 'flow', 'Nhánh phụ Hố 12', { holeId: 'H12', courseId: 'C02', areaId: areaOf(12, 'fairway'), value: 0, sticky: 'warning' });
-  S('PS-01', 'pressure', 'Trạm bơm, đầu đẩy', { mapCourse: 'C01', where: 'pump', value: 74, lo: 55, hi: 85 });
-  S('PS-02', 'pressure', 'Cuối tuyến Hố 03', { holeId: 'H03', courseId: 'C01', areaId: areaOf(3, 'green'), value: 66, lo: 50, hi: 85 });
-  S('PS-03', 'pressure', 'Cuối tuyến Hố 09', { holeId: 'H09', courseId: 'C02', areaId: areaOf(9, 'green'), value: 65, lo: 50, hi: 85 });
-  S('PS-04', 'pressure', 'Cuối tuyến Hố 15', { holeId: 'H15', courseId: 'C03', areaId: areaOf(15, 'green'), value: 67, lo: 50, hi: 85 });
-  S('PS-05', 'pressure', 'Trạm bơm, đầu hút', { mapCourse: 'C01', where: 'pump2', value: 9.2, lo: 5, hi: 15 });
+  S('FS-01', 'flow', 'Main pump station, discharge manifold', { mapCourse: 'C01', where: 'pump', value: 0 });
+  S('FS-02', 'flow', 'North Course main pipeline', { courseId: 'C01', where: 'main', value: 0 });
+  S('FS-03', 'flow', 'South Course main pipeline', { courseId: 'C02', where: 'main', value: 0 });
+  S('FS-04', 'flow', 'Lake Course main pipeline', { courseId: 'C03', where: 'main', value: 0 });
+  S('FS-05', 'flow', 'Hole 12 branch line', { holeId: 'H12', courseId: 'C02', areaId: areaOf(12, 'fairway'), value: 0, sticky: 'warning' });
+  S('PS-01', 'pressure', 'Pump station, discharge side', { mapCourse: 'C01', where: 'pump', value: 74, lo: 55, hi: 85 });
+  S('PS-02', 'pressure', 'Hole 03 line end', { holeId: 'H03', courseId: 'C01', areaId: areaOf(3, 'green'), value: 66, lo: 50, hi: 85 });
+  S('PS-03', 'pressure', 'Hole 09 line end', { holeId: 'H09', courseId: 'C02', areaId: areaOf(9, 'green'), value: 65, lo: 50, hi: 85 });
+  S('PS-04', 'pressure', 'Hole 15 line end', { holeId: 'H15', courseId: 'C03', areaId: areaOf(15, 'green'), value: 67, lo: 50, hi: 85 });
+  S('PS-05', 'pressure', 'Pump station, suction side', { mapCourse: 'C01', where: 'pump2', value: 9.2, lo: 5, hi: 15 });
   [[1, 'green', 27.4], [3, 'green', 25.9], [5, 'fairway', 22.8], [7, 'green', 28.1], [9, 'green', 26.3], [11, 'fairway', 23.5], [12, 'green', 32.5], [14, 'green', 29.0], [16, 'fairway', 14.2], [18, 'green', 27.7]].forEach(([n, t, v], i) => {
-    S('SM-' + pad(i + 1), 'moisture', `Hố ${pad(n)}, ${AREA[t].name}`, { holeId: H(n).id, courseId: H(n).courseId, areaId: areaOf(n, t), value: v, lo: 18, hi: 42, battery: rint(58, 97) });
+    S('SM-' + pad(i + 1), 'moisture', `Hole ${pad(n)}, ${AREA[t].name}`, { holeId: H(n).id, courseId: H(n).courseId, areaId: areaOf(n, t), value: v, lo: 18, hi: 42, battery: rint(58, 97) });
   });
-  S('TS-01', 'temperature', 'Trạm khí tượng, không khí', { mapCourse: 'C01', where: 'weather', value: 31.4, lo: 10, hi: 40 });
-  S('TS-02', 'temperature', 'Hố 05, nhiệt độ đất', { holeId: 'H05', courseId: 'C01', areaId: areaOf(5, 'fairway'), value: 27.8, lo: 15, hi: 36 });
-  S('TS-03', 'temperature', 'Hố 14, nhiệt độ đất', { holeId: 'H14', courseId: 'C03', areaId: areaOf(14, 'green'), value: 28.3, lo: 15, hi: 36 });
-  S('TS-04', 'temperature', 'Nhà trạm bơm, phòng máy', { mapCourse: 'C01', where: 'pump3', value: 34.6, lo: 10, hi: 45 });
-  S('RS-01', 'rain', 'Trạm khí tượng trung tâm', { mapCourse: 'C01', where: 'weather2', value: 0, lo: null, hi: 5 });
-  S('RS-02', 'rain', 'Nhà điều hành Sân Nam', { courseId: 'C02', where: 'club', value: 0, hi: 5 });
-  S('RS-03', 'rain', 'Hố 16, Sân Hồ', { holeId: 'H16', courseId: 'C03', areaId: areaOf(16, 'rough'), value: 0.2, hi: 5 });
-  S('WL-01', 'level', 'Hồ chứa chính', { mapCourse: 'C01', where: 'lake', value: 3.42, lo: 1.5, hi: 4.5 });
-  S('WL-02', 'level', 'Hồ điều hòa Sân Hồ', { courseId: 'C03', where: 'lake', value: 2.18, lo: 1.2, hi: 3.5 });
-  S('WL-03', 'level', 'Bể hút trạm bơm', { mapCourse: 'C01', where: 'pump4', value: 1.86, lo: 1.2, hi: 2.6 });
+  S('TS-01', 'temperature', 'Weather station, air', { mapCourse: 'C01', where: 'weather', value: 31.4, lo: 10, hi: 40 });
+  S('TS-02', 'temperature', 'Hole 05, soil temperature', { holeId: 'H05', courseId: 'C01', areaId: areaOf(5, 'fairway'), value: 27.8, lo: 15, hi: 36 });
+  S('TS-03', 'temperature', 'Hole 14, soil temperature', { holeId: 'H14', courseId: 'C03', areaId: areaOf(14, 'green'), value: 28.3, lo: 15, hi: 36 });
+  S('TS-04', 'temperature', 'Pump house, machine room', { mapCourse: 'C01', where: 'pump3', value: 34.6, lo: 10, hi: 45 });
+  S('RS-01', 'rain', 'Central weather station', { mapCourse: 'C01', where: 'weather2', value: 0, lo: null, hi: 5 });
+  S('RS-02', 'rain', 'South Course clubhouse', { courseId: 'C02', where: 'club', value: 0, hi: 5 });
+  S('RS-03', 'rain', 'Hole 16, Lake Course', { holeId: 'H16', courseId: 'C03', areaId: areaOf(16, 'rough'), value: 0.2, hi: 5 });
+  S('WL-01', 'level', 'Main reservoir', { mapCourse: 'C01', where: 'lake', value: 3.42, lo: 1.5, hi: 4.5 });
+  S('WL-02', 'level', 'Lake Course retention lake', { courseId: 'C03', where: 'lake', value: 2.18, lo: 1.2, hi: 3.5 });
+  S('WL-03', 'level', 'Pump station wet well', { mapCourse: 'C01', where: 'pump4', value: 1.86, lo: 1.2, hi: 2.6 });
   DB.sensors.forEach(s => {
     if (!s.mapCourse) s.mapCourse = s.courseId;
     const c = DB.courses.find(c => c.id === s.mapCourse);
@@ -274,46 +274,46 @@ function buildData() {
     evalSensor(s);
   });
 
-  // Máy bơm
+  // Pumps
   DB.pumps = [
-    { id: 'P-01', name: 'Bơm chính 01', type: 'Bơm ly tâm trục ngang, biến tần', rated: 1000, kw: 75, status: 'running', mode: 'auto', setSpeed: 70, runtime: 5.4, starts: 2 },
-    { id: 'P-02', name: 'Bơm chính 02', type: 'Bơm ly tâm trục ngang, biến tần', rated: 1000, kw: 75, status: 'running', mode: 'auto', setSpeed: 70, runtime: 4.9, starts: 2, anomaly: 16, highFlag: true },
-    { id: 'P-03', name: 'Bơm chính 03', type: 'Bơm ly tâm trục ngang, biến tần', rated: 1000, kw: 75, status: 'stopped', mode: 'auto', setSpeed: 70, runtime: 1.2, starts: 1 },
-    { id: 'P-04', name: 'Bơm bù áp (Jockey)', type: 'Bơm trục đứng đa tầng', rated: 120, kw: 11, status: 'running', mode: 'auto', setSpeed: 75, runtime: 11.6, starts: 6, jockey: true },
-    { id: 'P-05', name: 'Bơm tăng áp Sân Hồ', type: 'Bơm ly tâm trục ngang', rated: 600, kw: 37, status: 'stopped', mode: 'manual', setSpeed: 60, runtime: 0, starts: 0 }
+    { id: 'P-01', name: 'Main Pump 01', type: 'Horizontal centrifugal pump, VFD', rated: 1000, kw: 75, status: 'running', mode: 'auto', setSpeed: 70, runtime: 5.4, starts: 2 },
+    { id: 'P-02', name: 'Main Pump 02', type: 'Horizontal centrifugal pump, VFD', rated: 1000, kw: 75, status: 'running', mode: 'auto', setSpeed: 70, runtime: 4.9, starts: 2, anomaly: 16, highFlag: true },
+    { id: 'P-03', name: 'Main Pump 03', type: 'Horizontal centrifugal pump, VFD', rated: 1000, kw: 75, status: 'stopped', mode: 'auto', setSpeed: 70, runtime: 1.2, starts: 1 },
+    { id: 'P-04', name: 'Jockey Pump (Pressure Booster)', type: 'Vertical multistage pump', rated: 120, kw: 11, status: 'running', mode: 'auto', setSpeed: 75, runtime: 11.6, starts: 6, jockey: true },
+    { id: 'P-05', name: 'Lake Course Booster Pump', type: 'Horizontal centrifugal pump', rated: 600, kw: 37, status: 'stopped', mode: 'manual', setSpeed: 60, runtime: 0, starts: 0 }
   ];
   DB.pumps.forEach(p => Object.assign(p, { flow: 0, target: 0, speed: 0, pressure: 0, power: 0, temp: p.status === 'running' ? 52 : 31 }));
 
-  // Lịch tưới
+  // Irrigation programs
   const P = (id, name, courseId, holeNos, areas, start, duration, days, priority, enabled, concurrency, note) =>
-    DB.programs.push({ id, name, courseId, holeIds: holeNos.map(n => 'H' + pad(n)), areaTypes: areas, start, duration, days, priority, enabled, concurrency, note: note || '', lastRun: now - 86400e3, lastResult: 'Hoàn thành', state: { running: false, queue: [] } });
+    DB.programs.push({ id, name, courseId, holeIds: holeNos.map(n => 'H' + pad(n)), areaTypes: areas, start, duration, days, priority, enabled, concurrency, note: note || '', lastRun: now - 86400e3, lastResult: 'Completed', state: { running: false, queue: [] } });
   const ALL = [0, 1, 2, 3, 4, 5, 6];
-  P('PRG-01', 'Chương trình A – Green sáng sớm', 'C01', [1, 2, 3, 4, 5, 6], ['green'], '04:30', 12, ALL, 'high', true, 12, 'Tưới green trước giờ cắt cỏ buổi sáng');
-  P('PRG-02', 'Chương trình B – Fairway & Rough Sân Bắc', 'C01', [1, 2, 3, 4, 5, 6], ['fairway', 'rough'], '05:10', 18, ALL, 'mid', true, 16);
-  P('PRG-03', 'Chương trình C – Green, Tee & Rough Sân Nam', 'C02', [7, 8, 9, 10, 11, 12], ['green', 'tee', 'rough'], '05:40', 12, ALL, 'high', true, 16);
-  P('PRG-04', 'Chương trình D – Fairway Sân Nam', 'C02', [7, 8, 9, 10, 11, 12], ['fairway'], '06:30', 18, [0, 2, 4, 6], 'mid', true, 12);
-  P('PRG-05', 'Chương trình E – Toàn bộ Sân Hồ', 'C03', [13, 14, 15, 16, 17, 18], ['tee', 'fairway', 'green', 'rough'], '21:30', 15, ALL, 'mid', true, 14);
-  P('PRG-06', 'Chương trình F – Rough luân phiên Sân Bắc', 'C01', [1, 2, 3, 4, 5, 6], ['rough'], '22:30', 15, [1, 3, 5], 'low', true, 6);
-  P('PRG-07', 'Chương trình G – Tưới làm mát Green buổi trưa', 'C02', [7, 8, 9, 10, 11, 12], ['green'], '12:30', 3, ALL, 'high', true, 12, 'Chu kỳ làm mát ngắn khi nhiệt độ trên 32 °C');
-  P('PRG-08', 'Chương trình H – Green Sân Hồ', 'C03', [13, 14, 15, 16, 17, 18], ['green'], '04:45', 10, ALL, 'high', true, 12);
-  P('PRG-09', 'Chương trình I – Tee Sân Bắc', 'C01', [1, 2, 3, 4, 5, 6], ['tee'], '06:00', 10, [0, 3], 'low', false, 6, 'Tạm dừng trong thời gian gieo hạt bổ sung');
-  P('PRG-10', 'Chương trình K – Rough Sân Nam', 'C02', [7, 8, 9, 10, 11, 12], ['rough'], '23:00', 15, [2, 5], 'low', true, 6);
+  P('PRG-01', 'Program A – Early Morning Green', 'C01', [1, 2, 3, 4, 5, 6], ['green'], '04:30', 12, ALL, 'high', true, 12, 'Irrigate greens before morning mowing');
+  P('PRG-02', 'Program B – North Course Fairway & Rough', 'C01', [1, 2, 3, 4, 5, 6], ['fairway', 'rough'], '05:10', 18, ALL, 'mid', true, 16);
+  P('PRG-03', 'Program C – South Course Green, Tee & Rough', 'C02', [7, 8, 9, 10, 11, 12], ['green', 'tee', 'rough'], '05:40', 12, ALL, 'high', true, 16);
+  P('PRG-04', 'Program D – South Course Fairway', 'C02', [7, 8, 9, 10, 11, 12], ['fairway'], '06:30', 18, [0, 2, 4, 6], 'mid', true, 12);
+  P('PRG-05', 'Program E – Full Lake Course', 'C03', [13, 14, 15, 16, 17, 18], ['tee', 'fairway', 'green', 'rough'], '21:30', 15, ALL, 'mid', true, 14);
+  P('PRG-06', 'Program F – North Course Rough Rotation', 'C01', [1, 2, 3, 4, 5, 6], ['rough'], '22:30', 15, [1, 3, 5], 'low', true, 6);
+  P('PRG-07', 'Program G – Midday Green Cooling', 'C02', [7, 8, 9, 10, 11, 12], ['green'], '12:30', 3, ALL, 'high', true, 12, 'Short cooling cycle when temperature exceeds 32 °C');
+  P('PRG-08', 'Program H – Lake Course Green', 'C03', [13, 14, 15, 16, 17, 18], ['green'], '04:45', 10, ALL, 'high', true, 12);
+  P('PRG-09', 'Program I – North Course Tee', 'C01', [1, 2, 3, 4, 5, 6], ['tee'], '06:00', 10, [0, 3], 'low', false, 6, 'Paused during overseeding');
+  P('PRG-10', 'Program K – South Course Rough', 'C02', [7, 8, 9, 10, 11, 12], ['rough'], '23:00', 15, [2, 5], 'low', true, 6);
   reindex();
   const prgA = get('PRG-01');
   prgA.lastRun = now - 35 * 60e3;
   programStations(prgA).forEach(id => { const s = get(id); if (s.status === 'idle') { s.status = 'completed'; s.lastRun = now - rint(35, 80) * 60e3; s.runsToday = 1; } });
 
-  // Cảnh báo ban đầu
+  // Initial alerts
   const A = (sev, title, source, min, cat, read) => DB.alerts.push({ id: 'AL' + (++alertSeq), sev, title, source, ts: now - min * 60e3, read: !!read, ack: false, cat });
   const n114 = DB.stations.filter(s => s.decoderId === 'DEC-114').length;
-  A('warning', 'Máy bơm P-02 có áp suất cao (88 PSI)', 'Trạm bơm chính', 5, 'pump');
-  A('critical', 'Radio RAD-203 mất kết nối', 'Site 02, Sân Bắc', 12, 'comm');
-  A('warning', 'Lưu lượng Hố 12 thấp hơn mức dự kiến 18%', 'Cảm biến FS-05', 20, 'flow');
-  A('success', 'Lịch tưới Chương trình A đã hoàn thành', 'Sân Bắc', 35, 'schedule');
-  A('critical', `Bộ giải mã DEC-114 ngoại tuyến, ${n114} trạm không thể tưới`, 'Site 04, Sân Nam', 48, 'comm');
-  A('warning', 'Độ ẩm đất Hố 16 dưới ngưỡng (14,2%)', 'Cảm biến SM-09', 64, 'sensor', true);
-  A('warning', 'Bộ giải mã DEC-102: dòng điện solenoid bất thường', 'Site 01, Sân Bắc', 92, 'device', true);
-  A('info', 'Bộ điều khiển SAT-007 phản hồi chậm (840 ms)', 'Site 04, Sân Nam', 130, 'comm', true);
+  A('warning', 'Pump P-02 has high pressure (88 PSI)', 'Main Pump Station', 5, 'pump');
+  A('critical', 'Radio RAD-203 disconnected', 'Site 02, North Course', 12, 'comm');
+  A('warning', 'Hole 12 flow is 18% below expected', 'Sensor FS-05', 20, 'flow');
+  A('success', 'Irrigation Program A completed', 'North Course', 35, 'schedule');
+  A('critical', `Decoder DEC-114 offline, ${n114} stations unable to irrigate`, 'Site 04, South Course', 48, 'comm');
+  A('warning', 'Hole 16 soil moisture below threshold (14.2%)', 'Sensor SM-09', 64, 'sensor', true);
+  A('warning', 'Decoder DEC-102: abnormal solenoid current', 'Site 01, North Course', 92, 'device', true);
+  A('info', 'Controller SAT-007 responding slowly (840 ms)', 'Site 04, South Course', 130, 'comm', true);
 }
 let alertSeq = 0;
 
@@ -346,7 +346,7 @@ function evalSensor(s) {
   s.status = (lo != null && s.value < lo) || (s.hi != null && s.value > s.hi) ? 'warning' : 'normal';
 }
 
-/* ================= 4. Cài đặt & trạng thái ứng dụng ================= */
+/* ================= 4. Settings & application state ================= */
 const DEFAULT_SETTINGS = { clubName: 'Riverside Golf Club', interval: 3, simStep: 0.5, autoDemo: true, pressureMax: 85, flowMin: 200, flowMax: 2200, moistureMin: 18, notifyCritical: true, notifyWarning: true, notifyInfo: true };
 const SETTINGS = Object.assign({}, DEFAULT_SETTINGS);
 
@@ -368,8 +368,8 @@ const state = {
   diag: { running: false, log: [], scope: 'all', filter: 'all', lastRun: null }
 };
 
-/* ---------- Truy vấn dữ liệu ---------- */
-const courseName = id => (get(id) || {}).name || 'Toàn hệ thống';
+/* ---------- Data queries ---------- */
+const courseName = id => (get(id) || {}).name || 'Entire System';
 const siteLabel = id => { const s = get(id); return s ? `${s.name}, ${courseName(s.courseId)}` : '—'; };
 function inCtx(o) {
   const { courseId, siteId } = state.ctx;
@@ -381,18 +381,18 @@ function ctxLabel() {
   const { courseId, siteId } = state.ctx;
   if (siteId !== 'all') return siteLabel(siteId);
   if (courseId !== 'all') return courseName(courseId);
-  return 'Toàn bộ ' + SETTINGS.clubName;
+  return 'All of ' + SETTINGS.clubName;
 }
 function programStations(p) { return DB.stations.filter(s => p.holeIds.includes(s.holeId) && p.areaTypes.includes(s.type)).map(s => s.id); }
 function programLen(p) { const n = programStations(p).filter(id => usable(get(id))).length; return Math.ceil(n / Math.max(1, p.concurrency)) * p.duration; }
 function programVolume(p) { return sum(programStations(p).map(id => get(id).flow)) * p.duration * GAL_TO_M3; }
 function programSites(p) { return [...new Set(p.holeIds.map(h => (get(h) || {}).siteId).filter(Boolean))]; }
 function progStatus(p) {
-  if (p.state.running) return { key: 'run', label: 'Đang chạy', cls: 'run' };
-  if (!p.enabled) return { key: 'paused', label: 'Tạm dừng', cls: 'idle' };
+  if (p.state.running) return { key: 'run', label: 'Running', cls: 'run' };
+  if (!p.enabled) return { key: 'paused', label: 'Paused', cls: 'idle' };
   const start = hmToMin(p.start), today = p.days.includes(weekday(new Date()));
-  if (today && start + programLen(p) < nowMin() || (p.lastRun && sameDay(new Date(p.lastRun), new Date()))) return { key: 'done', label: 'Hoàn thành', cls: 'done' };
-  return { key: 'up', label: 'Chờ đến giờ', cls: 'wait' };
+  if (today && start + programLen(p) < nowMin() || (p.lastRun && sameDay(new Date(p.lastRun), new Date()))) return { key: 'done', label: 'Completed', cls: 'done' };
+  return { key: 'up', label: 'Scheduled', cls: 'wait' };
 }
 function progProgress(p) {
   if (!p.state.running) return null;
@@ -426,7 +426,7 @@ function equipmentUnder(type, id) {
 }
 const holeStations = id => DB.stations.filter(s => s.holeId === id);
 
-/* ================= 5. Động cơ mô phỏng ================= */
+/* ================= 5. Simulation engine ================= */
 function startStation(s, dur, progId) { Object.assign(s, { status: 'running', elapsed: 0, duration: dur, program: progId, startedAt: Date.now() }); }
 function stopStation(s) {
   if (s.program) { const p = get(s.program); if (p && p.state.queue) p.state.queue = p.state.queue.filter(id => id !== s.id); }
@@ -466,8 +466,8 @@ function stopProgram(p) {
 function finishProgram(p) {
   p.state.running = false;
   p.lastRun = Date.now();
-  p.lastResult = p.state.skipped ? `Hoàn thành, bỏ qua ${p.state.skipped} trạm lỗi` : 'Hoàn thành';
-  pushAlert('success', `Lịch tưới ${p.name} đã hoàn thành`, courseName(p.courseId), 'schedule');
+  p.lastResult = p.state.skipped ? `Completed, skipped ${p.state.skipped} faulty stations` : 'Completed';
+  pushAlert('success', `Irrigation ${p.name} completed`, courseName(p.courseId), 'schedule');
 }
 function nextDemoProgram() {
   const cands = DB.programs.filter(p => p.enabled && !p.manual && !p.state.running && programStations(p).some(id => usable(get(id)) && !['running', 'waiting'].includes(get(id).status)));
@@ -489,12 +489,12 @@ function simPumps() {
   while (running.length < need) {
     const p = autos.find(x => x.status !== 'running'); if (!p) break;
     p.status = 'running'; p.starts++; running.push(p);
-    pushAlert('info', `Máy bơm ${p.id} tự động khởi động do nhu cầu lưu lượng tăng`, 'Trạm bơm chính', 'pump');
+    pushAlert('info', `Pump ${p.id} started automatically due to increased flow demand`, 'Main Pump Station', 'pump');
   }
   state.zeroTicks = rest <= 0 ? state.zeroTicks + 1 : 0;
   while (running.length > need && ((running.length > 1 && rest < (running.length - 1) * cap * 0.75) || (need === 0 && state.zeroTicks >= 4))) {
     const p = running.pop(); p.status = 'stopped';
-    pushAlert('info', `Máy bơm ${p.id} tự động dừng do nhu cầu lưu lượng giảm`, 'Trạm bơm chính', 'pump');
+    pushAlert('info', `Pump ${p.id} stopped automatically due to decreased flow demand`, 'Main Pump Station', 'pump');
   }
   const share = running.length ? rest / running.length : 0;
   DB.pumps.forEach(p => {
@@ -510,7 +510,7 @@ function simPumps() {
     p.power = p.kw * Math.pow(p.speed / 100, 3) * 1.08;
     p.temp += ((40 + p.speed * 0.22) - p.temp) * 0.15 + rnd(-0.3, 0.3);
     p.runtime += SETTINGS.simStep / 60;
-    if (p.pressure > SETTINGS.pressureMax && !p.highFlag) { p.highFlag = true; pushAlert('warning', `Máy bơm ${p.id} có áp suất cao (${fmt(p.pressure)} PSI)`, 'Trạm bơm chính', 'pump'); }
+    if (p.pressure > SETTINGS.pressureMax && !p.highFlag) { p.highFlag = true; pushAlert('warning', `Pump ${p.id} has high pressure (${fmt(p.pressure)} PSI)`, 'Main Pump Station', 'pump'); }
     else if (p.pressure < SETTINGS.pressureMax - 3 && p.highFlag && !p.anomaly) p.highFlag = false;
   });
   const tot = sum(DB.pumps.map(p => p.flow));
@@ -570,17 +570,17 @@ function simComms() {
 const EVENTS = [
   () => {
     const r = get('RAD-208');
-    if (r.status === 'warning') { Object.assign(r, { status: 'online', signal: -71, errorCode: '', errorMsg: '' }); pushAlert('info', 'Radio RAD-208 tín hiệu phục hồi (-71 dBm)', siteLabel(r.siteId), 'comm'); }
-    else { Object.assign(r, { status: 'warning', signal: -87, errorCode: 'E-510', errorMsg: 'Tín hiệu yếu dưới ngưỡng -85 dBm' }); pushAlert('warning', 'Radio RAD-208 tín hiệu yếu (-87 dBm)', siteLabel(r.siteId), 'comm'); }
+    if (r.status === 'warning') { Object.assign(r, { status: 'online', signal: -71, errorCode: '', errorMsg: '' }); pushAlert('info', 'Radio RAD-208 signal recovered (-71 dBm)', siteLabel(r.siteId), 'comm'); }
+    else { Object.assign(r, { status: 'warning', signal: -87, errorCode: 'E-510', errorMsg: 'Weak signal below -85 dBm threshold' }); pushAlert('warning', 'Radio RAD-208 weak signal (-87 dBm)', siteLabel(r.siteId), 'comm'); }
   },
   () => {
     const s = get('PS-03');
-    pushAlert('warning', `Áp suất cuối tuyến Hố 09 dao động bất thường (${fmt(s.value, 1)} PSI)`, 'Cảm biến PS-03', 'sensor');
+    pushAlert('warning', `Abnormal pressure fluctuation at Hole 09 line end (${fmt(s.value, 1)} PSI)`, 'Sensor PS-03', 'sensor');
   },
   () => {
     const sat = get('SAT-007');
-    if (sat.status === 'warning') { Object.assign(sat, { status: 'online', ping: 96, signal: 81, errorCode: '', errorMsg: '' }); pushAlert('info', 'Bộ điều khiển SAT-007 phản hồi ổn định trở lại', siteLabel(sat.siteId), 'comm'); }
-    else { Object.assign(sat, { status: 'warning', ping: 860, signal: 52, errorCode: 'E-214', errorMsg: 'Thời gian phản hồi cao (> 800 ms)' }); pushAlert('warning', 'Bộ điều khiển SAT-007 phản hồi chậm (860 ms)', siteLabel(sat.siteId), 'comm'); }
+    if (sat.status === 'warning') { Object.assign(sat, { status: 'online', ping: 96, signal: 81, errorCode: '', errorMsg: '' }); pushAlert('info', 'Controller SAT-007 response stabilized', siteLabel(sat.siteId), 'comm'); }
+    else { Object.assign(sat, { status: 'warning', ping: 860, signal: 52, errorCode: 'E-214', errorMsg: 'High response time (> 800 ms)' }); pushAlert('warning', 'Controller SAT-007 responding slowly (860 ms)', siteLabel(sat.siteId), 'comm'); }
   }
 ];
 
@@ -607,7 +607,7 @@ function simTick() {
       if (state.idleTicks >= 3) {
         state.idleTicks = 0;
         const c = nextDemoProgram();
-        if (c && startProgram(c)) pushAlert('info', `Lịch tưới ${c.name} bắt đầu theo lịch`, courseName(c.courseId), 'schedule');
+        if (c && startProgram(c)) pushAlert('info', `Irrigation ${c.name} started on schedule`, courseName(c.courseId), 'schedule');
       }
     } else state.idleTicks = 0;
   }
@@ -621,7 +621,7 @@ function simTick() {
 }
 
 function seedSimulation() {
-  // Chương trình B và C đang chạy khi mở ứng dụng
+  // Programs B and C are running when the app opens
   ['PRG-02', 'PRG-03'].forEach((id, i) => {
     const p = get(id);
     startProgram(p);
@@ -630,7 +630,7 @@ function seedSimulation() {
     DB.stations.filter(s => s.program === p.id && s.status === 'running').forEach(s => { s.elapsed = rnd(0.5, s.duration * 0.85); });
   });
   state.volToday = 1864;
-  // Lịch sử lưu lượng ban đầu (khoảng 4 phút)
+  // Initial flow history (about 4 minutes)
   const dem = demandOf();
   for (let i = 60; i > 0; i--) {
     const cur = dem * (0.9 + 0.1 * Math.sin(i / 7)) + rnd(-25, 25) + 60;
@@ -640,7 +640,7 @@ function seedSimulation() {
   simSensors();
 }
 
-/* ================= 6. Thông báo & cảnh báo ================= */
+/* ================= 6. Notifications & alerts ================= */
 const SEV_ICON = { critical: 'alert', warning: 'alert', info: 'info', success: 'check' };
 function pushAlert(sev, title, source, cat) {
   DB.alerts.unshift({ id: 'AL' + (++alertSeq), sev, title, source, ts: Date.now(), read: false, ack: false, cat });
@@ -665,9 +665,9 @@ function notifHTML(a) {
 function renderNotifDD() {
   const unread = DB.alerts.filter(a => !a.read).length;
   $('#notif-dd').innerHTML = `
-    <div class="notif-head"><h3>Thông báo <span class="sub muted">${unread} chưa đọc</span></h3><button class="link" data-action="read-all">Đánh dấu đã đọc</button></div>
-    <div class="notif-list">${DB.alerts.slice(0, 14).map(notifHTML).join('') || '<div class="empty-state">Không có thông báo</div>'}</div>
-    <div class="notif-foot"><button class="link" data-go="dashboard">Xem tất cả cảnh báo trên Tổng quan</button></div>`;
+    <div class="notif-head"><h3>Notifications <span class="sub muted">${unread} unread</span></h3><button class="link" data-action="read-all">Mark all as read</button></div>
+    <div class="notif-list">${DB.alerts.slice(0, 14).map(notifHTML).join('') || '<div class="empty-state">No notifications</div>'}</div>
+    <div class="notif-foot"><button class="link" data-go="dashboard">View all alerts on Overview</button></div>`;
 }
 
 /* ================= 7. Toast, modal, drawer, tooltip ================= */
@@ -688,7 +688,7 @@ function openModal({ title, body, footer = '', size = '', onMount }) {
   const m = $('#modal');
   lastFocus = document.activeElement;
   m.innerHTML = `<div class="modal ${size}" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal-head"><h2 id="modal-title">${esc(title)}</h2><button class="icon-btn sm" data-close aria-label="Đóng">${icon('x')}</button></div>
+    <div class="modal-head"><h2 id="modal-title">${esc(title)}</h2><button class="icon-btn sm" data-close aria-label="Close">${icon('x')}</button></div>
     <div class="modal-body">${body}</div>${footer ? `<div class="modal-foot">${footer}</div>` : ''}</div>`;
   m.hidden = false;
   requestAnimationFrame(() => m.classList.add('open'));
@@ -705,12 +705,12 @@ function closeModal() {
   const cb = modalCloseCb; modalCloseCb = null; if (cb) cb();
   if (lastFocus && lastFocus.focus) lastFocus.focus();
 }
-function confirmDialog({ title, message, confirmText = 'Xác nhận', danger = false }) {
+function confirmDialog({ title, message, confirmText = 'Confirm', danger = false }) {
   return new Promise(res => {
     openModal({
       title, size: 'sm',
       body: `<div class="confirm ${danger ? 'danger' : ''}">${icon(danger ? 'alert' : 'info', 'confirm-ic')}<p>${message}</p></div>`,
-      footer: `<button class="btn" data-close>Hủy</button><button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" id="confirm-ok">${esc(confirmText)}</button>`,
+      footer: `<button class="btn" data-close>Cancel</button><button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" id="confirm-ok">${esc(confirmText)}</button>`,
       onMount: box => { $('#confirm-ok', box).onclick = () => { modalCloseCb = null; closeModal(); res(true); }; }
     });
     modalCloseCb = () => res(false);
@@ -720,7 +720,7 @@ $('#modal').addEventListener('mousedown', e => { if (e.target.id === 'modal') cl
 
 function openDrawer(html, info) {
   const d = $('#drawer');
-  d.innerHTML = `<div class="drawer-panel" role="dialog" aria-label="Chi tiết">${html}</div>`;
+  d.innerHTML = `<div class="drawer-panel" role="dialog" aria-label="Details">${html}</div>`;
   d.hidden = false;
   state.drawer = info || null;
   requestAnimationFrame(() => d.classList.add('open'));
@@ -764,7 +764,7 @@ document.addEventListener('focusin', e => { const t = e.target.closest('[data-ti
 document.addEventListener('focusout', hideTip);
 document.addEventListener('scroll', hideTip, true);
 
-/* ================= 8. Biểu đồ canvas ================= */
+/* ================= 8. Canvas charts ================= */
 function niceTicks(min, max, count = 4) {
   if (min === max) { min -= 1; max += 1; }
   const raw = (max - min) / count, mag = Math.pow(10, Math.floor(Math.log10(raw))), norm = raw / mag;
@@ -809,7 +809,7 @@ function drawChart(c) {
   const Y = v => P.t + ih - (v - min) / (max - min || 1) * ih;
   const X = i => isBar ? P.l + (i + 0.5) * iw / n : P.l + (n <= 1 ? iw / 2 : i * iw / (n - 1));
   c._geo = { P, iw, ih, n, X, isBar };
-  // Lưới
+  // Grid
   ctx.font = font; ctx.textBaseline = 'middle'; ctx.textAlign = 'right';
   for (let v = tk.min; v <= tk.max + tk.step / 2; v += tk.step) {
     if (v < min - 1e-9 || v > max + 1e-9) continue;
@@ -817,18 +817,18 @@ function drawChart(c) {
     ctx.strokeStyle = COLORS.grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(P.l, y); ctx.lineTo(w - P.r, y); ctx.stroke();
     ctx.fillStyle = COLORS.muted; ctx.fillText(fmt(v, tk.step < 1 ? 1 : 0), P.l - 8, y);
   }
-  // Nhãn trục X
+  // X-axis labels
   ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   const every = Math.max(1, Math.ceil(n / Math.max(1, Math.floor(iw / (cfg.labelW || 64)))));
   cfg.labels.forEach((lb, i) => { if (i % every === 0 || (isBar && n <= 14)) { ctx.fillStyle = COLORS.muted; ctx.fillText(lb, X(i), h - P.b + 7); } });
-  // Đường ngưỡng
+  // Threshold lines
   (cfg.lines || []).forEach(l => {
     const y = Math.round(Y(l.y)) + 0.5;
     ctx.save(); ctx.setLineDash([5, 4]); ctx.strokeStyle = l.color; ctx.lineWidth = 1.3;
     ctx.beginPath(); ctx.moveTo(P.l, y); ctx.lineTo(w - P.r, y); ctx.stroke(); ctx.restore();
     if (l.label) { ctx.font = '600 10.5px "Be Vietnam Pro", system-ui'; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillStyle = l.color; ctx.fillText(l.label, w - P.r - 4, y - 3); ctx.font = font; }
   });
-  // Chuỗi dữ liệu
+  // Data series
   if (isBar) {
     const groupW = iw / n * 0.72, sN = cfg.stacked ? 1 : cfg.series.length, bw = Math.max(2, groupW / sN - (sN > 1 ? 2 : 0));
     for (let i = 0; i < n; i++) {
@@ -888,7 +888,7 @@ function sparkSVG(data, color = COLORS.water, w = 90, h = 26) {
   return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
 }
 
-/* ================= 9. Bảng dữ liệu dùng chung ================= */
+/* ================= 9. Shared data tables ================= */
 function sortRows(rows, cols, sort) {
   const c = cols.find(x => x.key === sort.key);
   if (!c) return rows;
@@ -896,7 +896,7 @@ function sortRows(rows, cols, sort) {
   return [...rows].sort((a, b2) => {
     const x = val(a), y = val(b2);
     if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
-    return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'vi', { numeric: true })) * sort.dir;
+    return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'en', { numeric: true })) * sort.dir;
   });
 }
 function tableHTML(id, cols, rows, sort, opts = {}) {
@@ -907,7 +907,7 @@ function tableHTML(id, cols, rows, sort, opts = {}) {
     return `<th ${aria} class="${c.cls || ''}">${c.label}${sortable ? '<span class="sort-ic"></span>' : ''}</th>`;
   }).join('');
   const body = sorted.length ? sorted.map(r => `<tr ${opts.noClick ? '' : `data-id="${esc(r.id)}" tabindex="0"`} class="${opts.rowCls ? opts.rowCls(r) : ''}">${cols.map(c => `<td class="${c.cls || ''}">${c.render ? c.render(r) : esc(r[c.key])}</td>`).join('')}</tr>`).join('')
-    : `<tr class="empty"><td colspan="${cols.length}">${opts.empty || 'Không có dữ liệu phù hợp với bộ lọc hiện tại.'}</td></tr>`;
+    : `<tr class="empty"><td colspan="${cols.length}">${opts.empty || 'No data matches the current filter.'}</td></tr>`;
   return `<table class="table" id="${id}"><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table>`;
 }
 function bindSort(container, sortState, rerender) {
@@ -920,9 +920,9 @@ function bindSort(container, sortState, rerender) {
 }
 function keepScroll(el, fn) { const t = el ? el.scrollTop : 0, l = el ? el.scrollLeft : 0; fn(); if (el) { el.scrollTop = t; el.scrollLeft = l; } }
 
-/* ================= 10. Điều hướng ================= */
+/* ================= 10. Navigation ================= */
 const PAGES = {};
-const PAGE_TITLES = { dashboard: 'Tổng quan', structure: 'Sân & Khu vực', equipment: 'Thiết bị hiện trường', schedule: 'Lịch tưới', pumps: 'Lưu lượng & Máy bơm', sensors: 'Cảm biến', map: 'Bản đồ tưới', diagnostics: 'Chẩn đoán', reports: 'Báo cáo', settings: 'Cài đặt' };
+const PAGE_TITLES = { dashboard: 'Overview', structure: 'Courses & Areas', equipment: 'Field Equipment', schedule: 'Irrigation Schedule', pumps: 'Flow & Pumps', sensors: 'Sensors', map: 'Irrigation Map', diagnostics: 'Diagnostics', reports: 'Reports', settings: 'Settings' };
 function go(page, sub) {
   const hash = `#/${page}${sub ? '/' + sub : ''}`;
   if (location.hash === hash) onRoute(); else location.hash = hash;
@@ -967,21 +967,21 @@ function renderSysStatus() {
   const crit = activeAlerts().filter(a => a.sev === 'critical').length;
   const flowBad = state.flow.current > SETTINGS.flowMax;
   const el = $('#sys-status');
-  let cls = '', txt = 'Trạng thái hệ thống: Bình thường';
-  if (fault || flowBad) { cls = 'err'; txt = 'Trạng thái hệ thống: Sự cố'; }
-  else if (crit > 2) { cls = 'warn'; txt = 'Trạng thái hệ thống: Cần chú ý'; }
+  let cls = '', txt = 'System status: Normal';
+  if (fault || flowBad) { cls = 'err'; txt = 'System status: Fault'; }
+  else if (crit > 2) { cls = 'warn'; txt = 'System status: Needs attention'; }
   el.className = 'sys-status ' + cls;
   $('#sys-status-text').textContent = txt;
-  el.dataset.tip = `${activeAlerts().length} cảnh báo chưa xác nhận, ${DB.pumps.filter(p => p.status === 'running').length}/${DB.pumps.length} máy bơm đang chạy`;
+  el.dataset.tip = `${activeAlerts().length} unacknowledged alerts, ${DB.pumps.filter(p => p.status === 'running').length}/${DB.pumps.length} pumps running`;
 }
 
-/* ---------- Bộ chọn ngữ cảnh sân / khu vực ---------- */
+/* ---------- Course/area context selector ---------- */
 function renderCtxSelects() {
   const cs = $('#ctx-course'), ss = $('#ctx-site');
-  cs.innerHTML = `<option value="all">Tất cả sân (${DB.courses.length})</option>` + DB.courses.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  cs.innerHTML = `<option value="all">All Courses (${DB.courses.length})</option>` + DB.courses.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
   cs.value = state.ctx.courseId;
   const sites = DB.sites.filter(s => state.ctx.courseId === 'all' || s.courseId === state.ctx.courseId);
-  ss.innerHTML = `<option value="all">Tất cả khu vực</option>` + sites.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  ss.innerHTML = `<option value="all">All Areas</option>` + sites.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
   if (!sites.some(s => s.id === state.ctx.siteId)) state.ctx.siteId = 'all';
   ss.value = state.ctx.siteId;
 }
@@ -994,13 +994,13 @@ function applyCtx() {
   renderCtxSelects();
   PAGES[state.page].render(state.sub);
 }
-$('#ctx-course').addEventListener('change', e => { state.ctx.courseId = e.target.value; state.ctx.siteId = 'all'; applyCtx(); toast(`Đang xem: ${ctxLabel()}`, 'info'); });
+$('#ctx-course').addEventListener('change', e => { state.ctx.courseId = e.target.value; state.ctx.siteId = 'all'; applyCtx(); toast(`Viewing: ${ctxLabel()}`, 'info'); });
 $('#ctx-site').addEventListener('change', e => { state.ctx.siteId = e.target.value; applyCtx(); });
 
 /* ---------- Sidebar ---------- */
 $('#collapse-btn').addEventListener('click', () => {
   const c = document.body.classList.toggle('side-collapsed');
-  $('#collapse-btn').setAttribute('aria-label', c ? 'Mở rộng thanh điều hướng' : 'Thu gọn thanh điều hướng');
+  $('#collapse-btn').setAttribute('aria-label', c ? 'Expand navigation' : 'Collapse navigation');
   setTimeout(redrawAllCharts, 260);
 });
 $('#mobile-menu').addEventListener('click', () => document.body.classList.toggle('side-open'));
@@ -1012,7 +1012,7 @@ $$('.nav-toggle').forEach(btn => btn.addEventListener('click', () => {
   btn.setAttribute('aria-expanded', open);
 }));
 
-/* ---------- Dropdown chung ---------- */
+/* ---------- Shared dropdown ---------- */
 function closeDropdowns(except) {
   $$('[data-dd]').forEach(btn => { const dd = $('#' + btn.dataset.dd); if (dd !== except) { dd.hidden = true; btn.setAttribute('aria-expanded', 'false'); } });
   $$('.dd-menu').forEach(m => { if (m !== except) m.hidden = true; });
@@ -1033,28 +1033,28 @@ document.addEventListener('click', e => {
   if (!e.target.closest('#gsearch')) $('#gs-results').hidden = true;
 });
 
-/* ---------- Đồng hồ ---------- */
+/* ---------- Clock ---------- */
 function tickClock() {
   const d = new Date();
   $('#clock-time').textContent = fmtTime(d);
   $('#clock-date').textContent = `${DOW_LONG[weekday(d)]}, ${fmtDate(d)}`;
 }
 
-/* ---------- Tìm kiếm toàn hệ thống ---------- */
+/* ---------- Global search ---------- */
 let gsItems = [], gsFocus = -1;
 function globalSearch(q) {
   q = q.trim().toLowerCase();
   const box = $('#gs-results');
   if (!q) { box.hidden = true; return; }
   const groups = [
-    ['Sân golf', DB.courses, c => [c.id, c.name, c.en], c => c.location, 'course'],
-    ['Khu vực (Site)', DB.sites, s => [s.id, s.name], s => courseName(s.courseId), 'site'],
-    ['Hố golf', DB.holes, h => [h.id, h.name], h => `${courseName(h.courseId)}, Par ${h.par}`, 'hole'],
-    ['Trạm tưới', DB.stations, s => [s.id, s.name], s => `${get(s.holeId).name}, ${AREA[s.type].name}`, 'station'],
-    ['Bộ điều khiển', DB.satellites, s => [s.id, s.name, s.ip], s => siteLabel(s.siteId), 'satellite'],
-    ['Bộ giải mã', DB.decoders, d => [d.id, d.address], d => siteLabel(d.siteId), 'decoder'],
-    ['Thiết bị Radio', DB.radios, r => [r.id, r.type], r => siteLabel(r.siteId), 'radio'],
-    ['Cảm biến', DB.sensors, s => [s.id, s.location, SENSOR_TYPES[s.type].short], s => SENSOR_TYPES[s.type].short, 'sensor']
+    ['Golf Course', DB.courses, c => [c.id, c.name, c.en], c => c.location, 'course'],
+    ['Area (Site)', DB.sites, s => [s.id, s.name], s => courseName(s.courseId), 'site'],
+    ['Golf Hole', DB.holes, h => [h.id, h.name], h => `${courseName(h.courseId)}, Par ${h.par}`, 'hole'],
+    ['Irrigation Station', DB.stations, s => [s.id, s.name], s => `${get(s.holeId).name}, ${AREA[s.type].name}`, 'station'],
+    ['Controller', DB.satellites, s => [s.id, s.name, s.ip], s => siteLabel(s.siteId), 'satellite'],
+    ['Decoder', DB.decoders, d => [d.id, d.address], d => siteLabel(d.siteId), 'decoder'],
+    ['Radio Device', DB.radios, r => [r.id, r.type], r => siteLabel(r.siteId), 'radio'],
+    ['Sensor', DB.sensors, s => [s.id, s.location, SENSOR_TYPES[s.type].short], s => SENSOR_TYPES[s.type].short, 'sensor']
   ];
   gsItems = []; let html = '';
   groups.forEach(([title, list, keys, sub, type]) => {
@@ -1067,7 +1067,7 @@ function globalSearch(q) {
       html += `<button class="gs-item" data-gs="${i}"><span class="gs-id">${hl(o.id, q)}</span><span>${hl(label, q)}</span><span class="gs-sub">${esc(sub(o))}</span></button>`;
     });
   });
-  box.innerHTML = html || `<div class="gs-empty">Không tìm thấy kết quả cho “${esc(q)}”. Thử mã thiết bị như ST-0102, SAT-003 hoặc tên hố.</div>`;
+  box.innerHTML = html || `<div class="gs-empty">No results found for "${esc(q)}". Try a device code like ST-0102, SAT-003, or a hole name.</div>`;
   box.hidden = false; gsFocus = -1;
 }
 function openSearchResult(item) {
@@ -1096,7 +1096,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { if (!$('#modal').hidden) closeModal(); else if (!$('#drawer').hidden) closeDrawer(); else closeDropdowns(); }
 });
 
-/* ================= 11. Bộ xử lý hành động toàn cục ================= */
+/* ================= 11. Global action handlers ================= */
 const ACTIONS = {};
 document.addEventListener('click', e => {
   if (e.target.closest('[data-close]')) { closeModal(); return; }
@@ -1123,8 +1123,8 @@ document.addEventListener('keydown', e => {
 
 Object.assign(ACTIONS, {
   'read-all': () => { DB.alerts.forEach(a => { a.read = true; }); renderNotifBadge(); renderNotifDD(); },
-  profile: () => { closeDropdowns(); toast('Hồ sơ cá nhân không khả dụng trong chế độ demo', 'info'); },
-  logout: () => { closeDropdowns(); toast('Đăng xuất bị vô hiệu hóa trong chế độ demo', 'info'); },
+  profile: () => { closeDropdowns(); toast('Profile is unavailable in demo mode', 'info'); },
+  logout: () => { closeDropdowns(); toast('Logout is disabled in demo mode', 'info'); },
   'drawer-close': () => closeDrawer(),
   'open-station': el => openStationDrawer(el.dataset.id),
   'open-eq': el => openEquipDrawer(el.dataset.id),
@@ -1134,13 +1134,13 @@ Object.assign(ACTIONS, {
   'ack-alert': el => {
     const a = DB.alerts.find(x => x.id === el.dataset.id); if (!a) return;
     a.ack = true; a.read = true;
-    toast('Đã xác nhận cảnh báo', 'success');
+    toast('Alert acknowledged', 'success');
     renderNotifBadge(); renderSysStatus();
     if (PAGES[state.page].live) PAGES[state.page].live(true);
   },
   'ack-all': () => {
     activeAlerts().forEach(a => { a.ack = true; a.read = true; });
-    toast('Đã xác nhận tất cả cảnh báo', 'success');
+    toast('All alerts acknowledged', 'success');
     renderNotifBadge(); renderSysStatus();
     if (PAGES[state.page].live) PAGES[state.page].live(true);
   },
@@ -1148,17 +1148,17 @@ Object.assign(ACTIONS, {
     const s = get(el.dataset.id); if (!s) return;
     const sel = $('#dr-dur');
     const dur = sel ? +sel.value : s.defRun;
-    if (!startManual(s, dur)) { toast(`${s.name} không thể tưới: ${STATION_ST[s.status].label.toLowerCase()}`, 'error'); return; }
-    toast(`Đã bắt đầu tưới ${s.name} trong ${dur} phút`, 'success');
+    if (!startManual(s, dur)) { toast(`${s.name} cannot irrigate: ${STATION_ST[s.status].label.toLowerCase()}`, 'error'); return; }
+    toast(`Started irrigating ${s.name} for ${dur} minutes`, 'success');
     simPumps();
     updateLive();
   },
   'st-stop': async el => {
     const s = get(el.dataset.id); if (!s) return;
-    const ok = await confirmDialog({ title: 'Dừng tưới trạm', message: `Dừng tưới <b>${esc(s.name)}</b> (${esc(s.id)}) ngay lập tức?${s.program ? ' Trạm sẽ bị loại khỏi lượt chạy hiện tại của lịch tưới.' : ''}`, confirmText: 'Dừng tưới', danger: true });
+    const ok = await confirmDialog({ title: 'Stop Station Irrigation', message: `Stop irrigating <b>${esc(s.name)}</b> (${esc(s.id)}) immediately?${s.program ? ' The station will be removed from the current schedule run.' : ''}`, confirmText: 'Stop Irrigation', danger: true });
     if (!ok) return;
     stopStation(s);
-    toast(`Đã dừng tưới ${s.name}`, 'warning');
+    toast(`Stopped irrigating ${s.name}`, 'warning');
     simPumps();
     updateLive();
   },
@@ -1170,7 +1170,7 @@ Object.assign(ACTIONS, {
   'tree-open': el => { closeDrawer(); selectTreeNode(el.dataset.type, el.dataset.id); go('structure'); },
   'eq-ping': el => runPing(el.dataset.id),
   'eq-reboot': el => rebootDevice(el.dataset.id),
-  'sen-cal': el => toast(`Đã gửi lệnh hiệu chuẩn đến ${el.dataset.id}. Kết quả sẽ có sau vài phút`, 'info'),
+  'sen-cal': el => toast(`Calibration command sent to ${el.dataset.id}. Results will be available in a few minutes`, 'info'),
   'sen-map': el => {
     const s = get(el.dataset.id);
     state.map.courseId = s.mapCourse; state.map.selected = s.id;
@@ -1178,9 +1178,9 @@ Object.assign(ACTIONS, {
   }
 });
 
-/* ================= 12. Ngăn chi tiết (drawer) ================= */
+/* ================= 12. Detail drawer ================= */
 const crumbsHTML = parts => `<div class="crumbs">${parts.map((p, i) => (i ? icon('chev-right') : '') + (p.type ? `<button data-action="tree-open" data-type="${p.type}" data-id="${p.id}">${esc(p.label)}</button>` : `<span>${esc(p.label)}</span>`)).join('')}</div>`;
-const drawerHead = (crumbs, title, tags) => `<div class="drawer-head"><div style="min-width:0">${crumbs}<h2>${esc(title)}</h2><div class="detail-title-row">${tags}</div></div><button class="icon-btn sm" data-action="drawer-close" aria-label="Đóng">${icon('x')}</button></div>`;
+const drawerHead = (crumbs, title, tags) => `<div class="drawer-head"><div style="min-width:0">${crumbs}<h2>${esc(title)}</h2><div class="detail-title-row">${tags}</div></div><button class="icon-btn sm" data-action="drawer-close" aria-label="Close">${icon('x')}</button></div>`;
 const kvHTML = rows => `<dl class="kv">${rows.map(([k, v, full]) => `<div class="${full ? 'full' : ''}"><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
 const eqLink = id => id ? `<button class="link" data-action="open-eq" data-id="${id}">${esc(id)}</button>` : '—';
 function sigBars(dbm) {
@@ -1190,31 +1190,31 @@ function sigBars(dbm) {
 }
 function sigPct(p) { if (p == null) return sigBars(null); return sigBars(p > 85 ? -60 : p > 70 ? -70 : p > 55 ? -80 : -90); }
 const pingCls = p => p == null ? 'ping-bad' : p < 150 ? 'ping-good' : p < 500 ? 'ping-mid' : 'ping-bad';
-const pingText = p => p == null ? '<span class="ping-bad">Hết thời gian chờ</span>' : `<span class="${pingCls(p)}">${fmt(p)} ms</span>`;
+const pingText = p => p == null ? '<span class="ping-bad">Timed out</span>' : `<span class="${pingCls(p)}">${fmt(p)} ms</span>`;
 
-/* ---------- Trạm tưới ---------- */
+/* ---------- Irrigation Station ---------- */
 function stationDyn(s) {
   let top = '';
   if (s.status === 'running') {
     const p = s.program ? get(s.program) : null;
     top = `<div class="run-box">
-      <div class="rb-top"><strong>${icon('drop')} Đang tưới${p ? ` theo ${esc(p.name.split('–')[0].trim())}` : ' thủ công'}</strong><span id="dr-prog-text">${fmt(s.elapsed, 1)} / ${s.duration} phút</span></div>
+      <div class="rb-top"><strong>${icon('drop')} Irrigating${p ? ` via ${esc(p.name.split('–')[0].trim())}` : ' manually'}</strong><span id="dr-prog-text">${fmt(s.elapsed, 1)} / ${s.duration} min</span></div>
       <div class="progress lg"><span id="dr-prog-bar" style="width:${s.elapsed / s.duration * 100}%"></span></div>
-      <div class="rb-top muted"><span>Lưu lượng: <b>${fmt(s.flow)} GPM</b></span><span id="dr-prog-left">Còn lại ${durText(s.duration - s.elapsed)}</span></div>
+      <div class="rb-top muted"><span>Flow: <b>${fmt(s.flow)} GPM</b></span><span id="dr-prog-left">${durText(s.duration - s.elapsed)} remaining</span></div>
     </div>
-    <div class="btn-row" style="margin-top:12px"><button class="btn btn-danger" data-action="st-stop" data-id="${s.id}">${icon('stop')}Dừng tưới</button></div>`;
+    <div class="btn-row" style="margin-top:12px"><button class="btn btn-danger" data-action="st-stop" data-id="${s.id}">${icon('stop')}Stop Irrigation</button></div>`;
   } else if (!usable(s)) {
-    top = `<div class="fault-box">${icon('alert')}<div><strong>${STATION_ST[s.status].label}</strong><br>${esc(s.fault || 'Không thể điều khiển trạm')}<br><span class="muted">Kiểm tra ${eqLink(s.decoderId)} hoặc chạy chẩn đoán cho khu vực này.</span></div></div>
-    <div class="btn-row" style="margin-top:12px"><button class="btn" data-go="diagnostics">${icon('pulse')}Mở trang chẩn đoán</button></div>`;
+    top = `<div class="fault-box">${icon('alert')}<div><strong>${STATION_ST[s.status].label}</strong><br>${esc(s.fault || 'Unable to control station')}<br><span class="muted">Check ${eqLink(s.decoderId)} or run diagnostics for this area.</span></div></div>
+    <div class="btn-row" style="margin-top:12px"><button class="btn" data-go="diagnostics">${icon('pulse')}Open Diagnostics Page</button></div>`;
   } else {
     const waitP = s.status === 'waiting' && s.program ? get(s.program) : null;
-    top = `${waitP ? `<div class="note-box" style="margin-bottom:12px">${icon('clock')}<span>Trạm đang trong hàng đợi của <b>${esc(waitP.name)}</b>. Tưới thủ công sẽ bỏ trạm khỏi hàng đợi.</span></div>` : ''}
+    top = `${waitP ? `<div class="note-box" style="margin-bottom:12px">${icon('clock')}<span>Station is queued for <b>${esc(waitP.name)}</b>. Manual irrigation will remove it from the queue.</span></div>` : ''}
     <div class="manual-ctrl">
-      <div class="field"><label for="dr-dur">Thời gian tưới thủ công</label>
-        <select class="select" id="dr-dur">${[3, 5, 10, 12, 15, 20, 30].map(m => `<option value="${m}" ${m === s.defRun ? 'selected' : ''}>${m} phút</option>`).join('')}</select></div>
-      <button class="btn btn-water" data-action="st-start" data-id="${s.id}">${icon('play')}Bắt đầu tưới</button>
+      <div class="field"><label for="dr-dur">Manual irrigation duration</label>
+        <select class="select" id="dr-dur">${[3, 5, 10, 12, 15, 20, 30].map(m => `<option value="${m}" ${m === s.defRun ? 'selected' : ''}>${m} min</option>`).join('')}</select></div>
+      <button class="btn btn-water" data-action="st-start" data-id="${s.id}">${icon('play')}Start Irrigation</button>
     </div>
-    <p class="muted" style="font-size:12px;margin-top:8px">Nước dự kiến: ${fmt(s.flow * s.defRun * GAL_TO_M3, 2)} m³ cho ${s.defRun} phút. Máy bơm sẽ tự động điều chỉnh theo nhu cầu.</p>`;
+    <p class="muted" style="font-size:12px;margin-top:8px">Estimated water: ${fmt(s.flow * s.defRun * GAL_TO_M3, 2)} m³ over ${s.defRun} minutes. Pumps will adjust automatically to demand.</p>`;
   }
   return top;
 }
@@ -1229,42 +1229,42 @@ function openStationDrawer(id) {
     s.name, `<span class="tag t-station">${s.id}</span><span id="dr-badge">${stBadge(s.status)}</span>`) +
     `<div class="drawer-body">
       <div class="section" id="dr-dyn">${stationDyn(s)}</div>
-      <div class="section"><div class="section-title"><h3>Thông tin trạm</h3></div>${kvHTML([
-        ['Khu tưới', `${esc(a.name)} – ${esc(a.vi)}`], ['Loại cỏ', esc(a.turf)],
-        ['Đầu tưới', esc(s.head), true],
-        ['Lưu lượng thiết kế', `${fmt(s.flow)} GPM`], ['Thời gian mặc định', `${s.defRun} phút`],
-        ['Bộ điều khiển', eqLink(s.satelliteId)], ['Bộ giải mã', eqLink(s.decoderId)],
-        ['Lần tưới gần nhất', `<span id="dr-last">${s.lastRun ? fmtDT(s.lastRun) : '—'}</span>`], ['Số lần tưới hôm nay', `<span id="dr-runs">${s.runsToday}</span>`]
+      <div class="section"><div class="section-title"><h3>Station Information</h3></div>${kvHTML([
+        ['Irrigation Zone', `${esc(a.name)} – ${esc(a.desc)}`], ['Grass Type', esc(a.turf)],
+        ['Sprinkler Head', esc(s.head), true],
+        ['Design Flow Rate', `${fmt(s.flow)} GPM`], ['Default Duration', `${s.defRun} min`],
+        ['Controller', eqLink(s.satelliteId)], ['Decoder', eqLink(s.decoderId)],
+        ['Last Run', `<span id="dr-last">${s.lastRun ? fmtDT(s.lastRun) : '—'}</span>`], ['Runs Today', `<span id="dr-runs">${s.runsToday}</span>`]
       ])}</div>
-      <div class="section"><div class="section-title"><h3>Lịch tưới liên quan</h3><span class="muted">${progs.length}</span></div>
-        <div class="mini-list">${progs.map(p => `<button class="mini-row" data-action="open-program" data-id="${p.id}"><span>${esc(p.name)}</span><span class="muted">${p.start} · ${p.duration} phút</span></button>`).join('') || '<div class="muted">Không thuộc lịch tưới nào</div>'}</div></div>
-      <div class="section"><div class="section-title"><h3>Cảm biến lân cận</h3></div>
-        <div class="mini-list">${sens.map(x => `<button class="mini-row" data-action="open-sensor" data-id="${x.id}"><span><b>${x.id}</b> · ${esc(SENSOR_TYPES[x.type].short)}</span><span>${fmt(x.value, SENSOR_TYPES[x.type].dec)} ${SENSOR_TYPES[x.type].unit} ${senBadge(x.status)}</span></button>`).join('') || '<div class="muted">Không có cảm biến tại hố này</div>'}</div></div>
-      <div class="section"><div class="btn-row"><button class="btn" data-action="st-map" data-id="${s.id}">${icon('map')}Xem trên bản đồ</button><button class="btn btn-ghost" data-action="tree-open" data-type="hole" data-id="${h.id}">${icon('layers')}Mở ${esc(h.name)} trong cây</button></div></div>
+      <div class="section"><div class="section-title"><h3>Related Irrigation Programs</h3><span class="muted">${progs.length}</span></div>
+        <div class="mini-list">${progs.map(p => `<button class="mini-row" data-action="open-program" data-id="${p.id}"><span>${esc(p.name)}</span><span class="muted">${p.start} · ${p.duration} min</span></button>`).join('') || '<div class="muted">Not part of any irrigation program</div>'}</div></div>
+      <div class="section"><div class="section-title"><h3>Nearby Sensors</h3></div>
+        <div class="mini-list">${sens.map(x => `<button class="mini-row" data-action="open-sensor" data-id="${x.id}"><span><b>${x.id}</b> · ${esc(SENSOR_TYPES[x.type].short)}</span><span>${fmt(x.value, SENSOR_TYPES[x.type].dec)} ${SENSOR_TYPES[x.type].unit} ${senBadge(x.status)}</span></button>`).join('') || '<div class="muted">No sensors at this hole</div>'}</div></div>
+      <div class="section"><div class="btn-row"><button class="btn" data-action="st-map" data-id="${s.id}">${icon('map')}View on Map</button><button class="btn btn-ghost" data-action="tree-open" data-type="hole" data-id="${h.id}">${icon('layers')}Open ${esc(h.name)} in tree</button></div></div>
     </div>`;
   openDrawer(html, { type: 'station', id, sig: stationSig(s) });
 }
 
-/* ---------- Thiết bị hiện trường ---------- */
-const EQ_KIND = { SAT: 'Bộ điều khiển', DEC: 'Bộ giải mã', RAD: 'Thiết bị Radio' };
+/* ---------- Field Equipment ---------- */
+const EQ_KIND = { SAT: 'Controller', DEC: 'Decoder', RAD: 'Radio Device' };
 const eqKind = id => EQ_KIND[id.split('-')[0]];
 const eqStations = d => d.id.startsWith('SAT') ? DB.stations.filter(s => s.satelliteId === d.id) : d.id.startsWith('DEC') ? DB.stations.filter(s => s.decoderId === d.id) : DB.stations.filter(s => s.satelliteId === d.satelliteId);
 function eqSig(d) { return `${d.status}|${d.errorCode}|${d.rebooting ? 1 : 0}`; }
 function equipDyn(d) {
   const sts = eqStations(d);
   const cnt = k => sts.filter(s => s.status === k).length;
-  const rows = [['Trạng thái', eqBadge(d.status) + (d.rebooting ? ' <span class="badge b-wait">Đang khởi động lại</span>' : '')], ['Độ trễ (ping)', `<span id="dr-ping">${pingText(d.ping)}</span>`]];
-  if (d.id.startsWith('SAT')) rows.push(['Địa chỉ IP', d.ip], ['Kênh truyền', d.comm], ['Firmware', d.firmware + (d.firmware !== 'v5.3.2' ? ' <span class="badge b-warn">Có bản mới</span>' : '')], ['Cường độ tín hiệu', `${sigPct(d.signal)}${d.signal != null ? d.signal + '%' : '—'}`], ['Model', d.model, true]);
-  if (d.id.startsWith('DEC')) rows.push(['Địa chỉ', d.address], ['Model', d.model], ['Dòng điện', `${fmt(d.current)} mA`], ['Điện áp đường truyền', `${fmt(d.voltage, 1)} V`], ['Bộ điều khiển', eqLink(d.satelliteId)]);
-  if (d.id.startsWith('RAD')) rows.push(['Loại', d.type], ['Tần số', d.freq], ['Tín hiệu', `${sigBars(d.signal)}${d.signal != null ? d.signal + ' dBm' : '—'}`], ['Bộ điều khiển', eqLink(d.satelliteId)]);
-  rows.push(['Lần liên lạc gần nhất', `<span id="dr-seen">${ago(d.lastSeen)}</span>`], ['Liên lạc thành công', fmtDT(d.lastOk)]);
-  return `${d.errorCode ? `<div class="fault-box" style="margin-bottom:14px">${icon('alert')}<div><span class="err-code">${d.errorCode}</span> · ${esc(d.errorMsg)}<br><span class="muted">Mất liên lạc ổn định từ ${fmtDT(d.lastOk)}</span></div></div>` : ''}
+  const rows = [['Status', eqBadge(d.status) + (d.rebooting ? ' <span class="badge b-wait">Restarting</span>' : '')], ['Latency (ping)', `<span id="dr-ping">${pingText(d.ping)}</span>`]];
+  if (d.id.startsWith('SAT')) rows.push(['IP Address', d.ip], ['Comm Channel', d.comm], ['Firmware', d.firmware + (d.firmware !== 'v5.3.2' ? ' <span class="badge b-warn">Update available</span>' : '')], ['Signal Strength', `${sigPct(d.signal)}${d.signal != null ? d.signal + '%' : '—'}`], ['Model', d.model, true]);
+  if (d.id.startsWith('DEC')) rows.push(['Address', d.address], ['Model', d.model], ['Current', `${fmt(d.current)} mA`], ['Line Voltage', `${fmt(d.voltage, 1)} V`], ['Controller', eqLink(d.satelliteId)]);
+  if (d.id.startsWith('RAD')) rows.push(['Type', d.type], ['Frequency', d.freq], ['Signal', `${sigBars(d.signal)}${d.signal != null ? d.signal + ' dBm' : '—'}`], ['Controller', eqLink(d.satelliteId)]);
+  rows.push(['Last Contact', `<span id="dr-seen">${ago(d.lastSeen)}</span>`], ['Last Successful Contact', fmtDT(d.lastOk)]);
+  return `${d.errorCode ? `<div class="fault-box" style="margin-bottom:14px">${icon('alert')}<div><span class="err-code">${d.errorCode}</span> · ${esc(d.errorMsg)}<br><span class="muted">Stable connection lost since ${fmtDT(d.lastOk)}</span></div></div>` : ''}
     ${kvHTML(rows)}
-    <div class="section-title" style="margin-top:16px"><h3>Trạm tưới kết nối</h3><span class="muted">${sts.length} trạm</span></div>
-    <div class="mini-list"><div><span>Sẵn sàng / Hoàn thành</span><b>${cnt('idle') + cnt('completed')}</b></div><div><span>Đang tưới / Đang chờ</span><b>${cnt('running') + cnt('waiting')}</b></div><div><span>Lỗi / Mất kết nối</span><b class="${cnt('error') + cnt('offline') ? 'ping-bad' : ''}">${cnt('error') + cnt('offline')}</b></div></div>
+    <div class="section-title" style="margin-top:16px"><h3>Connected Irrigation Stations</h3><span class="muted">${sts.length} stations</span></div>
+    <div class="mini-list"><div><span>Ready / Completed</span><b>${cnt('idle') + cnt('completed')}</b></div><div><span>Irrigating / Waiting</span><b>${cnt('running') + cnt('waiting')}</b></div><div><span>Error / Disconnected</span><b class="${cnt('error') + cnt('offline') ? 'ping-bad' : ''}">${cnt('error') + cnt('offline')}</b></div></div>
     <div class="btn-row" style="margin-top:16px">
-      <button class="btn" data-action="eq-ping" data-id="${d.id}" ${d.rebooting ? 'disabled' : ''}>${icon('wifi')}Kiểm tra kết nối</button>
-      <button class="btn" data-action="eq-reboot" data-id="${d.id}" ${d.rebooting ? 'disabled' : ''}>${icon('refresh')}Khởi động lại</button>
+      <button class="btn" data-action="eq-ping" data-id="${d.id}" ${d.rebooting ? 'disabled' : ''}>${icon('wifi')}Check Connection</button>
+      <button class="btn" data-action="eq-reboot" data-id="${d.id}" ${d.rebooting ? 'disabled' : ''}>${icon('refresh')}Restart</button>
     </div>
     <div class="console" id="dr-ping-out" style="margin-top:12px;min-height:0;border-radius:var(--r);${d._pingLog ? '' : 'display:none'}">${d._pingLog || ''}</div>`;
 }
@@ -1279,10 +1279,10 @@ function openEquipDrawer(id) {
     title, `<span class="tag">${d.id}</span>`) +
     `<div class="drawer-body">
       <div class="section" id="dr-dyn">${equipDyn(d)}</div>
-      <div class="section"><div class="section-title"><h3>Phạm vi phục vụ</h3></div>
+      <div class="section"><div class="section-title"><h3>Service Coverage</h3></div>
         <div class="equip-chips">${holes.map(hid => `<button class="eq-chip" data-action="tree-open" data-type="hole" data-id="${hid}">${icon('flag')}${esc(get(hid).name)}</button>`).join('')}</div>
         <div class="st-chips" style="margin-top:12px">${sts.slice(0, 12).map(s => `<button class="st-chip ${s.status === 'running' ? 'run' : usable(s) ? '' : 'err'}" data-action="open-station" data-id="${s.id}"><span class="top"><strong>${s.id}</strong><span class="sdot ${STATION_ST[s.status].dot}"></span></span><span class="s">${AREA[s.type].name} · ${STATION_ST[s.status].label}</span></button>`).join('')}</div>
-        ${sts.length > 12 ? `<p class="muted" style="font-size:12px;margin-top:8px">và ${sts.length - 12} trạm khác</p>` : ''}
+        ${sts.length > 12 ? `<p class="muted" style="font-size:12px;margin-top:8px">and ${sts.length - 12} more stations</p>` : ''}
       </div>
     </div>`;
   openDrawer(html, { type: 'equip', id, sig: eqSig(d) });
@@ -1293,17 +1293,17 @@ function runPing(id) {
   out.style.display = '';
   const t = () => fmtTime(new Date());
   const target = d.ip || d.address || d.freq;
-  let log = `<div class="ln"><time>${t()}</time><span class="run">▶ PING ${d.id} (${esc(target)}) – 4 gói tin</span></div>`;
+  let log = `<div class="ln"><time>${t()}</time><span class="run">▶ PING ${d.id} (${esc(target)}) – 4 packets</span></div>`;
   out.innerHTML = log;
   let i = 0, okN = 0; const times = [];
   const iv = setInterval(() => {
     if (!$('#dr-ping-out') || state.drawer?.id !== id) { clearInterval(iv); return; }
     i++;
-    if (d.status === 'offline') log += `<div class="ln"><time>${t()}</time><span class="err">✗ Gói ${i}: hết thời gian chờ (2000 ms)</span></div>`;
-    else { const ms = Math.max(8, Math.round((d.ping || 40) * rnd(0.85, 1.2))); times.push(ms); okN++; log += `<div class="ln"><time>${t()}</time><span class="${ms > 500 ? 'warn' : 'ok'}">${ms > 500 ? '⚠' : '✓'} Gói ${i}: phản hồi ${ms} ms</span></div>`; }
+    if (d.status === 'offline') log += `<div class="ln"><time>${t()}</time><span class="err">✗ Packet ${i}: timed out (2000 ms)</span></div>`;
+    else { const ms = Math.max(8, Math.round((d.ping || 40) * rnd(0.85, 1.2))); times.push(ms); okN++; log += `<div class="ln"><time>${t()}</time><span class="${ms > 500 ? 'warn' : 'ok'}">${ms > 500 ? '⚠' : '✓'} Packet ${i}: response ${ms} ms</span></div>`; }
     if (i === 4) {
       clearInterval(iv);
-      log += `<div class="ln"><time>${t()}</time><span class="sum">Kết quả: ${okN}/4 gói thành công${times.length ? `, trung bình ${Math.round(avg(times))} ms` : ''}</span></div>`;
+      log += `<div class="ln"><time>${t()}</time><span class="sum">Result: ${okN}/4 packets successful${times.length ? `, average ${Math.round(avg(times))} ms` : ''}</span></div>`;
       if (okN) { d.lastSeen = Date.now(); if (d.status === 'online') d.lastOk = d.lastSeen; }
     }
     d._pingLog = log;
@@ -1313,17 +1313,17 @@ function runPing(id) {
 async function rebootDevice(id) {
   const d = get(id);
   const n = eqStations(d).filter(s => s.status === 'running').length;
-  const ok = await confirmDialog({ title: `Khởi động lại ${eqKind(id).toLowerCase()}`, message: `Khởi động lại <b>${esc(d.id)}</b>? Thiết bị sẽ mất liên lạc khoảng 30 giây.${n ? ` <b>${n} trạm đang tưới</b> sẽ tạm dừng và tiếp tục sau khi thiết bị kết nối lại.` : ''}`, confirmText: 'Khởi động lại', danger: true });
+  const ok = await confirmDialog({ title: `Restart ${eqKind(id).toLowerCase()}`, message: `Restart <b>${esc(d.id)}</b>? The device will lose contact for about 30 seconds.${n ? ` <b>${n} irrigating stations</b> will pause and resume once the device reconnects.` : ''}`, confirmText: 'Restart', danger: true });
   if (!ok) return;
   d.rebooting = true; d._pingLog = '';
-  toast(`Đang khởi động lại ${d.id}…`, 'info');
+  toast(`Restarting ${d.id}…`, 'info');
   liveDrawer(true);
   setTimeout(() => {
     d.rebooting = false;
     const now = Date.now();
     if (d.errorCode === 'E-305') {
       d.lastSeen = d.lastOk = now;
-      pushAlert('warning', `${d.id} đã khởi động lại nhưng lỗi E-305 vẫn còn – cần kiểm tra solenoid tại hiện trường`, siteLabel(d.siteId), 'device');
+      pushAlert('warning', `${d.id} restarted but error E-305 persists – solenoid needs on-site inspection`, siteLabel(d.siteId), 'device');
     } else {
       const was = d.status;
       Object.assign(d, { status: 'online', errorCode: '', errorMsg: '', lastSeen: now, lastOk: now });
@@ -1333,13 +1333,13 @@ async function rebootDevice(id) {
       let rec = 0;
       DB.stations.forEach(s => { if (s.status === 'offline' && (s.decoderId === d.id || s.satelliteId === d.id)) { s.status = 'idle'; s.fault = ''; rec++; } });
       DB.alerts.forEach(a => { if (a.title.includes(d.id) && a.sev !== 'success') { a.ack = true; a.read = true; } });
-      pushAlert('success', `${d.id} đã kết nối lại${was === 'offline' ? ' và hoạt động bình thường' : ''}${rec ? `, ${rec} trạm sẵn sàng tưới` : ''}`, siteLabel(d.siteId), 'comm');
+      pushAlert('success', `${d.id} reconnected${was === 'offline' ? ' and is operating normally' : ''}${rec ? `, ${rec} stations ready to irrigate` : ''}`, siteLabel(d.siteId), 'comm');
     }
     updateLive();
   }, 4200);
 }
 
-/* ---------- Cảm biến ---------- */
+/* ---------- Sensors ---------- */
 function sensorLimitsText(s) {
   const T = SENSOR_TYPES[s.type], lo = s.type === 'moisture' ? SETTINGS.moistureMin : s.lo;
   if (lo == null && s.hi == null) return '—';
@@ -1351,61 +1351,61 @@ function openSensorDrawer(id) {
   const h = s.holeId ? get(s.holeId) : null;
   const crumbs = [{ label: courseName(s.mapCourse), type: 'course', id: s.mapCourse }];
   if (h) crumbs.push({ label: get(h.siteId).name, type: 'site', id: h.siteId }, { label: h.name, type: 'hole', id: h.id });
-  else crumbs.push({ label: 'Hạ tầng chung' });
+  else crumbs.push({ label: 'Shared Infrastructure' });
   const html = drawerHead(crumbsHTML(crumbs), `${s.id} – ${T.short}`, `<span class="tag t-sensor">${esc(T.name)}</span><span id="dr-badge">${senBadge(s.status)}</span>`) +
     `<div class="drawer-body">
       <div class="section">
-        <div class="section-title"><div><div class="muted" style="font-size:12px">Giá trị hiện tại</div><div class="kpi-value" id="dr-sen-val">${fmt(s.value, T.dec)}<small>${T.unit}</small></div></div>
-        <div style="text-align:right"><div class="muted" style="font-size:12px">Ngưỡng cho phép</div><b>${sensorLimitsText(s)}</b></div></div>
-        ${s.sticky ? `<div class="note-box">${icon('info')}<span>Giá trị đo thấp hơn mức dự kiến theo lưu lượng thiết kế của nhánh. Có thể do rò rỉ hoặc tắc đầu tưới.</span></div>` : ''}
+        <div class="section-title"><div><div class="muted" style="font-size:12px">Current Value</div><div class="kpi-value" id="dr-sen-val">${fmt(s.value, T.dec)}<small>${T.unit}</small></div></div>
+        <div style="text-align:right"><div class="muted" style="font-size:12px">Allowed Range</div><b>${sensorLimitsText(s)}</b></div></div>
+        ${s.sticky ? `<div class="note-box">${icon('info')}<span>The measured value is lower than expected for this branch's design flow rate. This may indicate a leak or a clogged sprinkler head.</span></div>` : ''}
       </div>
-      <div class="section"><div class="section-title"><h3>Lịch sử 24 giờ</h3><span class="muted">30 phút/điểm</span></div><div class="chart-box h-200" style="padding:0"><canvas id="dr-chart"></canvas></div></div>
+      <div class="section"><div class="section-title"><h3>24-Hour History</h3><span class="muted">30 min/point</span></div><div class="chart-box h-200" style="padding:0"><canvas id="dr-chart"></canvas></div></div>
       <div class="section">${kvHTML([
-        ['Vị trí lắp đặt', esc(s.location), true], ['Loại cảm biến', esc(T.name)], ['Đơn vị', T.unit],
-        ['Pin', s.battery != null ? `${s.battery}%` : 'Nguồn lưới'], ['Cập nhật', `<span id="dr-seen">${ago(s.lastUpdate)}</span>`],
-        ['Trung bình 24h', fmt(avg(s.history.map(p => p.v)), T.dec) + ' ' + T.unit], ['Cao nhất 24h', fmt(Math.max(...s.history.map(p => p.v)), T.dec) + ' ' + T.unit]
+        ['Installation Location', esc(s.location), true], ['Sensor Type', esc(T.name)], ['Unit', T.unit],
+        ['Battery', s.battery != null ? `${s.battery}%` : 'Mains Power'], ['Updated', `<span id="dr-seen">${ago(s.lastUpdate)}</span>`],
+        ['24h Average', fmt(avg(s.history.map(p => p.v)), T.dec) + ' ' + T.unit], ['24h Peak', fmt(Math.max(...s.history.map(p => p.v)), T.dec) + ' ' + T.unit]
       ])}</div>
-      <div class="section"><div class="btn-row"><button class="btn" data-action="sen-map" data-id="${s.id}">${icon('map')}Xem trên bản đồ</button><button class="btn btn-ghost" data-action="sen-cal" data-id="${s.id}">${icon('gauge')}Hiệu chuẩn</button></div></div>
+      <div class="section"><div class="btn-row"><button class="btn" data-action="sen-map" data-id="${s.id}">${icon('map')}View on Map</button><button class="btn btn-ghost" data-action="sen-cal" data-id="${s.id}">${icon('gauge')}Calibrate</button></div></div>
     </div>`;
   openDrawer(html, { type: 'sensor', id, sig: s.status });
 }
 
-/* ---------- Lịch tưới (drawer) ---------- */
+/* ---------- Irrigation Program (drawer) ---------- */
 function programSig(p) { return `${p.state.running}|${p.enabled}|${progStatus(p).key}`; }
 function programDyn(p) {
   const st = progStatus(p), pr = progProgress(p);
   const running = DB.stations.filter(s => s.program === p.id && s.status === 'running');
-  return `<div class="section-title"><span>${b(st.cls, st.label)}</span><span class="muted">Lần chạy gần nhất: ${p.lastRun ? fmtDT(p.lastRun) : '—'} · ${esc(p.lastResult)}</span></div>
-    ${pr ? `<div class="run-box"><div class="rb-top"><strong>Tiến độ</strong><span id="dr-pp-text">${pr.done}/${pr.total} trạm · ${fmt(pr.pct)}%</span></div><div class="progress lg"><span id="dr-pp-bar" style="width:${pr.pct}%"></span></div><div class="rb-top muted"><span>Đang tưới đồng thời: <b id="dr-pp-run">${pr.running}</b>/${p.concurrency}</span><span>${p.state.skipped ? `Bỏ qua ${p.state.skipped} trạm lỗi` : ''}</span></div></div>
-      <div class="mini-list" style="margin-top:10px" id="dr-pp-list">${running.slice(0, 6).map(s => `<button class="mini-row" data-action="open-station" data-id="${s.id}"><span><b>${s.id}</b> · ${esc(get(s.holeId).name)}, ${AREA[s.type].name}</span><span class="muted">${fmt(s.elapsed, 1)}/${s.duration} phút</span></button>`).join('')}</div>` : ''}
+  return `<div class="section-title"><span>${b(st.cls, st.label)}</span><span class="muted">Last run: ${p.lastRun ? fmtDT(p.lastRun) : '—'} · ${esc(p.lastResult)}</span></div>
+    ${pr ? `<div class="run-box"><div class="rb-top"><strong>Progress</strong><span id="dr-pp-text">${pr.done}/${pr.total} stations · ${fmt(pr.pct)}%</span></div><div class="progress lg"><span id="dr-pp-bar" style="width:${pr.pct}%"></span></div><div class="rb-top muted"><span>Concurrently irrigating: <b id="dr-pp-run">${pr.running}</b>/${p.concurrency}</span><span>${p.state.skipped ? `Skipped ${p.state.skipped} faulty stations` : ''}</span></div></div>
+      <div class="mini-list" style="margin-top:10px" id="dr-pp-list">${running.slice(0, 6).map(s => `<button class="mini-row" data-action="open-station" data-id="${s.id}"><span><b>${s.id}</b> · ${esc(get(s.holeId).name)}, ${AREA[s.type].name}</span><span class="muted">${fmt(s.elapsed, 1)}/${s.duration} min</span></button>`).join('')}</div>` : ''}
     <div class="btn-row" style="margin-top:14px">
-      ${p.state.running ? `<button class="btn btn-danger" data-action="prog-stop" data-id="${p.id}">${icon('stop')}Dừng lịch</button>` : `<button class="btn btn-water" data-action="prog-run" data-id="${p.id}" ${p.enabled ? '' : 'disabled'}>${icon('play')}Chạy ngay</button>`}
-      <button class="btn" data-action="prog-edit" data-id="${p.id}">${icon('edit')}Chỉnh sửa</button>
-      <button class="btn" data-action="prog-copy" data-id="${p.id}">${icon('copy')}Sao chép</button>
-      <button class="btn" data-action="prog-toggle" data-id="${p.id}">${icon(p.enabled ? 'pause' : 'check')}${p.enabled ? 'Tạm dừng' : 'Kích hoạt'}</button>
-      <button class="btn btn-ghost" data-action="prog-delete" data-id="${p.id}">${icon('trash')}Xóa</button>
+      ${p.state.running ? `<button class="btn btn-danger" data-action="prog-stop" data-id="${p.id}">${icon('stop')}Stop Schedule</button>` : `<button class="btn btn-water" data-action="prog-run" data-id="${p.id}" ${p.enabled ? '' : 'disabled'}>${icon('play')}Run Now</button>`}
+      <button class="btn" data-action="prog-edit" data-id="${p.id}">${icon('edit')}Edit</button>
+      <button class="btn" data-action="prog-copy" data-id="${p.id}">${icon('copy')}Duplicate</button>
+      <button class="btn" data-action="prog-toggle" data-id="${p.id}">${icon(p.enabled ? 'pause' : 'check')}${p.enabled ? 'Pause' : 'Activate'}</button>
+      <button class="btn btn-ghost" data-action="prog-delete" data-id="${p.id}">${icon('trash')}Delete</button>
     </div>`;
 }
 function openProgramDrawer(id) {
   const p = get(id); if (!p) return;
   const sts = programStations(p);
-  const html = drawerHead(crumbsHTML([{ label: 'Lịch tưới' }, { label: courseName(p.courseId), type: 'course', id: p.courseId }]), p.name, `<span class="tag">${p.id}</span>${prioHTML(p.priority)}`) +
+  const html = drawerHead(crumbsHTML([{ label: 'Irrigation Schedule' }, { label: courseName(p.courseId), type: 'course', id: p.courseId }]), p.name, `<span class="tag">${p.id}</span>${prioHTML(p.priority)}`) +
     `<div class="drawer-body">
       <div class="section" id="dr-dyn">${programDyn(p)}</div>
       <div class="section">${kvHTML([
-        ['Sân golf', esc(courseName(p.courseId))], ['Khu vực', programSites(p).map(x => get(x).name).join(', ')],
-        ['Hố golf', p.holeIds.map(h => get(h).no).join(', '), true],
-        ['Khu tưới', p.areaTypes.map(t => AREA[t].name).join(', ')], ['Số trạm', `${sts.length} trạm`],
-        ['Giờ bắt đầu', p.start], ['Thời gian mỗi trạm', `${p.duration} phút`],
-        ['Tổng thời lượng', durText(programLen(p))], ['Lượng nước dự kiến', `${fmt(programVolume(p), 1)} m³`],
-        ['Ngày chạy', p.days.length === 7 ? 'Hằng ngày' : p.days.map(d => DOW[d]).join(', ')], ['Số trạm đồng thời', p.concurrency],
-        ['Ghi chú', esc(p.note || '—'), true]
+        ['Golf Course', esc(courseName(p.courseId))], ['Area', programSites(p).map(x => get(x).name).join(', ')],
+        ['Golf Hole', p.holeIds.map(h => get(h).no).join(', '), true],
+        ['Irrigation Zone', p.areaTypes.map(t => AREA[t].name).join(', ')], ['Station Count', `${sts.length} stations`],
+        ['Start Time', p.start], ['Duration per Station', `${p.duration} min`],
+        ['Total Duration', durText(programLen(p))], ['Estimated Water Volume', `${fmt(programVolume(p), 1)} m³`],
+        ['Run Days', p.days.length === 7 ? 'Daily' : p.days.map(d => DOW[d]).join(', ')], ['Concurrent Stations', p.concurrency],
+        ['Note', esc(p.note || '—'), true]
       ])}</div>
     </div>`;
   openDrawer(html, { type: 'program', id, sig: programSig(p) });
 }
 
-/* ---------- Cập nhật drawer theo thời gian thực ---------- */
+/* ---------- Real-time drawer updates ---------- */
 function liveDrawer(force) {
   const info = state.drawer; if (!info) return;
   const o = get(info.id);
@@ -1423,8 +1423,8 @@ function liveDrawer(force) {
       const r = $('#dr-runs'); if (r) r.textContent = o.runsToday;
     } else if (o.status === 'running') {
       const bar = $('#dr-prog-bar'); if (bar) bar.style.width = (o.elapsed / o.duration * 100) + '%';
-      const t = $('#dr-prog-text'); if (t) t.textContent = `${fmt(o.elapsed, 1)} / ${o.duration} phút`;
-      const lf = $('#dr-prog-left'); if (lf) lf.textContent = `Còn lại ${durText(o.duration - o.elapsed)}`;
+      const t = $('#dr-prog-text'); if (t) t.textContent = `${fmt(o.elapsed, 1)} / ${o.duration} min`;
+      const lf = $('#dr-prog-left'); if (lf) lf.textContent = `${durText(o.duration - o.elapsed)} remaining`;
     }
   } else if (info.type === 'equip') {
     const sig = eqSig(o);
@@ -1446,12 +1446,12 @@ function drawDrawerCharts() {
   const s = get(info.id), T = SENSOR_TYPES[s.type], c = $('#dr-chart'); if (!c) return;
   const lo = s.type === 'moisture' ? SETTINGS.moistureMin : s.lo;
   const lines = [];
-  if (lo != null) lines.push({ y: lo, color: COLORS.amber, label: 'Ngưỡng dưới' });
-  if (s.hi != null && s.type !== 'rain') lines.push({ y: s.hi, color: COLORS.red, label: 'Ngưỡng trên' });
+  if (lo != null) lines.push({ y: lo, color: COLORS.amber, label: 'Lower Threshold' });
+  if (s.hi != null && s.type !== 'rain') lines.push({ y: s.hi, color: COLORS.red, label: 'Upper Threshold' });
   chart(c, { type: s.type === 'rain' ? 'bar' : 'line', labels: s.history.map(p => fmtHM(new Date(p.t))), series: [{ name: T.short, data: s.history.map(p => p.v), color: s.type === 'moisture' ? COLORS.turf : s.type === 'temperature' ? COLORS.amber : COLORS.water, fill: true }], lines, unit: T.unit, dec: T.dec, floor: 0, lastDot: true, labelW: 56 });
 }
 
-/* ================= 13. Trang Tổng quan ================= */
+/* ================= 13. Overview Page ================= */
 const realPrograms = () => DB.programs.filter(p => !p.manual);
 const pageHead = (title, sub, actions = '') => `<div class="page-head"><div><h1>${title}</h1><p class="page-sub">${sub}</p></div><div class="page-actions">${actions}</div></div>`;
 const statCell = (label, value, unit, sub, id) => `<div><div class="fs-label">${label}</div><div class="fs-value" ${id ? `id="${id}"` : ''}>${value}${unit ? `<small>${unit}</small>` : ''}</div>${sub ? `<div class="kpi-sub">${sub}</div>` : ''}</div>`;
@@ -1470,86 +1470,86 @@ function dashCounts() {
 function kpiHTML() {
   const k = dashCounts();
   const cell = (go, ic, label, value, sub, cls = '', unit = '') => `<button class="kpi ${cls}" data-go="${go}"><span class="kpi-label">${icon(ic)}${label}</span><span class="kpi-value">${value}${unit ? `<small>${unit}</small>` : ''}</span><span class="kpi-sub">${sub}</span></button>`;
-  return cell('structure/courses', 'flag', 'Sân golf', k.courses, `${fmt(sum(DB.courses.filter(c => state.ctx.courseId === 'all' || c.id === state.ctx.courseId).map(c => c.area)), 1)} ha diện tích tưới`) +
-    cell('structure/sites', 'layers', 'Khu vực (Site)', k.sites, `${DB.satellites.filter(inCtx).length} bộ điều khiển`) +
-    cell('structure/holes', 'flag', 'Hố golf', k.holes, `Par ${sum(DB.holes.filter(inCtx).map(h => h.par))}`) +
-    cell('equipment/stations', 'station', 'Trạm tưới', k.stations, `${k.error} trạm lỗi / mất kết nối`) +
-    cell('map', 'drop', 'Đang tưới', k.running, `${k.waiting} trạm đang chờ`, 'run', 'trạm') +
-    cell('pumps', 'pump', 'Máy bơm đang chạy', `${k.pumpsOn}/${DB.pumps.length}`, DB.pumps.some(p => p.highFlag) ? 'Có máy bơm áp suất cao' : 'Hoạt động ổn định') +
-    cell('pumps', 'gauge', 'Lưu lượng hiện tại', fmt(state.flow.current), `Áp suất ${fmt(state.flow.pressure, 1)} PSI`, 'run', 'GPM') +
-    cell('diagnostics', 'alert', 'Cảnh báo', k.alerts, `${k.crit} nghiêm trọng`, k.crit ? 'warn' : '');
+  return cell('structure/courses', 'flag', 'Golf Courses', k.courses, `${fmt(sum(DB.courses.filter(c => state.ctx.courseId === 'all' || c.id === state.ctx.courseId).map(c => c.area)), 1)} ha irrigated area`) +
+    cell('structure/sites', 'layers', 'Areas (Sites)', k.sites, `${DB.satellites.filter(inCtx).length} controllers`) +
+    cell('structure/holes', 'flag', 'Golf Holes', k.holes, `Par ${sum(DB.holes.filter(inCtx).map(h => h.par))}`) +
+    cell('equipment/stations', 'station', 'Irrigation Stations', k.stations, `${k.error} stations with errors / disconnected`) +
+    cell('map', 'drop', 'Irrigating', k.running, `${k.waiting} stations waiting`, 'run', 'stations') +
+    cell('pumps', 'pump', 'Pumps Running', `${k.pumpsOn}/${DB.pumps.length}`, DB.pumps.some(p => p.highFlag) ? 'A pump has high pressure' : 'Operating normally') +
+    cell('pumps', 'gauge', 'Current Flow', fmt(state.flow.current), `Pressure ${fmt(state.flow.pressure, 1)} PSI`, 'run', 'GPM') +
+    cell('diagnostics', 'alert', 'Alerts', k.alerts, `${k.crit} critical`, k.crit ? 'warn' : '');
 }
 function irrStatusHTML() {
   const k = dashCounts(), tot = k.stations || 1;
-  const rows = [['Đang tưới', k.running, COLORS.water], ['Đã hoàn thành', k.completed, '#7FB89A'], ['Đang chờ', k.waiting, '#9DBDD9'], ['Lỗi', k.error, COLORS.red], ['Sẵn sàng', k.idle, '#D6DFDB']];
+  const rows = [['Irrigating', k.running, COLORS.water], ['Completed', k.completed, '#7FB89A'], ['Waiting', k.waiting, '#9DBDD9'], ['Error', k.error, COLORS.red], ['Ready', k.idle, '#D6DFDB']];
   const progs = DB.programs.filter(p => p.state.running && (state.ctx.courseId === 'all' || p.courseId === state.ctx.courseId));
-  return `<div class="irr-bar">${rows.map(r => `<span style="width:${r[1] / tot * 100}%;background:${r[2]}" data-tip="${r[0]}: ${r[1]} trạm"></span>`).join('')}</div>
+  return `<div class="irr-bar">${rows.map(r => `<span style="width:${r[1] / tot * 100}%;background:${r[2]}" data-tip="${r[0]}: ${r[1]} stations"></span>`).join('')}</div>
     <div class="irr-rows">${rows.slice(0, 4).map(r => `<div class="irr-row"><i style="background:${r[2]}"></i><span>${r[0]}</span><b>${r[1]}</b><span class="pct">${fmt(r[1] / tot * 100)}%</span></div>`).join('')}</div>
-    <div class="prog-mini">${progs.length ? progs.map(p => { const pr = progProgress(p); return `<div class="prog-mini-row" data-action="open-program" data-id="${p.id}" tabindex="0"><div class="top"><strong>${esc(p.name)}</strong><span class="muted">${pr.done}/${pr.total} trạm</span></div><div class="progress"><span style="width:${pr.pct}%"></span></div></div>`; }).join('') : '<span class="muted" style="font-size:12.5px">Không có lịch tưới nào đang chạy</span>'}</div>`;
+    <div class="prog-mini">${progs.length ? progs.map(p => { const pr = progProgress(p); return `<div class="prog-mini-row" data-action="open-program" data-id="${p.id}" tabindex="0"><div class="top"><strong>${esc(p.name)}</strong><span class="muted">${pr.done}/${pr.total} stations</span></div><div class="progress"><span style="width:${pr.pct}%"></span></div></div>`; }).join('') : '<span class="muted" style="font-size:12.5px">No irrigation programs currently running</span>'}</div>`;
 }
 function pumpsTableHTML() {
   return tableHTML('dash-pumps', [
-    { key: 'name', label: 'Máy bơm', render: p => `<b>${p.id}</b><span class="cell-sub">${esc(p.name)}</span>` },
-    { key: 'status', label: 'Trạng thái', render: p => b(p.highFlag && p.status === 'running' ? 'warn' : PUMP_ST[p.status].cls, p.highFlag && p.status === 'running' ? 'Áp suất cao' : PUMP_ST[p.status].label) + ` <span class="muted" style="font-size:11.5px">${p.mode === 'auto' ? 'Tự động' : 'Thủ công'}</span>` },
-    { key: 'flow', label: 'Lưu lượng', cls: 'num', render: p => `${fmt(p.flow)} <span class="muted">GPM</span>` },
-    { key: 'pressure', label: 'Áp suất', cls: 'num', render: p => p.status === 'running' ? `<span class="${p.pressure > SETTINGS.pressureMax ? 'ping-bad' : ''}">${fmt(p.pressure, 1)}</span> <span class="muted">PSI</span>` : '—' },
-    { key: 'speed', label: 'Tốc độ', render: p => `<div class="meter"><div class="progress ${p.status === 'running' ? '' : 'turf'}"><span style="width:${p.speed}%"></span></div><span class="v">${p.speed}%</span></div>` },
-    { key: 'runtime', label: 'Giờ chạy hôm nay', cls: 'num', render: p => hoursText(p.runtime) }
+    { key: 'name', label: 'Pump', render: p => `<b>${p.id}</b><span class="cell-sub">${esc(p.name)}</span>` },
+    { key: 'status', label: 'Status', render: p => b(p.highFlag && p.status === 'running' ? 'warn' : PUMP_ST[p.status].cls, p.highFlag && p.status === 'running' ? 'High Pressure' : PUMP_ST[p.status].label) + ` <span class="muted" style="font-size:11.5px">${p.mode === 'auto' ? 'Auto' : 'Manual'}</span>` },
+    { key: 'flow', label: 'Flow', cls: 'num', render: p => `${fmt(p.flow)} <span class="muted">GPM</span>` },
+    { key: 'pressure', label: 'Pressure', cls: 'num', render: p => p.status === 'running' ? `<span class="${p.pressure > SETTINGS.pressureMax ? 'ping-bad' : ''}">${fmt(p.pressure, 1)}</span> <span class="muted">PSI</span>` : '—' },
+    { key: 'speed', label: 'Speed', render: p => `<div class="meter"><div class="progress ${p.status === 'running' ? '' : 'turf'}"><span style="width:${p.speed}%"></span></div><span class="v">${p.speed}%</span></div>` },
+    { key: 'runtime', label: 'Runtime Today', cls: 'num', render: p => hoursText(p.runtime) }
   ], DB.pumps, null, { rowCls: () => '' });
 }
 function alertsHTML() {
   const list = DB.alerts.filter(a => a.sev !== 'success' || Date.now() - a.ts < 3600e3).slice(0, 14);
-  if (!list.length) return `<div class="empty-state">${icon('check')}Không có cảnh báo</div>`;
+  if (!list.length) return `<div class="empty-state">${icon('check')}No alerts</div>`;
   return list.map(a => `<div class="alert-item ${a.ack ? 'acked' : ''} ${!a.ack ? 'sev-row-' + a.sev : ''}">
     <span class="sev-ic sev-${a.sev}">${icon(SEV_ICON[a.sev])}</span>
-    <div class="ai-body"><p>${esc(a.title)}</p><div class="ai-meta"><span>${ago(a.ts)}</span><span>${esc(a.source)}</span><span>${{ critical: 'Nghiêm trọng', warning: 'Cảnh báo', info: 'Thông tin', success: 'Hoàn thành' }[a.sev]}</span></div></div>
-    ${!a.ack && (a.sev === 'critical' || a.sev === 'warning') ? `<button class="btn btn-sm" data-action="ack-alert" data-id="${a.id}">Xác nhận</button>` : a.ack ? `<span class="muted" style="font-size:11.5px">Đã xác nhận</span>` : ''}
+    <div class="ai-body"><p>${esc(a.title)}</p><div class="ai-meta"><span>${ago(a.ts)}</span><span>${esc(a.source)}</span><span>${{ critical: 'Critical', warning: 'Warning', info: 'Info', success: 'Success' }[a.sev]}</span></div></div>
+    ${!a.ack && (a.sev === 'critical' || a.sev === 'warning') ? `<button class="btn btn-sm" data-action="ack-alert" data-id="${a.id}">Acknowledge</button>` : a.ack ? `<span class="muted" style="font-size:11.5px">Acknowledged</span>` : ''}
   </div>`).join('');
 }
 function runListHTML() {
   const sts = DB.stations.filter(s => s.status === 'running' && inCtx(s)).sort((a, c) => (c.elapsed / c.duration) - (a.elapsed / a.duration));
-  if (!sts.length) return `<div class="empty-state">${icon('drop')}Hiện không có trạm nào đang tưới<button class="btn btn-sm" data-go="structure">Chọn trạm để tưới thủ công</button></div>`;
+  if (!sts.length) return `<div class="empty-state">${icon('drop')}No stations are currently irrigating<button class="btn btn-sm" data-go="structure">Select a station to irrigate manually</button></div>`;
   return sts.slice(0, 9).map(s => { const p = s.program ? get(s.program) : null; return `<div class="run-item" data-action="open-station" data-id="${s.id}" tabindex="0">
     <div><b>${s.id}</b><div class="muted" style="font-size:11.5px">${fmt(s.flow)} GPM</div></div>
-    <div class="ri-where">${esc(get(s.holeId).name)} · ${AREA[s.type].name}<span>${esc(courseName(s.courseId))} · ${p ? esc(p.name.split('–')[0].trim()) : 'Tưới thủ công'}</span></div>
-    <div class="ri-prog"><span>Còn ${durText(s.duration - s.elapsed)}</span><div class="progress"><span style="width:${s.elapsed / s.duration * 100}%"></span></div></div>
-  </div>`; }).join('') + (sts.length > 9 ? `<div class="run-more">và ${sts.length - 9} trạm khác đang tưới · <button class="link" data-go="equipment/stations">Xem tất cả</button></div>` : '');
+    <div class="ri-where">${esc(get(s.holeId).name)} · ${AREA[s.type].name}<span>${esc(courseName(s.courseId))} · ${p ? esc(p.name.split('–')[0].trim()) : 'Manual irrigation'}</span></div>
+    <div class="ri-prog"><span>${durText(s.duration - s.elapsed)} remaining</span><div class="progress"><span style="width:${s.elapsed / s.duration * 100}%"></span></div></div>
+  </div>`; }).join('') + (sts.length > 9 ? `<div class="run-more">and ${sts.length - 9} more stations irrigating · <button class="link" data-go="equipment/stations">View all</button></div>` : '');
 }
 function timelineHTML() {
   const today = weekday(new Date());
   const progs = realPrograms().filter(p => p.days.includes(today) && (state.ctx.courseId === 'all' || p.courseId === state.ctx.courseId)).sort((a, c) => hmToMin(a.start) - hmToMin(c.start));
-  if (!progs.length) return `<div class="empty-state">${icon('cal')}Không có lịch tưới hôm nay</div>`;
+  if (!progs.length) return `<div class="empty-state">${icon('cal')}No irrigation programs today</div>`;
   return progs.map(p => { const st = progStatus(p); return `<div class="tl-item st-${st.key}" data-action="open-program" data-id="${p.id}" tabindex="0">
     <span class="tl-time">${p.start}</span><span class="tl-dot"></span>
-    <div class="tl-body"><strong>${esc(p.name)}</strong><span>${esc(courseName(p.courseId))} · ${programStations(p).length} trạm · ${durText(programLen(p))}</span></div>
+    <div class="tl-body"><strong>${esc(p.name)}</strong><span>${esc(courseName(p.courseId))} · ${programStations(p).length} stations · ${durText(programLen(p))}</span></div>
     ${b(st.cls, st.label)}</div>`; }).join('');
 }
 function flowChartCfg(n = 60) {
   const h = state.flowHist.slice(-n);
   return {
     type: 'line', labels: h.map(x => fmtTime(new Date(x.t)).slice(0, 5 + 3)), unit: 'GPM', floor: 0, lastDot: true, labelW: 70,
-    series: [{ name: 'Lưu lượng thực tế', data: h.map(x => x.cur), color: COLORS.water, fill: true, width: 2.2 }, { name: 'Nhu cầu mục tiêu', data: h.map(x => x.target), color: COLORS.ink, dash: true, width: 1.4 }],
-    lines: [{ y: SETTINGS.flowMax, color: COLORS.red, label: `Tối đa ${fmt(SETTINGS.flowMax)}` }, { y: SETTINGS.flowMin, color: COLORS.amber, label: `Tối thiểu ${fmt(SETTINGS.flowMin)}` }]
+    series: [{ name: 'Actual Flow', data: h.map(x => x.cur), color: COLORS.water, fill: true, width: 2.2 }, { name: 'Target Demand', data: h.map(x => x.target), color: COLORS.ink, dash: true, width: 1.4 }],
+    lines: [{ y: SETTINGS.flowMax, color: COLORS.red, label: `Max ${fmt(SETTINGS.flowMax)}` }, { y: SETTINGS.flowMin, color: COLORS.amber, label: `Min ${fmt(SETTINGS.flowMin)}` }]
   };
 }
 PAGES.dashboard = {
   render() {
     const el = $('#page-dashboard');
-    el.innerHTML = pageHead('Tổng quan hệ thống tưới', `${esc(ctxLabel())} · ${DOW_LONG[weekday(new Date())]}, ${fmtDate(new Date())}`,
-      `<button class="btn" data-go="map">${icon('map')}Bản đồ tưới</button><button class="btn btn-primary" data-action="new-program">${icon('plus')}Tạo lịch tưới</button>`) +
+    el.innerHTML = pageHead('Irrigation System Overview', `${esc(ctxLabel())} · ${DOW_LONG[weekday(new Date())]}, ${fmtDate(new Date())}`,
+      `<button class="btn" data-go="map">${icon('map')}Irrigation Map</button><button class="btn btn-primary" data-action="new-program">${icon('plus')}Create Irrigation Program</button>`) +
       `<div class="panel kpi-panel" id="dash-kpi">${kpiHTML()}</div>
       <div class="dash-grid">
         <div class="panel span-8">
-          <div class="panel-head"><h3>Lưu lượng hệ thống <span class="sub">Thời gian thực, cập nhật mỗi ${SETTINGS.interval} giây</span></h3>
-            <div class="legend"><span><i style="background:${COLORS.water}"></i>Thực tế</span><span><i style="background:${COLORS.ink}"></i>Mục tiêu</span><span><i style="background:${COLORS.red}"></i>Giới hạn</span></div></div>
+          <div class="panel-head"><h3>System Flow <span class="sub">Real-time, updates every ${SETTINGS.interval} seconds</span></h3>
+            <div class="legend"><span><i style="background:${COLORS.water}"></i>Actual</span><span><i style="background:${COLORS.ink}"></i>Target</span><span><i style="background:${COLORS.red}"></i>Limit</span></div></div>
           <div class="flow-stats" id="dash-fs"></div>
           <div class="chart-box h-260"><canvas id="dash-flow"></canvas></div>
         </div>
-        <div class="panel span-4"><div class="panel-head"><h3>Trạng thái tưới</h3><button class="link" data-go="equipment/stations">Chi tiết</button></div><div class="panel-body" id="dash-irr"></div></div>
-        <div class="panel span-7"><div class="panel-head"><h3>Trạng thái máy bơm</h3><button class="link" data-go="pumps">Điều khiển máy bơm</button></div><div class="table-wrap" id="dash-pumps-w"></div></div>
-        <div class="panel span-5"><div class="panel-head"><h3>Cảnh báo <span class="count-pill" id="dash-al-n"></span></h3><button class="link" data-action="ack-all">Xác nhận tất cả</button></div><div class="alert-list" id="dash-alerts"></div></div>
-        <div class="panel span-7"><div class="panel-head"><h3>Trạm đang tưới <span class="sub" id="dash-run-n"></span></h3><button class="link" data-go="map">Xem trên bản đồ</button></div><div class="run-list" id="dash-run"></div></div>
-        <div class="panel span-5"><div class="panel-head"><h3>Lịch tưới hôm nay</h3><button class="link" data-go="schedule">Mở lịch tưới</button></div><div class="timeline" id="dash-tl"></div></div>
+        <div class="panel span-4"><div class="panel-head"><h3>Irrigation Status</h3><button class="link" data-go="equipment/stations">Details</button></div><div class="panel-body" id="dash-irr"></div></div>
+        <div class="panel span-7"><div class="panel-head"><h3>Pump Status</h3><button class="link" data-go="pumps">Control Pumps</button></div><div class="table-wrap" id="dash-pumps-w"></div></div>
+        <div class="panel span-5"><div class="panel-head"><h3>Alerts <span class="count-pill" id="dash-al-n"></span></h3><button class="link" data-action="ack-all">Acknowledge All</button></div><div class="alert-list" id="dash-alerts"></div></div>
+        <div class="panel span-7"><div class="panel-head"><h3>Irrigating Stations <span class="sub" id="dash-run-n"></span></h3><button class="link" data-go="map">View on Map</button></div><div class="run-list" id="dash-run"></div></div>
+        <div class="panel span-5"><div class="panel-head"><h3>Today's Irrigation Schedule</h3><button class="link" data-go="schedule">Open Schedule</button></div><div class="timeline" id="dash-tl"></div></div>
       </div>`;
     this.live(true);
   },
@@ -1557,7 +1557,7 @@ PAGES.dashboard = {
     if (!$('#dash-kpi')) return;
     $('#dash-kpi').innerHTML = kpiHTML();
     const f = state.flow, util = f.current / (SETTINGS.flowMax || 1) * 100;
-    $('#dash-fs').innerHTML = statCell('<i></i>Hiện tại', fmt(f.current), 'GPM', `${fmt(util)}% công suất tối đa`) + statCell('<i class="dash"></i>Mục tiêu', fmt(f.target), 'GPM', 'Tổng nhu cầu các trạm') + statCell('Áp suất đường ống', fmt(f.pressure, 1), 'PSI', `Ngưỡng cao ${SETTINGS.pressureMax} PSI`) + statCell('Nước đã dùng hôm nay', fmt(state.volToday, 0), 'm³', `≈ ${fmt(state.volToday / GAL_TO_M3 / 1000)} nghìn gallon`);
+    $('#dash-fs').innerHTML = statCell('<i></i>Current', fmt(f.current), 'GPM', `${fmt(util)}% of max capacity`) + statCell('<i class="dash"></i>Target', fmt(f.target), 'GPM', 'Total station demand') + statCell('Pipeline Pressure', fmt(f.pressure, 1), 'PSI', `High threshold ${SETTINGS.pressureMax} PSI`) + statCell('Water Used Today', fmt(state.volToday, 0), 'm³', `≈ ${fmt(state.volToday / GAL_TO_M3 / 1000)}k gallons`);
     chart($('#dash-flow'), flowChartCfg());
     $('#dash-irr').innerHTML = irrStatusHTML();
     $('#dash-pumps-w').innerHTML = pumpsTableHTML();
@@ -1568,14 +1568,14 @@ PAGES.dashboard = {
     const al = $('#dash-alerts');
     if (force || al._sig !== sig || state.tick % 10 === 0) keepScroll(al, () => { al.innerHTML = alertsHTML(); al._sig = sig; });
     const rl = DB.stations.filter(s => s.status === 'running' && inCtx(s)).length;
-    $('#dash-run-n').textContent = `${rl} trạm`;
+    $('#dash-run-n').textContent = `${rl} stations`;
     $('#dash-run').innerHTML = runListHTML();
     const tl = $('#dash-tl'); keepScroll(tl, () => { tl.innerHTML = timelineHTML(); });
   }
 };
 
-/* ================= 14. Sân & Khu vực (cây phân cấp) ================= */
-const TYPE_LABEL = { club: 'Câu lạc bộ', course: 'Sân golf', site: 'Khu vực', hole: 'Hố golf', area: 'Khu tưới', station: 'Trạm tưới', sensor: 'Cảm biến' };
+/* ================= 14. Courses & Areas (hierarchical tree) ================= */
+const TYPE_LABEL = { club: 'Club', course: 'Golf Course', site: 'Area', hole: 'Golf Hole', area: 'Irrigation Zone', station: 'Irrigation Station', sensor: 'Sensor' };
 function nodeObj(type, id) { return type === 'club' ? CLUB : get(id); }
 function nodeChildren(type, id) {
   switch (type) {
@@ -1603,7 +1603,7 @@ function nodeLabel(type, id) {
   const o = nodeObj(type, id);
   if (type === 'station') return `${o.id} · ${o.name}`;
   if (type === 'sensor') return `${o.id} · ${SENSOR_TYPES[o.type].short}`;
-  if (type === 'area') return `${o.name} (${o.vi})`;
+  if (type === 'area') return `${o.name} (${o.desc})`;
   return o.name;
 }
 function nodeStatus(type, id) {
@@ -1620,13 +1620,13 @@ function nodeMeta(type, id) {
   if (type === 'station') { const s = get(id); return s.status === 'running' ? `${durText(s.duration - s.elapsed)}` : STATION_ST[s.status].label; }
   if (type === 'sensor') { const s = get(id), T = SENSOR_TYPES[s.type]; return `${fmt(s.value, T.dec)} ${T.unit}`; }
   const sts = stationsUnder(type, id), r = sts.filter(s => s.status === 'running').length;
-  if (type === 'hole') return `Par ${get(id).par} · ${sts.length} trạm${r ? ` · <span class="ping-good" style="color:var(--water-2)">${r} đang tưới</span>` : ''}`;
-  return `${sts.length} trạm${r ? ` · <span style="color:var(--water-2)">${r} đang tưới</span>` : ''}`;
+  if (type === 'hole') return `Par ${get(id).par} · ${sts.length} stations${r ? ` · <span class="ping-good" style="color:var(--water-2)">${r} irrigating</span>` : ''}`;
+  return `${sts.length} stations${r ? ` · <span style="color:var(--water-2)">${r} irrigating</span>` : ''}`;
 }
 function nodeMatches(type, id, q) {
   if (!q) return true;
   const o = nodeObj(type, id);
-  const hay = [o.id, o.name, o.vi, o.location, type === 'sensor' ? SENSOR_TYPES[o.type].short : ''].join(' ').toLowerCase();
+  const hay = [o.id, o.name, o.desc, o.location, type === 'sensor' ? SENSOR_TYPES[o.type].short : ''].join(' ').toLowerCase();
   return hay.includes(q);
 }
 function treeHTML() {
@@ -1647,12 +1647,12 @@ function treeHTML() {
     const isSel = sel && sel.type === type && sel.id === id;
     const label = nodeLabel(type, id);
     return `<li role="none"><div class="tn ${isSel ? 'sel' : ''}" role="treeitem" tabindex="${isSel ? 0 : -1}" aria-selected="${!!isSel}" ${kids.length ? `aria-expanded="${open}"` : ''} data-node="${key}" style="--d:${d}">
-      <button class="tn-caret" data-caret tabindex="-1" aria-label="${open ? 'Thu gọn' : 'Mở rộng'}" aria-expanded="${open}" ${kids.length ? '' : 'disabled'}>${icon('chev-right')}</button>
+      <button class="tn-caret" data-caret tabindex="-1" aria-label="${open ? 'Collapse' : 'Expand'}" aria-expanded="${open}" ${kids.length ? '' : 'disabled'}>${icon('chev-right')}</button>
       <span class="sdot ${nodeStatus(type, id)}"></span><span class="tn-name">${q ? hl(label, q) : esc(label)}</span><span class="tn-meta">${nodeMeta(type, id)}</span>
     </div>${kids.length && open ? `<ul role="group">${kids.map(([t, i]) => rec(t, i, d + 1)).join('')}</ul>` : ''}</li>`;
   };
   const html = rec('club', 'CLUB', 0);
-  return html || `<li class="empty-state">${icon('search')}Không tìm thấy “${esc(q)}”</li>`;
+  return html || `<li class="empty-state">${icon('search')}No results for "${esc(q)}"</li>`;
 }
 function selectTreeNode(type, id) {
   if (type === 'station' || type === 'sensor' || !nodeObj(type, id)) { if (type === 'station') openStationDrawer(id); else if (type === 'sensor') openSensorDrawer(id); return; }
@@ -1677,66 +1677,66 @@ function structDetailHTML() {
   const sts = stationsUnder(type, id), sens = sensorsUnder(type, id), eq = equipmentUnder(type, id);
   const run = sts.filter(s => s.status === 'running').length, bad = sts.filter(s => !usable(s)).length;
   const stKey = nodeStatus(type, id);
-  const stBadgeN = { run: b('run', 'Đang tưới'), err: b('err', 'Lỗi'), warn: b('warn', 'Cảnh báo'), wait: b('wait', 'Đang chờ'), ok: b('ok', 'Hoạt động'), idle: b('idle', 'Chưa có trạm') }[stKey];
+  const stBadgeN = { run: b('run', 'Irrigating'), err: b('err', 'Error'), warn: b('warn', 'Warning'), wait: b('wait', 'Waiting'), ok: b('ok', 'Active'), idle: b('idle', 'No stations yet') }[stKey];
   const acts = [];
-  if (type === 'course') acts.push(`<button class="btn btn-sm" data-action="struct-add" data-kind="site" data-parent="${id}">${icon('plus')}Thêm khu vực</button>`);
-  if (type === 'site') acts.push(`<button class="btn btn-sm" data-action="struct-add" data-kind="hole" data-parent="${id}">${icon('plus')}Thêm hố</button>`);
-  if (['site', 'hole', 'area'].includes(type)) acts.push(run ? `<button class="btn btn-sm btn-danger" data-action="struct-stop" data-type="${type}" data-id="${id}">${icon('stop')}Dừng tưới</button>` : `<button class="btn btn-sm btn-water" data-action="struct-water" data-type="${type}" data-id="${id}" ${sts.some(usable) ? '' : 'disabled'}>${icon('play')}Tưới toàn ${type === 'area' ? 'khu' : type === 'hole' ? 'hố' : 'khu vực'}</button>`);
-  if (type !== 'club') acts.push(`<button class="btn btn-sm" data-action="struct-edit" data-type="${type}" data-id="${id}">${icon('edit')}Chỉnh sửa</button>`, `<button class="btn btn-sm btn-ghost" data-action="struct-delete" data-type="${type}" data-id="${id}" aria-label="Xóa">${icon('trash')}Xóa</button>`);
-  const info = [['Tên', esc(o.name)], ['Mã', `<span class="tag t-${type}">${esc(o.id)}</span>`], ['Trạng thái', stBadgeN], ['Vị trí', esc(o.location || '—')], ['Số trạm tưới', `${sts.length}${bad ? ` <span class="muted" style="font-weight:400">(${bad} lỗi)</span>` : ''}`], ['Số cảm biến', sens.length], ['Đang tưới', `<span style="color:var(--water-2)">${run} trạm</span>`]];
-  if (type === 'course') info.push(['Diện tích tưới', `${fmt(o.area, 1)} ha`], ['Số hố', DB.holes.filter(h => h.courseId === id).length]);
-  if (type === 'hole') info.push(['Par', o.par], ['Chiều dài', `${fmt(o.length)} m`]);
-  if (type === 'area') info.push(['Loại cỏ', esc(o.turf)], ['Lưu lượng thiết kế', `${fmt(sum(sts.map(s => s.flow)))} GPM`]);
-  if (type === 'club') info.push(['Sân golf', DB.courses.length], ['Hố golf', DB.holes.length]);
+  if (type === 'course') acts.push(`<button class="btn btn-sm" data-action="struct-add" data-kind="site" data-parent="${id}">${icon('plus')}Add Area</button>`);
+  if (type === 'site') acts.push(`<button class="btn btn-sm" data-action="struct-add" data-kind="hole" data-parent="${id}">${icon('plus')}Add Hole</button>`);
+  if (['site', 'hole', 'area'].includes(type)) acts.push(run ? `<button class="btn btn-sm btn-danger" data-action="struct-stop" data-type="${type}" data-id="${id}">${icon('stop')}Stop Irrigation</button>` : `<button class="btn btn-sm btn-water" data-action="struct-water" data-type="${type}" data-id="${id}" ${sts.some(usable) ? '' : 'disabled'}>${icon('play')}Irrigate Entire ${type === 'area' ? 'Zone' : type === 'hole' ? 'Hole' : 'Area'}</button>`);
+  if (type !== 'club') acts.push(`<button class="btn btn-sm" data-action="struct-edit" data-type="${type}" data-id="${id}">${icon('edit')}Edit</button>`, `<button class="btn btn-sm btn-ghost" data-action="struct-delete" data-type="${type}" data-id="${id}" aria-label="Delete">${icon('trash')}Delete</button>`);
+  const info = [['Name', esc(o.name)], ['Code', `<span class="tag t-${type}">${esc(o.id)}</span>`], ['Status', stBadgeN], ['Location', esc(o.location || '—')], ['Irrigation Stations', `${sts.length}${bad ? ` <span class="muted" style="font-weight:400">(${bad} errors)</span>` : ''}`], ['Sensor Count', sens.length], ['Irrigating', `<span style="color:var(--water-2)">${run} stations</span>`]];
+  if (type === 'course') info.push(['Irrigated Area', `${fmt(o.area, 1)} ha`], ['Hole Count', DB.holes.filter(h => h.courseId === id).length]);
+  if (type === 'hole') info.push(['Par', o.par], ['Length', `${fmt(o.length)} m`]);
+  if (type === 'area') info.push(['Grass Type', esc(o.turf)], ['Design Flow Rate', `${fmt(sum(sts.map(s => s.flow)))} GPM`]);
+  if (type === 'club') info.push(['Golf Courses', DB.courses.length], ['Golf Holes', DB.holes.length]);
   const kids = nodeChildren(type, id).filter(([t]) => t !== 'station' && t !== 'sensor');
   const eqChips = [...eq.sats.map(x => [x, 'chip']), ...eq.decs.map(x => [x, 'chip']), ...eq.rads.map(x => [x, 'radio'])];
-  return `<div class="detail-head"><div style="min-width:0">${type === 'club' ? `<div class="crumbs"><span>Cấu trúc hệ thống</span></div>` : crumbsFor(type, id)}
+  return `<div class="detail-head"><div style="min-width:0">${type === 'club' ? `<div class="crumbs"><span>System Structure</span></div>` : crumbsFor(type, id)}
       <h2>${esc(o.name)}</h2><div class="detail-title-row"><span class="tag t-${type}">${TYPE_LABEL[type]}</span>${type === 'hole' ? `<span class="muted" style="font-size:12.5px">${esc(courseName(o.courseId))} · ${esc(get(o.siteId).name)}</span>` : ''}</div></div>
       <div class="btn-row">${acts.join('')}</div></div>
     <dl class="info-grid">${info.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
-    ${kids.length ? `<div class="section"><div class="section-title"><h3>${TYPE_LABEL[kids[0][0]]} trực thuộc</h3><span class="muted">${kids.length}</span></div>
-      <div class="st-chips">${kids.map(([t, i]) => { const k = nodeObj(t, i), s2 = stationsUnder(t, i), r2 = s2.filter(s => s.status === 'running').length; return `<button class="st-chip ${r2 ? 'run' : ''}" data-action="tree-select" data-type="${t}" data-id="${i}"><span class="top"><strong>${esc(k.name)}</strong><span class="sdot ${nodeStatus(t, i)}"></span></span><span class="s">${t === 'area' ? esc(k.vi) + ' · ' : ''}${s2.length} trạm${r2 ? ` · ${r2} đang tưới` : ''}</span></button>`; }).join('')}</div></div>` : ''}
-    ${['hole', 'area'].includes(type) ? `<div class="section"><div class="section-title"><h3>Trạm tưới</h3><span class="muted">Nhấn để xem chi tiết và điều khiển</span></div>
-      <div class="st-chips">${sts.map(s => `<button class="st-chip ${s.status === 'running' ? 'run' : usable(s) ? '' : 'err'}" data-action="open-station" data-id="${s.id}"><span class="top"><strong>${s.id}</strong>${stBadge(s.status)}</span><span class="s">${AREA[s.type].name} · ${fmt(s.flow)} GPM${s.status === 'running' ? ` · còn ${durText(s.duration - s.elapsed)}` : ''}</span></button>`).join('')}</div></div>` : ''}
-    <div class="section"><div class="section-title"><h3>Thiết bị kết nối</h3><span class="muted">${eq.sats.length} bộ điều khiển · ${eq.decs.length} bộ giải mã · ${eq.rads.length} radio</span></div>
-      <div class="equip-chips">${eqChips.map(([d, ic]) => `<button class="eq-chip" data-action="open-eq" data-id="${d.id}" data-tip="${esc(eqKind(d.id))}: ${EQ_ST[d.status].label}"><span class="sdot ${EQ_ST[d.status].cls === 'ok' ? 'ok' : EQ_ST[d.status].cls}"></span>${d.id}</button>`).join('') || '<span class="muted">Chưa có thiết bị</span>'}</div></div>
-    <div class="section"><div class="section-title"><h3>Cảm biến</h3><span class="muted">${sens.length}</span></div>
-      ${sens.length ? `<div class="equip-chips">${sens.map(s => `<button class="eq-chip" data-action="open-sensor" data-id="${s.id}"><span class="sdot ${{ normal: 'ok', warning: 'warn', offline: 'err' }[s.status]}"></span>${s.id} · ${fmt(s.value, SENSOR_TYPES[s.type].dec)} ${SENSOR_TYPES[s.type].unit}</button>`).join('')}</div>` : '<span class="muted">Không có cảm biến</span>'}</div>`;
+    ${kids.length ? `<div class="section"><div class="section-title"><h3>${TYPE_LABEL[kids[0][0]]}s</h3><span class="muted">${kids.length}</span></div>
+      <div class="st-chips">${kids.map(([t, i]) => { const k = nodeObj(t, i), s2 = stationsUnder(t, i), r2 = s2.filter(s => s.status === 'running').length; return `<button class="st-chip ${r2 ? 'run' : ''}" data-action="tree-select" data-type="${t}" data-id="${i}"><span class="top"><strong>${esc(k.name)}</strong><span class="sdot ${nodeStatus(t, i)}"></span></span><span class="s">${t === 'area' ? esc(k.desc) + ' · ' : ''}${s2.length} stations${r2 ? ` · ${r2} irrigating` : ''}</span></button>`; }).join('')}</div></div>` : ''}
+    ${['hole', 'area'].includes(type) ? `<div class="section"><div class="section-title"><h3>Irrigation Stations</h3><span class="muted">Click to view details and control</span></div>
+      <div class="st-chips">${sts.map(s => `<button class="st-chip ${s.status === 'running' ? 'run' : usable(s) ? '' : 'err'}" data-action="open-station" data-id="${s.id}"><span class="top"><strong>${s.id}</strong>${stBadge(s.status)}</span><span class="s">${AREA[s.type].name} · ${fmt(s.flow)} GPM${s.status === 'running' ? ` · ${durText(s.duration - s.elapsed)} remaining` : ''}</span></button>`).join('')}</div></div>` : ''}
+    <div class="section"><div class="section-title"><h3>Connected Equipment</h3><span class="muted">${eq.sats.length} controllers · ${eq.decs.length} decoders · ${eq.rads.length} radios</span></div>
+      <div class="equip-chips">${eqChips.map(([d, ic]) => `<button class="eq-chip" data-action="open-eq" data-id="${d.id}" data-tip="${esc(eqKind(d.id))}: ${EQ_ST[d.status].label}"><span class="sdot ${EQ_ST[d.status].cls === 'ok' ? 'ok' : EQ_ST[d.status].cls}"></span>${d.id}</button>`).join('') || '<span class="muted">No equipment yet</span>'}</div></div>
+    <div class="section"><div class="section-title"><h3>Sensors</h3><span class="muted">${sens.length}</span></div>
+      ${sens.length ? `<div class="equip-chips">${sens.map(s => `<button class="eq-chip" data-action="open-sensor" data-id="${s.id}"><span class="sdot ${{ normal: 'ok', warning: 'warn', offline: 'err' }[s.status]}"></span>${s.id} · ${fmt(s.value, SENSOR_TYPES[s.type].dec)} ${SENSOR_TYPES[s.type].unit}</button>`).join('')}</div>` : '<span class="muted">No sensors</span>'}</div>`;
 }
 function renderStructDetail() { const d = $('#struct-detail'); if (!d) return; d.innerHTML = structDetailHTML(); d._sig = structSig() + JSON.stringify(state.tree.selected); }
 
 const LEVELS = {
-  courses: { label: 'Sân golf', type: 'course', rows: () => DB.courses, cols: [
-    { key: 'id', label: 'Mã', render: o => `<b>${o.id}</b>` }, { key: 'name', label: 'Tên sân', render: o => `${esc(o.name)}<span class="cell-sub">${esc(o.en)}</span>` },
-    { key: 'sites', label: 'Khu vực', cls: 'num', sortVal: o => DB.sites.filter(s => s.courseId === o.id).length, render: o => DB.sites.filter(s => s.courseId === o.id).length },
-    { key: 'holes', label: 'Hố', cls: 'num', sortVal: o => DB.holes.filter(s => s.courseId === o.id).length, render: o => DB.holes.filter(s => s.courseId === o.id).length },
-    { key: 'st', label: 'Trạm', cls: 'num', sortVal: o => stationsUnder('course', o.id).length, render: o => stationsUnder('course', o.id).length },
-    { key: 'area', label: 'Diện tích', cls: 'num', render: o => `${fmt(o.area, 1)} ha` }, { key: 'location', label: 'Vị trí' }] },
-  sites: { label: 'Khu vực (Site)', type: 'site', rows: () => DB.sites.filter(inCtx), cols: [
-    { key: 'id', label: 'Mã', render: o => `<b>${o.id}</b>` }, { key: 'name', label: 'Tên khu vực' }, { key: 'courseId', label: 'Sân', render: o => esc(courseName(o.courseId)) },
-    { key: 'holes', label: 'Hố', cls: 'num', sortVal: o => DB.holes.filter(s => s.siteId === o.id).length, render: o => DB.holes.filter(s => s.siteId === o.id).length },
-    { key: 'st', label: 'Trạm', cls: 'num', sortVal: o => stationsUnder('site', o.id).length, render: o => stationsUnder('site', o.id).length },
-    { key: 'sat', label: 'Bộ điều khiển', render: o => DB.satellites.filter(s => s.siteId === o.id).map(s => s.id).join(', ') || '—' }, { key: 'location', label: 'Vị trí' }] },
-  holes: { label: 'Hố golf', type: 'hole', rows: () => DB.holes.filter(inCtx), cols: [
-    { key: 'no', label: 'Hố', render: o => `<b>${esc(o.name)}</b>` }, { key: 'courseId', label: 'Sân / Khu vực', render: o => `${esc(courseName(o.courseId))}<span class="cell-sub">${esc(get(o.siteId).name)}</span>` },
-    { key: 'par', label: 'Par', cls: 'num' }, { key: 'length', label: 'Chiều dài', cls: 'num', render: o => `${fmt(o.length)} m` },
-    { key: 'st', label: 'Trạm', cls: 'num', sortVal: o => holeStations(o.id).length, render: o => holeStations(o.id).length },
-    { key: 'status', label: 'Trạng thái', sort: false, render: o => { const k = nodeStatus('hole', o.id); return { run: b('run', 'Đang tưới'), err: b('err', 'Lỗi'), warn: b('warn', 'Có trạm lỗi'), wait: b('wait', 'Đang chờ'), ok: b('ok', 'Hoạt động'), idle: b('idle', 'Chưa có trạm') }[k]; } }] },
-  areas: { label: 'Khu tưới (Area)', type: 'area', rows: () => DB.areas.filter(inCtx), cols: [
-    { key: 'id', label: 'Mã', render: o => `<b>${o.id}</b>` }, { key: 'name', label: 'Khu tưới', render: o => `${esc(o.name)}<span class="cell-sub">${esc(o.vi)}</span>` },
-    { key: 'holeId', label: 'Hố', render: o => esc(get(o.holeId).name) }, { key: 'turf', label: 'Loại cỏ' },
-    { key: 'st', label: 'Trạm', cls: 'num', sortVal: o => stationsUnder('area', o.id).length, render: o => stationsUnder('area', o.id).length },
-    { key: 'status', label: 'Trạng thái', sort: false, render: o => { const k = nodeStatus('area', o.id); return { run: b('run', 'Đang tưới'), err: b('err', 'Lỗi'), warn: b('warn', 'Có trạm lỗi'), wait: b('wait', 'Đang chờ'), ok: b('ok', 'Hoạt động'), idle: b('idle', 'Chưa có trạm') }[k]; } }] }
+  courses: { label: 'Golf Courses', type: 'course', rows: () => DB.courses, cols: [
+    { key: 'id', label: 'Code', render: o => `<b>${o.id}</b>` }, { key: 'name', label: 'Course Name', render: o => `${esc(o.name)}<span class="cell-sub">${esc(o.en)}</span>` },
+    { key: 'sites', label: 'Areas', cls: 'num', sortVal: o => DB.sites.filter(s => s.courseId === o.id).length, render: o => DB.sites.filter(s => s.courseId === o.id).length },
+    { key: 'holes', label: 'Holes', cls: 'num', sortVal: o => DB.holes.filter(s => s.courseId === o.id).length, render: o => DB.holes.filter(s => s.courseId === o.id).length },
+    { key: 'st', label: 'Stations', cls: 'num', sortVal: o => stationsUnder('course', o.id).length, render: o => stationsUnder('course', o.id).length },
+    { key: 'area', label: 'Area', cls: 'num', render: o => `${fmt(o.area, 1)} ha` }, { key: 'location', label: 'Location' }] },
+  sites: { label: 'Areas (Sites)', type: 'site', rows: () => DB.sites.filter(inCtx), cols: [
+    { key: 'id', label: 'Code', render: o => `<b>${o.id}</b>` }, { key: 'name', label: 'Area Name' }, { key: 'courseId', label: 'Course', render: o => esc(courseName(o.courseId)) },
+    { key: 'holes', label: 'Holes', cls: 'num', sortVal: o => DB.holes.filter(s => s.siteId === o.id).length, render: o => DB.holes.filter(s => s.siteId === o.id).length },
+    { key: 'st', label: 'Stations', cls: 'num', sortVal: o => stationsUnder('site', o.id).length, render: o => stationsUnder('site', o.id).length },
+    { key: 'sat', label: 'Controller', render: o => DB.satellites.filter(s => s.siteId === o.id).map(s => s.id).join(', ') || '—' }, { key: 'location', label: 'Location' }] },
+  holes: { label: 'Golf Holes', type: 'hole', rows: () => DB.holes.filter(inCtx), cols: [
+    { key: 'no', label: 'Hole', render: o => `<b>${esc(o.name)}</b>` }, { key: 'courseId', label: 'Course / Area', render: o => `${esc(courseName(o.courseId))}<span class="cell-sub">${esc(get(o.siteId).name)}</span>` },
+    { key: 'par', label: 'Par', cls: 'num' }, { key: 'length', label: 'Length', cls: 'num', render: o => `${fmt(o.length)} m` },
+    { key: 'st', label: 'Stations', cls: 'num', sortVal: o => holeStations(o.id).length, render: o => holeStations(o.id).length },
+    { key: 'status', label: 'Status', sort: false, render: o => { const k = nodeStatus('hole', o.id); return { run: b('run', 'Irrigating'), err: b('err', 'Error'), warn: b('warn', 'Faulty Station'), wait: b('wait', 'Waiting'), ok: b('ok', 'Active'), idle: b('idle', 'No stations yet') }[k]; } }] },
+  areas: { label: 'Irrigation Zones (Area)', type: 'area', rows: () => DB.areas.filter(inCtx), cols: [
+    { key: 'id', label: 'Code', render: o => `<b>${o.id}</b>` }, { key: 'name', label: 'Irrigation Zone', render: o => `${esc(o.name)}<span class="cell-sub">${esc(o.desc)}</span>` },
+    { key: 'holeId', label: 'Hole', render: o => esc(get(o.holeId).name) }, { key: 'turf', label: 'Grass Type' },
+    { key: 'st', label: 'Stations', cls: 'num', sortVal: o => stationsUnder('area', o.id).length, render: o => stationsUnder('area', o.id).length },
+    { key: 'status', label: 'Status', sort: false, render: o => { const k = nodeStatus('area', o.id); return { run: b('run', 'Irrigating'), err: b('err', 'Error'), warn: b('warn', 'Faulty Station'), wait: b('wait', 'Waiting'), ok: b('ok', 'Active'), idle: b('idle', 'No stations yet') }[k]; } }] }
 };
 state.levelSort = { key: 'id', dir: 1 }; state.levelQ = '';
 function renderLevelList() {
   const w = $('#struct-list'); if (!w) return;
   const L = LEVELS[state.structList];
   const q = state.levelQ.toLowerCase();
-  const rows = L.rows().filter(o => !q || [o.id, o.name, o.location, o.vi].join(' ').toLowerCase().includes(q));
+  const rows = L.rows().filter(o => !q || [o.id, o.name, o.location, o.desc].join(' ').toLowerCase().includes(q));
   const sort = L.cols.some(c => c.key === state.levelSort.key) ? state.levelSort : (state.levelSort = { key: L.cols[0].key, dir: 1 });
-  $('#struct-list-title').textContent = `Danh sách ${L.label.toLowerCase()}`;
-  $('#struct-list-n').textContent = `${rows.length} mục`;
+  $('#struct-list-title').textContent = `${L.label} List`;
+  $('#struct-list-n').textContent = `${rows.length} items`;
   const tw = $('#struct-table');
   keepScroll(tw, () => { tw.innerHTML = tableHTML('lvl-table', L.cols, rows, sort, { rowCls: r => state.tree.selected && state.tree.selected.id === r.id ? 'sel' : '' }); });
 }
@@ -1745,22 +1745,22 @@ PAGES.structure = {
     if (sub && LEVELS[sub]) state.structList = sub;
     if (!state.tree.selected) state.tree.selected = { type: 'course', id: DB.courses[0].id };
     const el = $('#page-structure');
-    el.innerHTML = pageHead('Sân & Khu vực', 'Cấu trúc Sân golf → Khu vực → Hố → Khu tưới → Trạm tưới / Cảm biến',
-      `<button class="btn" data-action="struct-add" data-kind="course">${icon('plus')}Thêm sân</button><button class="btn" data-action="struct-add" data-kind="site">${icon('plus')}Thêm khu vực</button><button class="btn btn-primary" data-action="struct-add" data-kind="hole">${icon('plus')}Thêm hố</button>`) +
+    el.innerHTML = pageHead('Courses & Areas', 'Structure: Golf Course → Area → Hole → Irrigation Zone → Station / Sensor',
+      `<button class="btn" data-action="struct-add" data-kind="course">${icon('plus')}Add Course</button><button class="btn" data-action="struct-add" data-kind="site">${icon('plus')}Add Area</button><button class="btn btn-primary" data-action="struct-add" data-kind="hole">${icon('plus')}Add Hole</button>`) +
       `<div class="struct-layout">
         <div class="panel tree-panel">
           <div class="tree-tools">
-            <div class="search-field">${icon('search')}<input class="input" id="tree-q" placeholder="Tìm trong cây: tên, mã trạm…" value="${esc(state.tree.q)}" aria-label="Tìm trong cây"></div>
-            <div class="btn-row"><button class="btn btn-sm" data-action="tree-expand">${icon('plus')}Mở tất cả</button><button class="btn btn-sm" data-action="tree-collapse">${icon('minus')}Thu gọn</button></div>
+            <div class="search-field">${icon('search')}<input class="input" id="tree-q" placeholder="Search the tree: name, station code…" value="${esc(state.tree.q)}" aria-label="Search the tree"></div>
+            <div class="btn-row"><button class="btn btn-sm" data-action="tree-expand">${icon('plus')}Expand All</button><button class="btn btn-sm" data-action="tree-collapse">${icon('minus')}Collapse</button></div>
           </div>
-          <ul class="tree" id="tree" role="tree" aria-label="Cấu trúc sân golf"></ul>
+          <ul class="tree" id="tree" role="tree" aria-label="Golf course structure"></ul>
         </div>
         <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
           <div class="panel" id="struct-detail"></div>
           <div class="panel">
             <div class="panel-head"><h3><span id="struct-list-title"></span> <span class="sub" id="struct-list-n"></span></h3>
               <div class="seg" id="lvl-seg">${Object.entries(LEVELS).map(([k, L]) => `<button data-lvl="${k}" aria-pressed="${state.structList === k}">${L.label.split(' (')[0]}</button>`).join('')}</div></div>
-            <div class="filters"><div class="field search-field"><label for="lvl-q">Tìm kiếm</label>${icon('search')}<input class="input" id="lvl-q" placeholder="Lọc theo tên, mã, vị trí" value="${esc(state.levelQ)}"></div></div>
+            <div class="filters"><div class="field search-field"><label for="lvl-q">Search</label>${icon('search')}<input class="input" id="lvl-q" placeholder="Filter by name, code, location" value="${esc(state.levelQ)}"></div></div>
             <div class="table-wrap max-h" id="struct-table"></div>
           </div>
         </div>
@@ -1810,16 +1810,16 @@ Object.assign(ACTIONS, {
   'struct-stop': async el => {
     const { type, id } = el.dataset, o = nodeObj(type, id);
     const run = stationsUnder(type, id).filter(s => s.status === 'running' || s.status === 'waiting');
-    const ok = await confirmDialog({ title: 'Dừng tưới', message: `Dừng tất cả <b>${run.length} trạm</b> đang tưới hoặc đang chờ tại <b>${esc(o.name)}</b>?`, confirmText: 'Dừng tưới', danger: true });
+    const ok = await confirmDialog({ title: 'Stop Irrigation', message: `Stop all <b>${run.length} stations</b> that are irrigating or waiting at <b>${esc(o.name)}</b>?`, confirmText: 'Stop Irrigation', danger: true });
     if (!ok) return;
     run.forEach(s => stopStation(s));
     DB.programs.filter(p => p.manual && p.state.running && !DB.stations.some(s => s.program === p.id)).forEach(p => { p.state = { running: false, queue: [] }; });
-    toast(`Đã dừng tưới ${run.length} trạm tại ${o.name}`, 'warning');
+    toast(`Stopped irrigating ${run.length} stations at ${o.name}`, 'warning');
     simPumps(); updateLive();
   }
 });
 
-/* ---------- Tưới toàn khu (chương trình thủ công tạm thời) ---------- */
+/* ---------- Irrigate entire zone (temporary manual program) ---------- */
 let manualSeq = 0;
 function structWater(type, id) {
   const o = nodeObj(type, id), sts = stationsUnder(type, id).filter(usable);
@@ -1827,38 +1827,38 @@ function structWater(type, id) {
   const defDur = type === 'area' ? AREA[o.type].run : 12;
   const calc = box => {
     const d = +$('#w-dur', box).value, c = +$('#w-conc', box).value;
-    $('#w-sum', box).innerHTML = `${sts.length} trạm · ${Math.ceil(sts.length / c)} lượt · tổng thời gian khoảng <b>${durText(Math.ceil(sts.length / c) * d)}</b> · nước dự kiến <b>${fmt(sum(sts.map(s => s.flow)) * d * GAL_TO_M3, 1)} m³</b> · lưu lượng đỉnh ≈ <b>${fmt(sum(sts.slice(0, c).map(s => s.flow)))} GPM</b>`;
+    $('#w-sum', box).innerHTML = `${sts.length} stations · ${Math.ceil(sts.length / c)} rounds · total time approx. <b>${durText(Math.ceil(sts.length / c) * d)}</b> · estimated water <b>${fmt(sum(sts.map(s => s.flow)) * d * GAL_TO_M3, 1)} m³</b> · peak flow ≈ <b>${fmt(sum(sts.slice(0, c).map(s => s.flow)))} GPM</b>`;
   };
   openModal({
-    title: `Tưới thủ công – ${o.name}`, size: 'sm',
+    title: `Manual Irrigation – ${o.name}`, size: 'sm',
     body: `<div class="form-grid">
-      <div class="field"><label for="w-dur">Thời gian mỗi trạm</label><select class="select" id="w-dur">${[3, 5, 8, 10, 12, 15, 18, 20, 25, 30].map(m => `<option value="${m}" ${m === defDur ? 'selected' : ''}>${m} phút</option>`).join('')}</select></div>
-      <div class="field"><label for="w-conc">Số trạm chạy đồng thời</label><select class="select" id="w-conc">${[1, 2, 3, 4, 6, 8, 12].filter(n => n <= Math.max(1, sts.length)).map(n => `<option value="${n}" ${n === Math.min(4, sts.length) ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+      <div class="field"><label for="w-dur">Duration per Station</label><select class="select" id="w-dur">${[3, 5, 8, 10, 12, 15, 18, 20, 25, 30].map(m => `<option value="${m}" ${m === defDur ? 'selected' : ''}>${m} min</option>`).join('')}</select></div>
+      <div class="field"><label for="w-conc">Concurrent Stations</label><select class="select" id="w-conc">${[1, 2, 3, 4, 6, 8, 12].filter(n => n <= Math.max(1, sts.length)).map(n => `<option value="${n}" ${n === Math.min(4, sts.length) ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
       <div class="full note-box">${icon('info')}<span id="w-sum"></span></div>
-      ${skipped ? `<div class="full fault-box">${icon('alert')}<span>${skipped} trạm đang lỗi hoặc mất kết nối sẽ được bỏ qua.</span></div>` : ''}
+      ${skipped ? `<div class="full fault-box">${icon('alert')}<span>${skipped} stations with errors or disconnected will be skipped.</span></div>` : ''}
     </div>`,
-    footer: `<button class="btn" data-close>Hủy</button><button class="btn btn-water" id="w-ok">${icon('play')}Bắt đầu tưới</button>`,
+    footer: `<button class="btn" data-close>Cancel</button><button class="btn btn-water" id="w-ok">${icon('play')}Start Irrigation</button>`,
     onMount: box => {
       calc(box);
       $('#w-dur', box).onchange = () => calc(box); $('#w-conc', box).onchange = () => calc(box);
       $('#w-ok', box).onclick = () => {
         const dur = +$('#w-dur', box).value, conc = +$('#w-conc', box).value;
-        const p = { id: 'MAN-' + (++manualSeq), manual: true, name: `Tưới thủ công – ${o.name}`, courseId: o.courseId || sts[0].courseId, holeIds: [...new Set(sts.map(s => s.holeId))], areaTypes: [...new Set(sts.map(s => s.type))], start: minToHM(nowMin()), duration: dur, days: [], priority: 'high', enabled: true, concurrency: conc, note: '', lastRun: null, lastResult: '—', state: { running: false, queue: [] }, only: sts.map(s => s.id) };
+        const p = { id: 'MAN-' + (++manualSeq), manual: true, name: `Manual Irrigation – ${o.name}`, courseId: o.courseId || sts[0].courseId, holeIds: [...new Set(sts.map(s => s.holeId))], areaTypes: [...new Set(sts.map(s => s.type))], start: minToHM(nowMin()), duration: dur, days: [], priority: 'high', enabled: true, concurrency: conc, note: '', lastRun: null, lastResult: '—', state: { running: false, queue: [] }, only: sts.map(s => s.id) };
         DB.programs.push(p); reindex();
         const q = [];
         sts.forEach(s => { if (s.status === 'running' || s.status === 'waiting') return; s.status = 'waiting'; s.program = p.id; q.push(s.id); });
-        if (!q.length) { closeModal(); toast('Tất cả trạm đã đang tưới hoặc đang chờ', 'warning'); return; }
+        if (!q.length) { closeModal(); toast('All stations are already irrigating or waiting', 'warning'); return; }
         p.state = { running: true, queue: q, startedAt: Date.now(), skipped, total: q.length };
         fillProgram(p);
         closeModal();
-        toast(`Bắt đầu tưới ${q.length} trạm tại ${o.name}`, 'success');
+        toast(`Started irrigating ${q.length} stations at ${o.name}`, 'success');
         simPumps(); updateLive();
       };
     }
   });
 }
 
-/* ---------- Thêm / sửa / xóa cấu trúc ---------- */
+/* ---------- Add / edit / delete structure ---------- */
 function nextId(prefix, list, width = 2) { let n = list.length + 1; while (list.some(x => x.id === prefix + String(n).padStart(width, '0'))) n++; return prefix + String(n).padStart(width, '0'); }
 function structForm(kind, id, parentId) {
   const o = id ? get(id) : null;
@@ -1869,31 +1869,31 @@ function structForm(kind, id, parentId) {
   let body = '';
   const defCourse = parentId && kind === 'site' ? parentId : state.ctx.courseId !== 'all' ? state.ctx.courseId : DB.courses[0].id;
   const defSite = parentId && kind === 'hole' ? parentId : state.ctx.siteId !== 'all' ? state.ctx.siteId : (state.tree.selected && state.tree.selected.type === 'site' ? state.tree.selected.id : DB.sites[0] && DB.sites[0].id);
-  if (kind === 'course') body = f('name', 'Tên sân', inp('name', o ? o.name : '', 'placeholder="VD: Sân Đồi Thông"')) + f('en', 'Tên tiếng Anh', inp('en', o ? o.en : '', 'placeholder="VD: Pine Hill Course"')) + f('location', 'Vị trí', inp('location', o ? o.location : ''), true) + f('area', 'Diện tích tưới (ha)', inp('area', o ? o.area : '18', 'type="number" min="1" step="0.1"'));
-  if (kind === 'site') body = f('name', 'Tên khu vực', inp('name', o ? o.name : `Site ${pad(DB.sites.length + 1)}`)) + f('courseId', 'Thuộc sân', `<select class="select" id="sf-courseId" ${edit ? 'disabled' : ''}>${selOpts(DB.courses, o ? o.courseId : defCourse)}</select>`) + f('location', 'Vị trí / mô tả', inp('location', o ? o.location : ''), true);
-  if (kind === 'hole') body = f('no', 'Số hố', inp('no', o ? o.no : Math.max(0, ...DB.holes.map(h => h.no)) + 1, 'type="number" min="1" max="99"')) + f('siteId', 'Thuộc khu vực', `<select class="select" id="sf-siteId" ${edit ? 'disabled' : ''}>${selOpts(DB.sites, o ? o.siteId : defSite)}</select>`) + f('par', 'Par', `<select class="select" id="sf-par">${[3, 4, 5].map(n => `<option ${o && o.par === n || !o && n === 4 ? 'selected' : ''}>${n}</option>`).join('')}</select>`) + f('length', 'Chiều dài (m)', inp('length', o ? o.length : 360, 'type="number" min="60" max="700"')) + (edit ? '' : `<div class="field full"><label class="check"><input type="checkbox" id="sf-auto" checked> Tự động tạo 4 khu tưới (Tee, Fairway, Green, Rough) và 7 trạm tưới mặc định</label></div>`);
-  if (kind === 'area') body = f('name', 'Tên khu tưới', inp('name', o.name)) + f('turf', 'Loại cỏ', inp('turf', o.turf)) + f('location', 'Vị trí', inp('location', o.location), true);
+  if (kind === 'course') body = f('name', 'Course Name', inp('name', o ? o.name : '', 'placeholder="e.g. Pine Hill Course"')) + f('en', 'Short Name', inp('en', o ? o.en : '', 'placeholder="e.g. Pine Hill"')) + f('location', 'Location', inp('location', o ? o.location : ''), true) + f('area', 'Irrigated Area (ha)', inp('area', o ? o.area : '18', 'type="number" min="1" step="0.1"'));
+  if (kind === 'site') body = f('name', 'Area Name', inp('name', o ? o.name : `Site ${pad(DB.sites.length + 1)}`)) + f('courseId', 'Course', `<select class="select" id="sf-courseId" ${edit ? 'disabled' : ''}>${selOpts(DB.courses, o ? o.courseId : defCourse)}</select>`) + f('location', 'Location / Description', inp('location', o ? o.location : ''), true);
+  if (kind === 'hole') body = f('no', 'Hole Number', inp('no', o ? o.no : Math.max(0, ...DB.holes.map(h => h.no)) + 1, 'type="number" min="1" max="99"')) + f('siteId', 'Area', `<select class="select" id="sf-siteId" ${edit ? 'disabled' : ''}>${selOpts(DB.sites, o ? o.siteId : defSite)}</select>`) + f('par', 'Par', `<select class="select" id="sf-par">${[3, 4, 5].map(n => `<option ${o && o.par === n || !o && n === 4 ? 'selected' : ''}>${n}</option>`).join('')}</select>`) + f('length', 'Length (m)', inp('length', o ? o.length : 360, 'type="number" min="60" max="700"')) + (edit ? '' : `<div class="field full"><label class="check"><input type="checkbox" id="sf-auto" checked> Automatically create 4 irrigation zones (Tee, Fairway, Green, Rough) and 7 default stations</label></div>`);
+  if (kind === 'area') body = f('name', 'Irrigation Zone Name', inp('name', o.name)) + f('turf', 'Grass Type', inp('turf', o.turf)) + f('location', 'Location', inp('location', o.location), true);
   if (!body) return;
-  if (!DB.sites.length && kind === 'hole') { toast('Cần tạo khu vực trước khi thêm hố', 'warning'); return; }
-  if (!DB.courses.length && kind === 'site') { toast('Cần tạo sân golf trước khi thêm khu vực', 'warning'); return; }
+  if (!DB.sites.length && kind === 'hole') { toast('You need to create an area before adding a hole', 'warning'); return; }
+  if (!DB.courses.length && kind === 'site') { toast('You need to create a golf course before adding an area', 'warning'); return; }
   openModal({
-    title: `${edit ? 'Chỉnh sửa' : 'Thêm'} ${TYPE_LABEL[kind].toLowerCase()}${edit ? ` – ${o.name}` : ''}`, size: '',
+    title: `${edit ? 'Edit' : 'Add'} ${TYPE_LABEL[kind].toLowerCase()}${edit ? ` – ${o.name}` : ''}`, size: '',
     body: `<div class="form-grid">${body}</div>`,
-    footer: `${edit ? `<span class="left">Mã: ${o.id}</span>` : ''}<button class="btn" data-close>Hủy</button><button class="btn btn-primary" id="sf-ok">${icon('check')}${edit ? 'Lưu thay đổi' : 'Thêm mới'}</button>`,
+    footer: `${edit ? `<span class="left">Code: ${o.id}</span>` : ''}<button class="btn" data-close>Cancel</button><button class="btn btn-primary" id="sf-ok">${icon('check')}${edit ? 'Save Changes' : 'Add'}</button>`,
     onMount: box => {
       $$('.input', box).forEach(i => i.addEventListener('input', () => i.closest('.field').classList.remove('invalid')));
       $('#sf-ok', box).onclick = () => {
         const v = k => { const e = $('#sf-' + k, box); return e ? e.value.trim() : ''; };
         const errs = {};
-        if ('name' in { name: 1 } && $('#sf-name', box) && !v('name')) errs.name = 'Vui lòng nhập tên';
-        if (kind === 'course' && (!(+v('area') > 0))) errs.area = 'Diện tích phải lớn hơn 0';
-        if (kind === 'course' && DB.courses.some(c => c.name.toLowerCase() === v('name').toLowerCase() && (!o || c.id !== o.id))) errs.name = 'Tên sân đã tồn tại';
-        if (kind === 'site' && DB.sites.some(s => s.name.toLowerCase() === v('name').toLowerCase() && s.courseId === (o ? o.courseId : v('courseId')) && (!o || s.id !== o.id))) errs.name = 'Tên khu vực đã tồn tại trong sân này';
+        if ('name' in { name: 1 } && $('#sf-name', box) && !v('name')) errs.name = 'Please enter a name';
+        if (kind === 'course' && (!(+v('area') > 0))) errs.area = 'Area must be greater than 0';
+        if (kind === 'course' && DB.courses.some(c => c.name.toLowerCase() === v('name').toLowerCase() && (!o || c.id !== o.id))) errs.name = 'Course name already exists';
+        if (kind === 'site' && DB.sites.some(s => s.name.toLowerCase() === v('name').toLowerCase() && s.courseId === (o ? o.courseId : v('courseId')) && (!o || s.id !== o.id))) errs.name = 'Area name already exists in this course';
         if (kind === 'hole') {
           const no = +v('no');
-          if (!Number.isInteger(no) || no < 1 || no > 99) errs.no = 'Số hố từ 1 đến 99';
-          else if (DB.holes.some(h => h.no === no && (!o || h.id !== o.id))) errs.no = `Hố ${pad(no)} đã tồn tại`;
-          const L = +v('length'); if (!(L >= 60 && L <= 700)) errs.length = 'Chiều dài từ 60 đến 700 m';
+          if (!Number.isInteger(no) || no < 1 || no > 99) errs.no = 'Hole number must be from 1 to 99';
+          else if (DB.holes.some(h => h.no === no && (!o || h.id !== o.id))) errs.no = `Hole ${pad(no)} already exists`;
+          const L = +v('length'); if (!(L >= 60 && L <= 700)) errs.length = 'Length must be from 60 to 700 m';
         }
         $$('.field[data-f]', box).forEach(fd => { const k = fd.dataset.f; fd.classList.toggle('invalid', !!errs[k]); $('.field-error', fd).textContent = errs[k] || ''; });
         if (Object.keys(errs).length) { const first = $('.field.invalid .input', box); if (first) first.focus(); return; }
@@ -1902,7 +1902,7 @@ function structForm(kind, id, parentId) {
           if (o) Object.assign(o, { name: v('name'), en: v('en'), location: v('location'), area: +v('area') });
           else {
             const nid = nextId('C', DB.courses);
-            target = { id: nid, name: v('name'), en: v('en') || v('name'), location: v('location') || 'Chưa cập nhật', status: 'online', ci: DB.courses.length % 3, area: +v('area'), lake: [620, 340], pumpHouse: [600, 420], club: [650, 55], weather: [745, 45] };
+            target = { id: nid, name: v('name'), en: v('en') || v('name'), location: v('location') || 'Not set', status: 'online', ci: DB.courses.length % 3, area: +v('area'), lake: [620, 340], pumpHouse: [600, 420], club: [650, 55], weather: [745, 45] };
             DB.courses.push(target);
           }
         } else if (kind === 'site') {
@@ -1911,19 +1911,19 @@ function structForm(kind, id, parentId) {
         } else if (kind === 'hole') {
           const no = +v('no');
           if (o) {
-            Object.assign(o, { no, name: 'Hố ' + pad(no), par: +v('par'), length: +v('length') });
+            Object.assign(o, { no, name: 'Hole ' + pad(no), par: +v('par'), length: +v('length') });
           } else {
             const site = get(v('siteId'));
             let hid = 'H' + pad(no); if (get(hid)) hid = nextId('H', DB.holes);
-            target = { id: hid, no, courseId: site.courseId, siteId: site.id, name: 'Hố ' + pad(no), par: +v('par'), length: +v('length'), status: 'online', geo: null, location: `${courseName(site.courseId)}, ${site.name}` };
+            target = { id: hid, no, courseId: site.courseId, siteId: site.id, name: 'Hole ' + pad(no), par: +v('par'), length: +v('length'), status: 'online', geo: null, location: `${courseName(site.courseId)}, ${site.name}` };
             DB.holes.push(target);
             if ($('#sf-auto', box).checked) {
               const sat = DB.satellites.find(s => s.siteId === site.id), dec = sat && DB.decoders.find(d => d.satelliteId === sat.id);
               let stNo = 0;
               AREA_KEYS.forEach(type => {
                 const A = AREA[type], aid = `A${pad(no)}-${A.code}`;
-                DB.areas.push({ id: aid, holeId: hid, siteId: site.id, courseId: site.courseId, type, name: A.name, vi: A.vi, turf: A.turf, status: 'online', location: `Hố ${pad(no)}, ${A.vi.toLowerCase()}` });
-                for (let n = 0; n < A.n; n++) { stNo++; DB.stations.push({ id: `ST-${pad(no)}${pad(stNo)}`, name: `Trạm ${pad(no)}-${pad(stNo)}`, holeId: hid, areaId: aid, siteId: site.id, courseId: site.courseId, type, flow: Math.round((A.flow[0] + A.flow[1]) / 2), defRun: A.run, head: HEADS[type], status: 'idle', elapsed: 0, duration: 0, program: null, lastRun: null, runsToday: 0, pos: null, satelliteId: sat ? sat.id : null, decoderId: dec ? dec.id : null, fault: '' }); }
+                DB.areas.push({ id: aid, holeId: hid, siteId: site.id, courseId: site.courseId, type, name: A.name, desc: A.desc, turf: A.turf, status: 'online', location: `Hole ${pad(no)}, ${A.desc.toLowerCase()}` });
+                for (let n = 0; n < A.n; n++) { stNo++; DB.stations.push({ id: `ST-${pad(no)}${pad(stNo)}`, name: `Station ${pad(no)}-${pad(stNo)}`, holeId: hid, areaId: aid, siteId: site.id, courseId: site.courseId, type, flow: Math.round((A.flow[0] + A.flow[1]) / 2), defRun: A.run, head: HEADS[type], status: 'idle', elapsed: 0, duration: 0, program: null, lastRun: null, runsToday: 0, pos: null, satelliteId: sat ? sat.id : null, decoderId: dec ? dec.id : null, fault: '' }); }
               });
               if (sat) sat.holeIds.push(hid);
             }
@@ -1931,7 +1931,7 @@ function structForm(kind, id, parentId) {
         } else if (kind === 'area') Object.assign(o, { name: v('name'), turf: v('turf'), location: v('location') });
         reindex(); renderCtxSelects();
         closeModal();
-        toast(edit ? `Đã lưu thay đổi cho ${TYPE_LABEL[kind].toLowerCase()} ${o.name}` : `Đã thêm ${TYPE_LABEL[kind].toLowerCase()} ${target.name} (${target.id})`, 'success');
+        toast(edit ? `Saved changes to ${TYPE_LABEL[kind].toLowerCase()} ${o.name}` : `Added ${TYPE_LABEL[kind].toLowerCase()} ${target.name} (${target.id})`, 'success');
         if (target) selectTreeNode(kind, target.id);
         if (state.page === 'structure') PAGES.structure.render(state.sub); else go('structure');
       };
@@ -1945,9 +1945,9 @@ async function structDelete(type, id) {
   const sites = type === 'course' ? DB.sites.filter(s => s.courseId === id) : type === 'site' ? [o] : [];
   const areas = type === 'area' ? [o] : DB.areas.filter(a => holes.some(h => h.id === a.holeId));
   const running = sts.filter(s => s.status === 'running').length;
-  const parts = [sites.length && type !== 'site' ? `${sites.length} khu vực` : '', holes.length && type !== 'hole' ? `${holes.length} hố` : '', areas.length && type !== 'area' ? `${areas.length} khu tưới` : '', `${sts.length} trạm tưới`, sens.length ? `${sens.length} cảm biến` : ''].filter(Boolean);
-  const ok = await confirmDialog({ title: `Xóa ${TYPE_LABEL[type].toLowerCase()}`, danger: true, confirmText: 'Xóa vĩnh viễn',
-    message: `Xóa <b>${esc(o.name)}</b> (${o.id}) cùng toàn bộ dữ liệu trực thuộc: ${parts.join(', ')}?${running ? ` <b>${running} trạm đang tưới sẽ bị dừng.</b>` : ''} Thao tác này không thể hoàn tác.` });
+  const parts = [sites.length && type !== 'site' ? `${sites.length} areas` : '', holes.length && type !== 'hole' ? `${holes.length} holes` : '', areas.length && type !== 'area' ? `${areas.length} irrigation zones` : '', `${sts.length} irrigation stations`, sens.length ? `${sens.length} sensors` : ''].filter(Boolean);
+  const ok = await confirmDialog({ title: `Delete ${TYPE_LABEL[type].toLowerCase()}`, danger: true, confirmText: 'Delete Permanently',
+    message: `Delete <b>${esc(o.name)}</b> (${o.id}) along with all its data: ${parts.join(', ')}?${running ? ` <b>${running} irrigating stations will be stopped.</b>` : ''} This action cannot be undone.` });
   if (!ok) return;
   const stIds = new Set(sts.map(s => s.id));
   sts.forEach(s => { if (s.status === 'running' || s.status === 'waiting') stopStation(s); });
@@ -1971,7 +1971,7 @@ async function structDelete(type, id) {
   const par = nodeParentSafe(type, o);
   state.tree.selected = par;
   closeDrawer();
-  toast(`Đã xóa ${TYPE_LABEL[type].toLowerCase()} ${o.name}${emptied.length ? ` và ${emptied.length} lịch tưới liên quan` : ''}`, 'warning');
+  toast(`Deleted ${TYPE_LABEL[type].toLowerCase()} ${o.name}${emptied.length ? ` and ${emptied.length} related irrigation programs` : ''}`, 'warning');
   if (DB.courses.length === 0) state.tree.selected = { type: 'club', id: 'CLUB' };
   simPumps();
   PAGES.structure.render(state.sub);
@@ -1982,7 +1982,7 @@ function nodeParentSafe(type, o) {
   return { type: m[0], id: m[1] };
 }
 
-/* ================= 15. Thiết bị hiện trường ================= */
+/* ================= 15. Field Equipment ================= */
 function refreshView() {
   const p = PAGES[state.page];
   if (['schedule'].includes(state.page)) p.render(state.sub);
@@ -1995,62 +1995,62 @@ const whereCell = o => `${esc(courseName(o.courseId))}<span class="cell-sub">${e
 const errCell = d => d.errorCode ? `<span class="err-code">${d.errorCode}</span><span class="cell-sub">${esc(d.errorMsg)}</span>` : '<span class="muted">—</span>';
 const EQ_TABS = {
   satellites: {
-    label: 'Bộ điều khiển', list: () => DB.satellites, holes: d => d.holeIds, typeLabel: 'Kênh truyền', typeOf: d => d.comm,
+    label: 'Controllers', list: () => DB.satellites, holes: d => d.holeIds, typeLabel: 'Comm Channel', typeOf: d => d.comm,
     cols: [
-      { key: 'id', label: 'Mã', render: d => `<b>${d.id}</b>` },
-      { key: 'name', label: 'Tên / Model', render: d => `${esc(d.name)}<span class="cell-sub">${esc(d.model)}</span>` },
-      { key: 'siteId', label: 'Sân / Khu vực', render: whereCell },
-      { key: 'ip', label: 'Địa chỉ IP', render: d => `<code>${d.ip}</code>` },
-      { key: 'comm', label: 'Kênh truyền' },
-      { key: 'st', label: 'Trạm', cls: 'num', sortVal: d => eqStations(d).length, render: d => eqStations(d).length },
-      { key: 'firmware', label: 'Firmware', render: d => d.firmware + (d.firmware !== 'v5.3.2' ? ' <span class="badge b-warn" data-tip="Có bản cập nhật v5.3.2">Cũ</span>' : '') },
-      { key: 'signal', label: 'Tín hiệu', render: d => d.signal == null ? '—' : `${sigPct(d.signal)}${d.signal}%` },
+      { key: 'id', label: 'Code', render: d => `<b>${d.id}</b>` },
+      { key: 'name', label: 'Name / Model', render: d => `${esc(d.name)}<span class="cell-sub">${esc(d.model)}</span>` },
+      { key: 'siteId', label: 'Course / Area', render: whereCell },
+      { key: 'ip', label: 'IP Address', render: d => `<code>${d.ip}</code>` },
+      { key: 'comm', label: 'Comm Channel' },
+      { key: 'st', label: 'Stations', cls: 'num', sortVal: d => eqStations(d).length, render: d => eqStations(d).length },
+      { key: 'firmware', label: 'Firmware', render: d => d.firmware + (d.firmware !== 'v5.3.2' ? ' <span class="badge b-warn" data-tip="Update v5.3.2 available">Outdated</span>' : '') },
+      { key: 'signal', label: 'Signal', render: d => d.signal == null ? '—' : `${sigPct(d.signal)}${d.signal}%` },
       { key: 'ping', label: 'Ping', cls: 'num', render: d => pingText(d.ping) },
-      { key: 'status', label: 'Trạng thái', render: d => eqBadge(d.status) },
-      { key: 'lastSeen', label: 'Liên lạc gần nhất', render: seenCell }
+      { key: 'status', label: 'Status', render: d => eqBadge(d.status) },
+      { key: 'lastSeen', label: 'Last Contact', render: seenCell }
     ]
   },
   decoders: {
-    label: 'Bộ giải mã', list: () => DB.decoders, holes: d => [...new Set(eqStations(d).map(s => s.holeId))], typeLabel: 'Model', typeOf: d => d.model,
+    label: 'Decoders', list: () => DB.decoders, holes: d => [...new Set(eqStations(d).map(s => s.holeId))], typeLabel: 'Model', typeOf: d => d.model,
     cols: [
-      { key: 'id', label: 'Mã', render: d => `<b>${d.id}</b>` },
-      { key: 'address', label: 'Địa chỉ', render: d => `<code>${d.address}</code>` },
+      { key: 'id', label: 'Code', render: d => `<b>${d.id}</b>` },
+      { key: 'address', label: 'Address', render: d => `<code>${d.address}</code>` },
       { key: 'model', label: 'Model' },
-      { key: 'satelliteId', label: 'Bộ điều khiển', render: d => eqLink(d.satelliteId) },
-      { key: 'siteId', label: 'Sân / Khu vực', render: whereCell },
-      { key: 'st', label: 'Trạm', cls: 'num', sortVal: d => eqStations(d).length, render: d => { const s = eqStations(d); return `${s.length}<span class="cell-sub">${s.map(x => x.id.slice(3)).slice(0, 3).join(', ')}${s.length > 3 ? '…' : ''}</span>`; } },
-      { key: 'current', label: 'Dòng điện', cls: 'num', render: d => `<span class="${d.current > 45 ? 'ping-mid' : ''}">${fmt(d.current)} mA</span>` },
-      { key: 'status', label: 'Trạng thái', render: d => eqBadge(d.status) },
-      { key: 'errorCode', label: 'Mã lỗi', render: errCell },
-      { key: 'lastSeen', label: 'Liên lạc gần nhất', render: seenCell }
+      { key: 'satelliteId', label: 'Controller', render: d => eqLink(d.satelliteId) },
+      { key: 'siteId', label: 'Course / Area', render: whereCell },
+      { key: 'st', label: 'Stations', cls: 'num', sortVal: d => eqStations(d).length, render: d => { const s = eqStations(d); return `${s.length}<span class="cell-sub">${s.map(x => x.id.slice(3)).slice(0, 3).join(', ')}${s.length > 3 ? '…' : ''}</span>`; } },
+      { key: 'current', label: 'Current', cls: 'num', render: d => `<span class="${d.current > 45 ? 'ping-mid' : ''}">${fmt(d.current)} mA</span>` },
+      { key: 'status', label: 'Status', render: d => eqBadge(d.status) },
+      { key: 'errorCode', label: 'Error Code', render: errCell },
+      { key: 'lastSeen', label: 'Last Contact', render: seenCell }
     ]
   },
   radios: {
-    label: 'Thiết bị Radio', list: () => DB.radios, holes: d => (get(d.satelliteId) || { holeIds: [] }).holeIds, typeLabel: 'Loại radio', typeOf: d => d.type,
+    label: 'Radio Devices', list: () => DB.radios, holes: d => (get(d.satelliteId) || { holeIds: [] }).holeIds, typeLabel: 'Radio Type', typeOf: d => d.type,
     cols: [
-      { key: 'id', label: 'Mã', render: d => `<b>${d.id}</b>` },
-      { key: 'type', label: 'Loại' },
-      { key: 'freq', label: 'Tần số' },
-      { key: 'satelliteId', label: 'Bộ điều khiển', render: d => eqLink(d.satelliteId) },
-      { key: 'siteId', label: 'Sân / Khu vực', render: whereCell },
-      { key: 'signal', label: 'Tín hiệu', render: d => d.signal == null ? '<span class="ping-bad">Không có</span>' : `${sigBars(d.signal)}${d.signal} dBm` },
+      { key: 'id', label: 'Code', render: d => `<b>${d.id}</b>` },
+      { key: 'type', label: 'Type' },
+      { key: 'freq', label: 'Frequency' },
+      { key: 'satelliteId', label: 'Controller', render: d => eqLink(d.satelliteId) },
+      { key: 'siteId', label: 'Course / Area', render: whereCell },
+      { key: 'signal', label: 'Signal', render: d => d.signal == null ? '<span class="ping-bad">None</span>' : `${sigBars(d.signal)}${d.signal} dBm` },
       { key: 'ping', label: 'Ping', cls: 'num', render: d => pingText(d.ping) },
-      { key: 'status', label: 'Trạng thái', render: d => eqBadge(d.status) },
-      { key: 'errorCode', label: 'Mã lỗi', render: errCell },
-      { key: 'lastSeen', label: 'Liên lạc gần nhất', render: seenCell }
+      { key: 'status', label: 'Status', render: d => eqBadge(d.status) },
+      { key: 'errorCode', label: 'Error Code', render: errCell },
+      { key: 'lastSeen', label: 'Last Contact', render: seenCell }
     ]
   },
   stations: {
-    label: 'Trạm tưới', list: () => DB.stations, holes: s => [s.holeId], typeLabel: 'Khu tưới', typeOf: s => AREA[s.type].name, station: true,
+    label: 'Irrigation Stations', list: () => DB.stations, holes: s => [s.holeId], typeLabel: 'Irrigation Zone', typeOf: s => AREA[s.type].name, station: true,
     cols: [
-      { key: 'id', label: 'Mã', render: s => `<b>${s.id}</b><span class="cell-sub">${esc(s.name)}</span>` },
-      { key: 'holeId', label: 'Sân / Hố', sortVal: s => get(s.holeId).no, render: s => `${esc(get(s.holeId).name)}<span class="cell-sub">${esc(courseName(s.courseId))} · ${esc(get(s.siteId).name)}</span>` },
-      { key: 'type', label: 'Khu tưới', sortVal: s => AREA_KEYS.indexOf(s.type), render: s => `${AREA[s.type].name}<span class="cell-sub">${esc(s.head)}</span>` },
-      { key: 'decoderId', label: 'Bộ giải mã', render: s => `${eqLink(s.decoderId)}<span class="cell-sub">${esc(s.satelliteId || '')}</span>` },
-      { key: 'flow', label: 'Lưu lượng', cls: 'num', render: s => `${fmt(s.flow)} GPM` },
-      { key: 'status', label: 'Trạng thái', sortVal: s => Object.keys(STATION_ST).indexOf(s.status), render: s => stBadge(s.status) },
-      { key: 'elapsed', label: 'Tiến độ / Lần tưới', sortVal: s => s.status === 'running' ? s.elapsed / s.duration : -1, render: s => s.status === 'running' ? `<div class="meter"><div class="progress"><span style="width:${s.elapsed / s.duration * 100}%"></span></div><span class="v">${fmt(s.elapsed / s.duration * 100)}%</span></div>` : `<span class="muted">${s.lastRun ? fmtDT(s.lastRun) : '—'}</span>` },
-      { key: 'act', label: '', sort: false, cls: 'num', render: s => s.status === 'running' ? `<button class="btn btn-sm" data-action="st-stop" data-id="${s.id}">${icon('stop')}Dừng</button>` : `<button class="btn btn-sm" data-action="st-quick" data-id="${s.id}" ${usable(s) ? '' : 'disabled'}>${icon('play')}Tưới</button>` }
+      { key: 'id', label: 'Code', render: s => `<b>${s.id}</b><span class="cell-sub">${esc(s.name)}</span>` },
+      { key: 'holeId', label: 'Course / Hole', sortVal: s => get(s.holeId).no, render: s => `${esc(get(s.holeId).name)}<span class="cell-sub">${esc(courseName(s.courseId))} · ${esc(get(s.siteId).name)}</span>` },
+      { key: 'type', label: 'Irrigation Zone', sortVal: s => AREA_KEYS.indexOf(s.type), render: s => `${AREA[s.type].name}<span class="cell-sub">${esc(s.head)}</span>` },
+      { key: 'decoderId', label: 'Decoder', render: s => `${eqLink(s.decoderId)}<span class="cell-sub">${esc(s.satelliteId || '')}</span>` },
+      { key: 'flow', label: 'Flow', cls: 'num', render: s => `${fmt(s.flow)} GPM` },
+      { key: 'status', label: 'Status', sortVal: s => Object.keys(STATION_ST).indexOf(s.status), render: s => stBadge(s.status) },
+      { key: 'elapsed', label: 'Progress / Last Run', sortVal: s => s.status === 'running' ? s.elapsed / s.duration : -1, render: s => s.status === 'running' ? `<div class="meter"><div class="progress"><span style="width:${s.elapsed / s.duration * 100}%"></span></div><span class="v">${fmt(s.elapsed / s.duration * 100)}%</span></div>` : `<span class="muted">${s.lastRun ? fmtDT(s.lastRun) : '—'}</span>` },
+      { key: 'act', label: '', sort: false, cls: 'num', render: s => s.status === 'running' ? `<button class="btn btn-sm" data-action="st-stop" data-id="${s.id}">${icon('stop')}Stop</button>` : `<button class="btn btn-sm" data-action="st-quick" data-id="${s.id}" ${usable(s) ? '' : 'disabled'}>${icon('play')}Irrigate</button>` }
     ]
   }
 };
@@ -2075,14 +2075,14 @@ function eqFiltersHTML() {
   const sites = DB.sites.filter(s => f.course === 'all' || s.courseId === f.course);
   const holes = DB.holes.filter(h => (f.course === 'all' || h.courseId === f.course) && (f.site === 'all' || h.siteId === f.site));
   const types = [...new Set(T.list().map(T.typeOf))];
-  const sts = T.station ? [['running', 'Đang tưới'], ['waiting', 'Đang chờ'], ['completed', 'Hoàn thành'], ['idle', 'Sẵn sàng'], ['error', 'Lỗi / Mất kết nối']] : Object.entries(EQ_ST).map(([k, v]) => [k, v.label]);
-  return `<div class="field search-field"><label for="eq-q">Tìm kiếm</label>${icon('search')}<input class="input" id="eq-q" placeholder="Mã, tên, IP, mã lỗi…" value="${esc(f.q)}"></div>
-    <div class="field"><label for="eq-course">Sân golf</label><select class="select" id="eq-course">${opt('all', 'Tất cả sân', f.course)}${DB.courses.map(c => opt(c.id, c.name, f.course)).join('')}</select></div>
-    <div class="field"><label for="eq-site">Khu vực</label><select class="select" id="eq-site">${opt('all', 'Tất cả khu vực', f.site)}${sites.map(s => opt(s.id, s.name, f.site)).join('')}</select></div>
-    <div class="field"><label for="eq-hole">Hố golf</label><select class="select" id="eq-hole">${opt('all', 'Tất cả hố', f.hole)}${holes.map(h => opt(h.id, h.name, f.hole)).join('')}</select></div>
-    <div class="field"><label for="eq-status">Trạng thái</label><select class="select" id="eq-status">${opt('all', 'Tất cả trạng thái', f.status)}${sts.map(([k, l]) => opt(k, l, f.status)).join('')}</select></div>
-    <div class="field"><label for="eq-type">${T.typeLabel}</label><select class="select" id="eq-type">${opt('all', 'Tất cả', f.type || 'all')}${types.map(t => opt(t, t, f.type)).join('')}</select></div>
-    <button class="btn btn-ghost btn-sm" id="eq-reset" style="height:34px">Xóa lọc</button>`;
+  const sts = T.station ? [['running', 'Irrigating'], ['waiting', 'Waiting'], ['completed', 'Completed'], ['idle', 'Ready'], ['error', 'Error / Disconnected']] : Object.entries(EQ_ST).map(([k, v]) => [k, v.label]);
+  return `<div class="field search-field"><label for="eq-q">Search</label>${icon('search')}<input class="input" id="eq-q" placeholder="Code, name, IP, error code…" value="${esc(f.q)}"></div>
+    <div class="field"><label for="eq-course">Golf Course</label><select class="select" id="eq-course">${opt('all', 'All Courses', f.course)}${DB.courses.map(c => opt(c.id, c.name, f.course)).join('')}</select></div>
+    <div class="field"><label for="eq-site">Area</label><select class="select" id="eq-site">${opt('all', 'All Areas', f.site)}${sites.map(s => opt(s.id, s.name, f.site)).join('')}</select></div>
+    <div class="field"><label for="eq-hole">Golf Hole</label><select class="select" id="eq-hole">${opt('all', 'All Holes', f.hole)}${holes.map(h => opt(h.id, h.name, f.hole)).join('')}</select></div>
+    <div class="field"><label for="eq-status">Status</label><select class="select" id="eq-status">${opt('all', 'All Statuses', f.status)}${sts.map(([k, l]) => opt(k, l, f.status)).join('')}</select></div>
+    <div class="field"><label for="eq-type">${T.typeLabel}</label><select class="select" id="eq-type">${opt('all', 'All', f.type || 'all')}${types.map(t => opt(t, t, f.type)).join('')}</select></div>
+    <button class="btn btn-ghost btn-sm" id="eq-reset" style="height:34px">Clear Filters</button>`;
 }
 function renderEqTable() {
   const w = $('#eq-table'); if (!w) return;
@@ -2092,7 +2092,7 @@ function renderEqTable() {
   keepScroll(w, () => { w.innerHTML = tableHTML('eq-tbl', T.cols, rows, state.eq.sort, { rowCls: d => (state.drawer && state.drawer.id === d.id ? 'sel' : '') }); });
   const all = T.list();
   const bad = all.filter(d => T.station ? !usable(d) : d.status !== 'online').length;
-  $('#eq-foot').innerHTML = `<span>Hiển thị <b>${rows.length}</b> / ${all.length} ${T.label.toLowerCase()}</span><span>${T.station ? `${all.filter(s => s.status === 'running').length} đang tưới · ` : ''}${bad} ${T.station ? 'lỗi / mất kết nối' : 'cảnh báo / ngoại tuyến'}</span>`;
+  $('#eq-foot').innerHTML = `<span>Showing <b>${rows.length}</b> / ${all.length} ${T.label.toLowerCase()}</span><span>${T.station ? `${all.filter(s => s.status === 'running').length} irrigating · ` : ''}${bad} ${T.station ? 'errors / disconnected' : 'warnings / offline'}</span>`;
   $$('#eq-tabs .tab').forEach(t => { const k = t.dataset.tab; t.querySelector('.n').textContent = eqFiltered(k).length; });
 }
 PAGES.equipment = {
@@ -2100,8 +2100,8 @@ PAGES.equipment = {
     if (sub && EQ_TABS[sub] && state.eq.tab !== sub) { state.eq.tab = sub; state.eq.status = 'all'; state.eq.type = 'all'; }
     const el = $('#page-equipment');
     const cnt = k => DB[k].filter(d => d.status !== 'online').length;
-    el.innerHTML = pageHead('Thiết bị hiện trường', `${DB.satellites.length} bộ điều khiển · ${DB.decoders.length} bộ giải mã · ${DB.radios.length} radio · ${DB.stations.length} trạm tưới`,
-      `<button class="btn" data-go="diagnostics">${icon('pulse')}Chẩn đoán</button><button class="btn" data-action="eq-export">${icon('download')}Xuất CSV</button>`) +
+    el.innerHTML = pageHead('Field Equipment', `${DB.satellites.length} controllers · ${DB.decoders.length} decoders · ${DB.radios.length} radios · ${DB.stations.length} irrigation stations`,
+      `<button class="btn" data-go="diagnostics">${icon('pulse')}Diagnostics</button><button class="btn" data-action="eq-export">${icon('download')}Export CSV</button>`) +
       `<div class="panel">
         <div class="tabs" id="eq-tabs" role="tablist">${Object.entries(EQ_TABS).map(([k, T]) => `<button class="tab" role="tab" data-tab="${k}" aria-selected="${state.eq.tab === k}">${T.label}<span class="n"></span>${k !== 'stations' && cnt(k) ? `<span class="count-pill" style="height:18px;min-width:18px;padding:0 5px;font-size:11px">${cnt(k)}</span>` : ''}</button>`).join('')}</div>
         <div class="filters" id="eq-filters">${eqFiltersHTML()}</div>
@@ -2137,15 +2137,15 @@ PAGES.equipment = {
 Object.assign(ACTIONS, {
   'st-quick': el => {
     const s = get(el.dataset.id);
-    if (!startManual(s, s.defRun)) { toast(`${s.name} không thể tưới`, 'error'); return; }
-    toast(`Đã bắt đầu tưới ${s.name} trong ${s.defRun} phút`, 'success');
+    if (!startManual(s, s.defRun)) { toast(`${s.name} cannot irrigate`, 'error'); return; }
+    toast(`Started irrigating ${s.name} for ${s.defRun} minutes`, 'success');
     simPumps(); updateLive();
   },
   'eq-export': () => {
     const T = EQ_TABS[state.eq.tab], rows = sortRows(eqFiltered(state.eq.tab), T.cols, state.eq.sort);
     const cols = T.cols.filter(c => c.key !== 'act');
     const txt = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent.replace(/\s+/g, ' ').trim(); };
-    downloadCSV(`thiet-bi-${state.eq.tab}-${isoDate(new Date())}.csv`, [cols.map(c => c.label), ...rows.map(r => cols.map(c => txt(c.render ? c.render(r) : esc(r[c.key]))))]);
+    downloadCSV(`equipment-${state.eq.tab}-${isoDate(new Date())}.csv`, [cols.map(c => c.label), ...rows.map(r => cols.map(c => txt(c.render ? c.render(r) : esc(r[c.key]))))]);
   }
 });
 function downloadCSV(name, rows) {
@@ -2153,25 +2153,25 @@ function downloadCSV(name, rows) {
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
   const a = document.createElement('a'); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  toast(`Đã xuất tệp ${name}`, 'success');
+  toast(`Exported file ${name}`, 'success');
 }
 
-/* ================= 16. Lịch tưới ================= */
+/* ================= 16. Irrigation Schedule ================= */
 state.sched.filter = { course: 'all', status: 'all' };
 state.sched.sort = { key: 'start', dir: 1 };
 const progRunsOn = (p, d) => p.days.includes(weekday(d));
 function progStatusOn(p, d) {
   const t = new Date();
   if (sameDay(d, t)) return progStatus(p);
-  if (!p.enabled) return { key: 'paused', label: 'Tạm dừng', cls: 'idle' };
-  return d < t ? { key: 'done', label: 'Hoàn thành', cls: 'done' } : { key: 'up', label: 'Chờ đến giờ', cls: 'wait' };
+  if (!p.enabled) return { key: 'paused', label: 'Paused', cls: 'idle' };
+  return d < t ? { key: 'done', label: 'Completed', cls: 'done' } : { key: 'up', label: 'Scheduled', cls: 'wait' };
 }
 const schedPrograms = () => realPrograms().filter(p => (state.ctx.courseId === 'all' || p.courseId === state.ctx.courseId));
 function schedLabel() {
   const d = state.sched.date, v = state.sched.view;
   if (v === 'day') return `${DOW_LONG[weekday(d)]}, ${fmtDate(d)}`;
-  if (v === 'week') { const s = addDays(d, -weekday(d)), e = addDays(s, 6); return `Tuần ${fmtDate(s).slice(0, 5)} – ${fmtDate(e)}`; }
-  return `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`;
+  if (v === 'week') { const s = addDays(d, -weekday(d)), e = addDays(s, 6); return `Week ${fmtDate(s).slice(0, 5)} – ${fmtDate(e)}`; }
+  return `${d.toLocaleString('en-US', { month: 'long' })} ${d.getFullYear()}`;
 }
 function dayViewHTML() {
   const d = state.sched.date, progs = schedPrograms().filter(p => progRunsOn(p, d)).sort((a, c) => hmToMin(a.start) - hmToMin(c.start));
@@ -2182,23 +2182,23 @@ function dayViewHTML() {
   const rows = progs.map(p => {
     const st = progStatusOn(p, d), s = hmToMin(p.start), len = Math.max(programLen(p), 5);
     const segs = s + len > 1440 ? [[s, 1440 - s], [0, s + len - 1440]] : [[s, len]];
-    return `<div class="g-row"><div class="g-label"><strong>${esc(p.name)}</strong><span>${esc(courseName(p.courseId))} · ${programStations(p).length} trạm</span></div>
+    return `<div class="g-row"><div class="g-label"><strong>${esc(p.name)}</strong><span>${esc(courseName(p.courseId))} · ${programStations(p).length} stations</span></div>
       <div class="g-track">${segs.map(([a, l]) => `<button class="g-block st-${st.key} ${state.sched.selected === p.id ? 'sel' : ''}" style="left:${pct(a)};width:${pct(l)}" data-pick="${p.id}" data-tip="${esc(p.name)}: ${p.start} – ${minToHM(s + len)} (${durText(len)}) · ${st.label}">${p.start} · ${durText(len)}</button>`).join('')}</div></div>`;
   }).join('');
   const seq = progs.map(p => { const st = progStatusOn(p, d); return `<div class="tl-item st-${st.key}" data-pick="${p.id}" tabindex="0"><span class="tl-time">${p.start}</span><span class="tl-dot"></span><div class="tl-body"><strong>${esc(p.name.split('–')[1] ? p.name.split('–')[1].trim() : p.name)}</strong><span>${esc(p.id)} · ${durText(programLen(p))} · ${fmt(programVolume(p), 0)} m³</span></div>${b(st.cls, st.label)}</div>`; }).join('');
   return `<div class="sched-layout"><div><div class="gantt"><div class="gantt-inner">
       <div class="g-scale"><span></span><div class="g-hours">${hours.map(h => `<span style="left:${pct(h * 60)}">${pad(h % 24)}:00</span>`).join('')}</div></div>
-      ${rows || `<div class="empty-state">${icon('cal')}Không có lịch tưới trong ngày này</div>`}
+      ${rows || `<div class="empty-state">${icon('cal')}No irrigation programs on this day</div>`}
       ${isToday && rows ? `<div style="position:absolute;left:200px;right:0;top:22px;bottom:0;pointer-events:none"><div class="g-now" id="g-now" style="left:${pct(nm)}" data-label="${fmtHM(now)}"></div></div>` : ''}
     </div></div></div>
-    <div><div class="seq-head"><h3>Trình tự trong ngày</h3><span class="muted" style="font-size:12.5px">${progs.length} chương trình · ${fmt(sum(progs.map(programVolume)), 0)} m³ dự kiến</span></div><div class="seq-list timeline">${seq || '<div class="empty-state">Trống</div>'}</div></div></div>`;
+    <div><div class="seq-head"><h3>Day's Sequence</h3><span class="muted" style="font-size:12.5px">${progs.length} programs · ${fmt(sum(progs.map(programVolume)), 0)} m³ estimated</span></div><div class="seq-list timeline">${seq || '<div class="empty-state">Empty</div>'}</div></div></div>`;
 }
 function weekViewHTML() {
   const s = addDays(state.sched.date, -weekday(state.sched.date)), progs = schedPrograms().sort((a, c) => hmToMin(a.start) - hmToMin(c.start));
   return `<div class="week-grid">${Array.from({ length: 7 }, (_, i) => {
     const d = addDays(s, i), list = progs.filter(p => progRunsOn(p, d));
     return `<div class="wk-col ${sameDay(d, new Date()) ? 'today' : ''}"><div class="wk-head" data-day="${isoDate(d)}" style="cursor:pointer">${DOW_LONG[i]}<strong>${d.getDate()}</strong></div>
-      <div class="wk-body">${list.map(p => `<button class="ev ${PRIO[p.priority].cls} ${p.enabled ? '' : 'paused'} ${state.sched.selected === p.id ? 'sel' : ''}" data-pick="${p.id}"><b>${p.start} – ${minToHM(hmToMin(p.start) + programLen(p))}</b><span>${esc(p.name)}</span><span class="muted">${esc(courseName(p.courseId))}${p.enabled ? '' : ' · Tạm dừng'}</span></button>`).join('') || '<span class="muted" style="font-size:12px;padding:4px">Không có lịch</span>'}</div></div>`;
+      <div class="wk-body">${list.map(p => `<button class="ev ${PRIO[p.priority].cls} ${p.enabled ? '' : 'paused'} ${state.sched.selected === p.id ? 'sel' : ''}" data-pick="${p.id}"><b>${p.start} – ${minToHM(hmToMin(p.start) + programLen(p))}</b><span>${esc(p.name)}</span><span class="muted">${esc(courseName(p.courseId))}${p.enabled ? '' : ' · Paused'}</span></button>`).join('') || '<span class="muted" style="font-size:12px;padding:4px">No schedule</span>'}</div></div>`;
   }).join('')}</div>`;
 }
 function monthViewHTML() {
@@ -2206,21 +2206,21 @@ function monthViewHTML() {
   const progs = schedPrograms().filter(p => p.enabled).sort((a, c) => hmToMin(a.start) - hmToMin(c.start));
   return `<div class="month-grid">${DOW.map(x => `<div class="mo-dow">${x}</div>`).join('')}${Array.from({ length: 42 }, (_, i) => {
     const day = addDays(start, i), list = progs.filter(p => progRunsOn(p, day));
-    return `<div class="mo-cell ${day.getMonth() !== d.getMonth() ? 'other' : ''} ${sameDay(day, new Date()) ? 'today' : ''}" data-day="${isoDate(day)}"><span class="mo-num">${day.getDate()}</span>${list.slice(0, 3).map(p => `<span class="mo-ev ${PRIO[p.priority].cls}">${p.start} ${esc(p.name.split('–')[0].trim())}</span>`).join('')}${list.length > 3 ? `<span class="mo-more">+${list.length - 3} lịch khác</span>` : ''}</div>`;
+    return `<div class="mo-cell ${day.getMonth() !== d.getMonth() ? 'other' : ''} ${sameDay(day, new Date()) ? 'today' : ''}" data-day="${isoDate(day)}"><span class="mo-num">${day.getDate()}</span>${list.slice(0, 3).map(p => `<span class="mo-ev ${PRIO[p.priority].cls}">${p.start} ${esc(p.name.split('–')[0].trim())}</span>`).join('')}${list.length > 3 ? `<span class="mo-more">+${list.length - 3} more</span>` : ''}</div>`;
   }).join('')}</div>`;
 }
 const PROG_COLS = [
-  { key: 'name', label: 'Chương trình', render: p => `<b>${esc(p.name)}</b><span class="cell-sub">${p.id}${p.note ? ' · ' + esc(p.note) : ''}</span>` },
-  { key: 'courseId', label: 'Sân / Khu vực', render: p => `${esc(courseName(p.courseId))}<span class="cell-sub">${programSites(p).map(s => get(s).name).join(', ')}</span>` },
-  { key: 'holes', label: 'Hố', sortVal: p => p.holeIds.length, render: p => p.holeIds.length > 4 ? `${get(p.holeIds[0]).no}–${get(p.holeIds[p.holeIds.length - 1]).no} <span class="muted">(${p.holeIds.length})</span>` : p.holeIds.map(h => get(h).no).join(', ') },
-  { key: 'areas', label: 'Khu tưới', sort: false, render: p => p.areaTypes.map(t => AREA[t].name).join(', ') },
-  { key: 'st', label: 'Trạm', cls: 'num', sortVal: p => programStations(p).length, render: p => programStations(p).length },
-  { key: 'start', label: 'Bắt đầu', sortVal: p => hmToMin(p.start), render: p => `<b>${p.start}</b><span class="cell-sub">${p.days.length === 7 ? 'Hằng ngày' : p.days.map(d => DOW[d]).join(' ')}</span>` },
-  { key: 'duration', label: 'Thời lượng', cls: 'num', sortVal: p => programLen(p), render: p => `${durText(programLen(p))}<span class="cell-sub">${p.duration} phút/trạm</span>` },
-  { key: 'vol', label: 'Lượng nước', cls: 'num', sortVal: programVolume, render: p => `${fmt(programVolume(p), 1)} m³` },
-  { key: 'priority', label: 'Ưu tiên', sortVal: p => ['high', 'mid', 'low'].indexOf(p.priority), render: p => prioHTML(p.priority) },
-  { key: 'status', label: 'Trạng thái', sortVal: p => progStatus(p).key, render: p => { const s = progStatus(p), pr = progProgress(p); return b(s.cls, s.label) + (pr ? `<div class="progress" style="margin-top:6px"><span style="width:${pr.pct}%"></span></div>` : ''); } },
-  { key: 'act', label: '', sort: false, render: p => `<div class="row-actions">${p.state.running ? `<button class="icon-btn sm" data-action="prog-stop" data-id="${p.id}" data-tip="Dừng">${icon('stop')}</button>` : `<button class="icon-btn sm" data-action="prog-run" data-id="${p.id}" data-tip="Chạy ngay" ${p.enabled ? '' : 'disabled'}>${icon('play')}</button>`}<button class="icon-btn sm" data-action="prog-edit" data-id="${p.id}" data-tip="Chỉnh sửa">${icon('edit')}</button><button class="icon-btn sm" data-action="open-program" data-id="${p.id}" data-tip="Chi tiết">${icon('info')}</button></div>` }
+  { key: 'name', label: 'Program', render: p => `<b>${esc(p.name)}</b><span class="cell-sub">${p.id}${p.note ? ' · ' + esc(p.note) : ''}</span>` },
+  { key: 'courseId', label: 'Course / Area', render: p => `${esc(courseName(p.courseId))}<span class="cell-sub">${programSites(p).map(s => get(s).name).join(', ')}</span>` },
+  { key: 'holes', label: 'Holes', sortVal: p => p.holeIds.length, render: p => p.holeIds.length > 4 ? `${get(p.holeIds[0]).no}–${get(p.holeIds[p.holeIds.length - 1]).no} <span class="muted">(${p.holeIds.length})</span>` : p.holeIds.map(h => get(h).no).join(', ') },
+  { key: 'areas', label: 'Irrigation Zone', sort: false, render: p => p.areaTypes.map(t => AREA[t].name).join(', ') },
+  { key: 'st', label: 'Stations', cls: 'num', sortVal: p => programStations(p).length, render: p => programStations(p).length },
+  { key: 'start', label: 'Start Time', sortVal: p => hmToMin(p.start), render: p => `<b>${p.start}</b><span class="cell-sub">${p.days.length === 7 ? 'Daily' : p.days.map(d => DOW[d]).join(' ')}</span>` },
+  { key: 'duration', label: 'Duration', cls: 'num', sortVal: p => programLen(p), render: p => `${durText(programLen(p))}<span class="cell-sub">${p.duration} min/station</span>` },
+  { key: 'vol', label: 'Water Volume', cls: 'num', sortVal: programVolume, render: p => `${fmt(programVolume(p), 1)} m³` },
+  { key: 'priority', label: 'Priority', sortVal: p => ['high', 'mid', 'low'].indexOf(p.priority), render: p => prioHTML(p.priority) },
+  { key: 'status', label: 'Status', sortVal: p => progStatus(p).key, render: p => { const s = progStatus(p), pr = progProgress(p); return b(s.cls, s.label) + (pr ? `<div class="progress" style="margin-top:6px"><span style="width:${pr.pct}%"></span></div>` : ''); } },
+  { key: 'act', label: '', sort: false, render: p => `<div class="row-actions">${p.state.running ? `<button class="icon-btn sm" data-action="prog-stop" data-id="${p.id}" data-tip="Stop">${icon('stop')}</button>` : `<button class="icon-btn sm" data-action="prog-run" data-id="${p.id}" data-tip="Run Now" ${p.enabled ? '' : 'disabled'}>${icon('play')}</button>`}<button class="icon-btn sm" data-action="prog-edit" data-id="${p.id}" data-tip="Edit">${icon('edit')}</button><button class="icon-btn sm" data-action="open-program" data-id="${p.id}" data-tip="Details">${icon('info')}</button></div>` }
 ];
 function progFiltered() {
   const f = state.sched.filter;
@@ -2228,20 +2228,20 @@ function progFiltered() {
 }
 function progToolbarHTML() {
   const p = state.sched.selected && get(state.sched.selected), dis = p ? '' : 'disabled';
-  return `<span class="sel-name">${p ? `Đã chọn: <b>${esc(p.name.split('–')[0].trim())}</b>` : 'Chọn một chương trình để thao tác'}</span>
-    <button class="btn btn-sm" data-action="prog-edit" data-id="${p ? p.id : ''}" ${dis}>${icon('edit')}Chỉnh sửa</button>
-    <button class="btn btn-sm" data-action="prog-copy" data-id="${p ? p.id : ''}" ${dis}>${icon('copy')}Sao chép</button>
-    <button class="btn btn-sm" data-action="prog-enable" data-id="${p ? p.id : ''}" ${p && !p.enabled ? '' : 'disabled'}>${icon('check')}Kích hoạt</button>
-    <button class="btn btn-sm" data-action="prog-pause" data-id="${p ? p.id : ''}" ${p && p.enabled ? '' : 'disabled'}>${icon('pause')}Tạm dừng</button>
-    ${p && p.state.running ? `<button class="btn btn-sm btn-danger" data-action="prog-stop" data-id="${p.id}">${icon('stop')}Dừng</button>` : `<button class="btn btn-sm btn-water" data-action="prog-run" data-id="${p ? p.id : ''}" ${p && p.enabled ? '' : 'disabled'}>${icon('play')}Chạy ngay</button>`}
-    <button class="btn btn-sm btn-ghost" data-action="prog-delete" data-id="${p ? p.id : ''}" ${dis}>${icon('trash')}Xóa</button>`;
+  return `<span class="sel-name">${p ? `Selected: <b>${esc(p.name.split('–')[0].trim())}</b>` : 'Select a program to act on'}</span>
+    <button class="btn btn-sm" data-action="prog-edit" data-id="${p ? p.id : ''}" ${dis}>${icon('edit')}Edit</button>
+    <button class="btn btn-sm" data-action="prog-copy" data-id="${p ? p.id : ''}" ${dis}>${icon('copy')}Duplicate</button>
+    <button class="btn btn-sm" data-action="prog-enable" data-id="${p ? p.id : ''}" ${p && !p.enabled ? '' : 'disabled'}>${icon('check')}Activate</button>
+    <button class="btn btn-sm" data-action="prog-pause" data-id="${p ? p.id : ''}" ${p && p.enabled ? '' : 'disabled'}>${icon('pause')}Pause</button>
+    ${p && p.state.running ? `<button class="btn btn-sm btn-danger" data-action="prog-stop" data-id="${p.id}">${icon('stop')}Stop</button>` : `<button class="btn btn-sm btn-water" data-action="prog-run" data-id="${p ? p.id : ''}" ${p && p.enabled ? '' : 'disabled'}>${icon('play')}Run Now</button>`}
+    <button class="btn btn-sm btn-ghost" data-action="prog-delete" data-id="${p ? p.id : ''}" ${dis}>${icon('trash')}Delete</button>`;
 }
 function renderProgTable() {
   const w = $('#prog-table'); if (!w) return;
-  keepScroll(w, () => { w.innerHTML = tableHTML('prog-tbl', PROG_COLS, progFiltered(), state.sched.sort, { rowCls: p => state.sched.selected === p.id ? 'sel' : '', empty: 'Không có chương trình phù hợp. Nhấn “Tạo lịch tưới” để thêm mới.' }); });
+  keepScroll(w, () => { w.innerHTML = tableHTML('prog-tbl', PROG_COLS, progFiltered(), state.sched.sort, { rowCls: p => state.sched.selected === p.id ? 'sel' : '', empty: 'No matching programs. Click "Create Irrigation Program" to add one.' }); });
   $('#prog-actions').innerHTML = progToolbarHTML();
   const all = schedPrograms();
-  $('#prog-foot').innerHTML = `<span>${progFiltered().length} / ${all.length} chương trình</span><span>${all.filter(p => p.enabled).length} đang kích hoạt · ${all.filter(p => p.state.running).length} đang chạy · Tổng nước/ngày ≈ ${fmt(sum(all.filter(p => p.enabled && progRunsOn(p, new Date())).map(programVolume)), 0)} m³</span>`;
+  $('#prog-foot').innerHTML = `<span>${progFiltered().length} / ${all.length} programs</span><span>${all.filter(p => p.enabled).length} active · ${all.filter(p => p.state.running).length} running · Total water/day ≈ ${fmt(sum(all.filter(p => p.enabled && progRunsOn(p, new Date())).map(programVolume)), 0)} m³</span>`;
 }
 function renderCalendar() {
   const c = $('#sched-cal'); if (!c) return;
@@ -2259,23 +2259,23 @@ PAGES.schedule = {
   render() {
     const el = $('#page-schedule');
     const f = state.sched.filter;
-    const chips = [['all', 'Tất cả'], ['run', 'Đang chạy'], ['up', 'Chờ đến giờ'], ['done', 'Hoàn thành'], ['paused', 'Tạm dừng']];
-    el.innerHTML = pageHead('Lịch tưới', `${schedPrograms().length} chương trình tưới · ${esc(ctxLabel())}`, `<button class="btn btn-primary" data-action="new-program">${icon('plus')}Tạo lịch tưới</button>`) +
+    const chips = [['all', 'All'], ['run', 'Running'], ['up', 'Scheduled'], ['done', 'Completed'], ['paused', 'Paused']];
+    el.innerHTML = pageHead('Irrigation Schedule', `${schedPrograms().length} irrigation programs · ${esc(ctxLabel())}`, `<button class="btn btn-primary" data-action="new-program">${icon('plus')}Create Irrigation Program</button>`) +
       `<div class="panel">
         <div class="sched-toolbar">
-          <div class="seg" id="sched-view">${[['day', 'Ngày'], ['week', 'Tuần'], ['month', 'Tháng']].map(([k, l]) => `<button data-view="${k}" aria-pressed="${state.sched.view === k}">${l}</button>`).join('')}</div>
-          <div class="btn-row"><button class="icon-btn sm" id="sched-prev" aria-label="Trước">${icon('chev-left')}</button><button class="btn btn-sm" id="sched-today">Hôm nay</button><button class="icon-btn sm" id="sched-next" aria-label="Sau">${icon('chev-right')}</button></div>
+          <div class="seg" id="sched-view">${[['day', 'Day'], ['week', 'Week'], ['month', 'Month']].map(([k, l]) => `<button data-view="${k}" aria-pressed="${state.sched.view === k}">${l}</button>`).join('')}</div>
+          <div class="btn-row"><button class="icon-btn sm" id="sched-prev" aria-label="Previous">${icon('chev-left')}</button><button class="btn btn-sm" id="sched-today">Today</button><button class="icon-btn sm" id="sched-next" aria-label="Next">${icon('chev-right')}</button></div>
           <span class="date-label" id="sched-date"></span>
           <span class="spacer" style="flex:1"></span>
-          <div class="legend"><span><i style="background:var(--water)"></i>Đang chạy</span><span><i style="background:#7FB89A"></i>Hoàn thành</span><span><i style="background:var(--pine-3)"></i>Chờ đến giờ</span><span><i style="background:#C9D3CE"></i>Tạm dừng</span></div>
+          <div class="legend"><span><i style="background:var(--water)"></i>Running</span><span><i style="background:#7FB89A"></i>Completed</span><span><i style="background:var(--pine-3)"></i>Scheduled</span><span><i style="background:#C9D3CE"></i>Paused</span></div>
         </div>
         <div id="sched-cal"></div>
       </div>
       <div class="panel" style="margin-top:16px">
-        <div class="panel-head"><h3>Chương trình tưới</h3><div class="prog-actions" id="prog-actions"></div></div>
+        <div class="panel-head"><h3>Irrigation Programs</h3><div class="prog-actions" id="prog-actions"></div></div>
         <div class="filters" id="prog-filters">
-          <div class="field"><label for="pf-course">Sân golf</label><select class="select" id="pf-course"><option value="all">Tất cả sân</option>${DB.courses.map(c => `<option value="${c.id}" ${f.course === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
-          <div class="field"><span class="label" style="font-size:11.5px;color:var(--muted)">Trạng thái</span><div class="chips" id="pf-status">${chips.map(([k, l]) => `<button class="chip" data-st="${k}" aria-pressed="${f.status === k}">${l}</button>`).join('')}</div></div>
+          <div class="field"><label for="pf-course">Golf Course</label><select class="select" id="pf-course"><option value="all">All Courses</option>${DB.courses.map(c => `<option value="${c.id}" ${f.course === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
+          <div class="field"><span class="label" style="font-size:11.5px;color:var(--muted)">Status</span><div class="chips" id="pf-status">${chips.map(([k, l]) => `<button class="chip" data-st="${k}" aria-pressed="${f.status === k}">${l}</button>`).join('')}</div></div>
         </div>
         <div class="table-wrap" id="prog-table"></div>
         <div class="table-foot" id="prog-foot"></div>
@@ -2309,31 +2309,31 @@ PAGES.schedule = {
   }
 };
 
-/* ---------- Biểu mẫu chương trình tưới ---------- */
+/* ---------- Irrigation Program Form ---------- */
 function programForm(src, mode) {
   const edit = mode === 'edit';
   const p = src ? JSON.parse(JSON.stringify({ ...src, state: undefined })) : { name: '', courseId: state.ctx.courseId !== 'all' ? state.ctx.courseId : DB.courses[0].id, holeIds: [], areaTypes: ['green'], start: '05:00', duration: 12, days: [0, 1, 2, 3, 4, 5, 6], priority: 'mid', enabled: true, concurrency: 8, note: '' };
   if (!src) p.holeIds = DB.holes.filter(h => h.courseId === p.courseId).map(h => h.id);
-  if (mode === 'copy') { p.name = src.name + ' (bản sao)'; p.enabled = false; }
-  const holesGrid = cid => DB.sites.filter(s => s.courseId === cid).map(s => `<span class="grp">${esc(s.name)}</span>${DB.holes.filter(h => h.siteId === s.id).map(h => `<label class="check"><input type="checkbox" name="pf-hole" value="${h.id}" ${p.holeIds.includes(h.id) ? 'checked' : ''}>${esc(h.name)}</label>`).join('')}`).join('') || '<span class="muted">Sân chưa có hố</span>';
+  if (mode === 'copy') { p.name = src.name + ' (copy)'; p.enabled = false; }
+  const holesGrid = cid => DB.sites.filter(s => s.courseId === cid).map(s => `<span class="grp">${esc(s.name)}</span>${DB.holes.filter(h => h.siteId === s.id).map(h => `<label class="check"><input type="checkbox" name="pf-hole" value="${h.id}" ${p.holeIds.includes(h.id) ? 'checked' : ''}>${esc(h.name)}</label>`).join('')}`).join('') || '<span class="muted">Course has no holes yet</span>';
   const field = (k, label, html, full, hint) => `<div class="field ${full ? 'full' : ''}" data-f="${k}"><label ${k.startsWith('x') ? '' : `for="pf-${k}"`}>${label}</label>${html}${hint ? `<span class="hint">${hint}</span>` : ''}<div class="field-error"></div></div>`;
   openModal({
-    title: edit ? `Chỉnh sửa lịch tưới – ${src.id}` : mode === 'copy' ? `Sao chép lịch tưới ${src.id}` : 'Tạo lịch tưới mới', size: 'lg',
+    title: edit ? `Edit Irrigation Program – ${src.id}` : mode === 'copy' ? `Duplicate Irrigation Program ${src.id}` : 'Create New Irrigation Program', size: 'lg',
     body: `<div class="form-grid">
-      ${field('name', 'Tên chương trình', `<input class="input" id="pf-name" value="${esc(p.name)}" placeholder="VD: Chương trình L – Green buổi tối">`, true)}
-      ${field('course', 'Sân golf', `<select class="select" id="pf-course">${DB.courses.map(c => `<option value="${c.id}" ${c.id === p.courseId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>`)}
-      ${field('priority', 'Mức ưu tiên', `<select class="select" id="pf-priority">${Object.entries(PRIO).map(([k, v]) => `<option value="${k}" ${k === p.priority ? 'selected' : ''}>${v.label}</option>`).join('')}</select>`)}
-      ${field('xholes', 'Hố golf', `<div class="check-grid" id="pf-holes">${holesGrid(p.courseId)}</div>`, true, '<button class="link" type="button" id="pf-all">Chọn tất cả</button> · <button class="link" type="button" id="pf-none">Bỏ chọn</button>')}
-      ${field('xareas', 'Khu tưới', `<div class="chips" id="pf-areas">${AREA_KEYS.map(t => `<button type="button" class="chip" data-area="${t}" aria-pressed="${p.areaTypes.includes(t)}">${AREA[t].name} <span class="n">${AREA[t].vi}</span></button>`).join('')}</div>`, true)}
-      ${field('start', 'Giờ bắt đầu', `<input class="input" type="time" id="pf-start" value="${p.start}">`)}
-      ${field('duration', 'Thời gian tưới mỗi trạm (phút)', `<input class="input" type="number" id="pf-duration" min="1" max="60" value="${p.duration}">`)}
-      ${field('concurrency', 'Số trạm chạy đồng thời', `<input class="input" type="number" id="pf-concurrency" min="1" max="30" value="${p.concurrency}">`, false, 'Giới hạn theo công suất trạm bơm')}
-      ${field('xdays', 'Ngày chạy', `<div class="day-toggles" id="pf-days">${DOW.map((d, i) => `<button type="button" data-day="${i}" aria-pressed="${p.days.includes(i)}">${d}</button>`).join('')}</div>`)}
-      ${field('note', 'Ghi chú', `<input class="input" id="pf-note" value="${esc(p.note)}" placeholder="Không bắt buộc">`, true)}
-      <div class="field full"><label class="switch"><input type="checkbox" id="pf-enabled" ${p.enabled ? 'checked' : ''}><span class="track"></span>Kích hoạt chương trình sau khi lưu</label></div>
+      ${field('name', 'Program Name', `<input class="input" id="pf-name" value="${esc(p.name)}" placeholder="e.g. Program L – Evening Green">`, true)}
+      ${field('course', 'Golf Course', `<select class="select" id="pf-course">${DB.courses.map(c => `<option value="${c.id}" ${c.id === p.courseId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>`)}
+      ${field('priority', 'Priority Level', `<select class="select" id="pf-priority">${Object.entries(PRIO).map(([k, v]) => `<option value="${k}" ${k === p.priority ? 'selected' : ''}>${v.label}</option>`).join('')}</select>`)}
+      ${field('xholes', 'Golf Holes', `<div class="check-grid" id="pf-holes">${holesGrid(p.courseId)}</div>`, true, '<button class="link" type="button" id="pf-all">Select All</button> · <button class="link" type="button" id="pf-none">Deselect All</button>')}
+      ${field('xareas', 'Irrigation Zone', `<div class="chips" id="pf-areas">${AREA_KEYS.map(t => `<button type="button" class="chip" data-area="${t}" aria-pressed="${p.areaTypes.includes(t)}">${AREA[t].name} <span class="n">${AREA[t].desc}</span></button>`).join('')}</div>`, true)}
+      ${field('start', 'Start Time', `<input class="input" type="time" id="pf-start" value="${p.start}">`)}
+      ${field('duration', 'Duration per Station (minutes)', `<input class="input" type="number" id="pf-duration" min="1" max="60" value="${p.duration}">`)}
+      ${field('concurrency', 'Concurrent Stations', `<input class="input" type="number" id="pf-concurrency" min="1" max="30" value="${p.concurrency}">`, false, 'Limited by pump station capacity')}
+      ${field('xdays', 'Run Days', `<div class="day-toggles" id="pf-days">${DOW.map((d, i) => `<button type="button" data-day="${i}" aria-pressed="${p.days.includes(i)}">${d}</button>`).join('')}</div>`)}
+      ${field('note', 'Note', `<input class="input" id="pf-note" value="${esc(p.note)}" placeholder="Optional">`, true)}
+      <div class="field full"><label class="switch"><input type="checkbox" id="pf-enabled" ${p.enabled ? 'checked' : ''}><span class="track"></span>Activate program after saving</label></div>
       <div class="full note-box" id="pf-sum"></div>
     </div>`,
-    footer: `<button class="btn" data-close>Hủy</button><button class="btn btn-primary" id="pf-ok">${icon('check')}${edit ? 'Lưu thay đổi' : 'Tạo lịch tưới'}</button>`,
+    footer: `<button class="btn" data-close>Cancel</button><button class="btn btn-primary" id="pf-ok">${icon('check')}${edit ? 'Save Changes' : 'Create Program'}</button>`,
     onMount: box => {
       const read = () => ({
         name: $('#pf-name', box).value.trim(), courseId: $('#pf-course', box).value, priority: $('#pf-priority', box).value,
@@ -2347,7 +2347,7 @@ function programForm(src, mode) {
         const len = n && v.duration > 0 && v.concurrency > 0 ? programLen(tmp) : 0;
         const peak = sum(programStations(tmp).slice(0, v.concurrency).map(id => get(id).flow));
         const overlap = v.start && len ? realPrograms().filter(o => (!edit || o.id !== src.id) && o.enabled && o.courseId === v.courseId && o.days.some(d => v.days.includes(d)) && hmToMin(o.start) < hmToMin(v.start) + len && hmToMin(v.start) < hmToMin(o.start) + programLen(o)) : [];
-        $('#pf-sum', box).innerHTML = `${icon('info')}<span><b>${n} trạm</b> · tổng thời lượng <b>${durText(len)}</b>${v.start && len ? ` (${v.start} – ${minToHM(hmToMin(v.start) + len)})` : ''} · nước dự kiến <b>${fmt(n ? programVolume(tmp) : 0, 1)} m³</b> · lưu lượng đỉnh ≈ <b>${fmt(peak)} GPM</b>${peak > SETTINGS.flowMax ? ' <span class="ping-bad">vượt giới hạn trạm bơm</span>' : ''}${overlap.length ? `<br><span class="ping-mid">⚠ Trùng thời gian với ${overlap.map(o => o.id).join(', ')} trên cùng sân</span>` : ''}</span>`;
+        $('#pf-sum', box).innerHTML = `${icon('info')}<span><b>${n} stations</b> · total duration <b>${durText(len)}</b>${v.start && len ? ` (${v.start} – ${minToHM(hmToMin(v.start) + len)})` : ''} · estimated water <b>${fmt(n ? programVolume(tmp) : 0, 1)} m³</b> · peak flow ≈ <b>${fmt(peak)} GPM</b>${peak > SETTINGS.flowMax ? ' <span class="ping-bad">exceeds pump station limit</span>' : ''}${overlap.length ? `<br><span class="ping-mid">⚠ Overlaps with ${overlap.map(o => o.id).join(', ')} on the same course</span>` : ''}</span>`;
       };
       const bindHoles = () => $$('input[name="pf-hole"]', box).forEach(i => i.onchange = () => { box.querySelector('[data-f="xholes"]').classList.remove('invalid'); upd(); });
       $('#pf-course', box).onchange = e => { p.holeIds = DB.holes.filter(h => h.courseId === e.target.value).map(h => h.id); $('#pf-holes', box).innerHTML = holesGrid(e.target.value); bindHoles(); upd(); };
@@ -2360,18 +2360,18 @@ function programForm(src, mode) {
       upd();
       $('#pf-ok', box).onclick = () => {
         const v = read(), errs = {};
-        if (!v.name) errs.name = 'Vui lòng nhập tên chương trình';
-        else if (v.name.length > 80) errs.name = 'Tên tối đa 80 ký tự';
-        else if (realPrograms().some(o => o.name.toLowerCase() === v.name.toLowerCase() && (!edit || o.id !== src.id))) errs.name = 'Tên chương trình đã tồn tại';
-        if (!v.holeIds.length) errs.xholes = 'Chọn ít nhất một hố golf';
-        if (!v.areaTypes.length) errs.xareas = 'Chọn ít nhất một khu tưới';
-        if (!/^\d{2}:\d{2}$/.test(v.start)) errs.start = 'Giờ bắt đầu không hợp lệ';
-        if (!(Number.isInteger(v.duration) && v.duration >= 1 && v.duration <= 60)) errs.duration = 'Từ 1 đến 60 phút';
-        if (!(Number.isInteger(v.concurrency) && v.concurrency >= 1 && v.concurrency <= 30)) errs.concurrency = 'Từ 1 đến 30 trạm';
-        if (!v.days.length) errs.xdays = 'Chọn ít nhất một ngày';
-        if (!errs.xholes && !errs.xareas && !programStations({ ...v }).length) errs.xareas = 'Không có trạm tưới nào phù hợp với lựa chọn';
+        if (!v.name) errs.name = 'Please enter a program name';
+        else if (v.name.length > 80) errs.name = 'Name must be at most 80 characters';
+        else if (realPrograms().some(o => o.name.toLowerCase() === v.name.toLowerCase() && (!edit || o.id !== src.id))) errs.name = 'Program name already exists';
+        if (!v.holeIds.length) errs.xholes = 'Select at least one golf hole';
+        if (!v.areaTypes.length) errs.xareas = 'Select at least one irrigation zone';
+        if (!/^\d{2}:\d{2}$/.test(v.start)) errs.start = 'Invalid start time';
+        if (!(Number.isInteger(v.duration) && v.duration >= 1 && v.duration <= 60)) errs.duration = 'From 1 to 60 minutes';
+        if (!(Number.isInteger(v.concurrency) && v.concurrency >= 1 && v.concurrency <= 30)) errs.concurrency = 'From 1 to 30 stations';
+        if (!v.days.length) errs.xdays = 'Select at least one day';
+        if (!errs.xholes && !errs.xareas && !programStations({ ...v }).length) errs.xareas = 'No irrigation stations match this selection';
         $$('.field[data-f]', box).forEach(fd => { const k = fd.dataset.f; fd.classList.toggle('invalid', !!errs[k]); $('.field-error', fd).textContent = errs[k] || ''; });
-        if (Object.keys(errs).length) { const f1 = $('.field.invalid', box); if (f1) f1.scrollIntoView({ block: 'nearest' }); toast('Vui lòng kiểm tra lại thông tin lịch tưới', 'error'); return; }
+        if (Object.keys(errs).length) { const f1 = $('.field.invalid', box); if (f1) f1.scrollIntoView({ block: 'nearest' }); toast('Please review the irrigation program details', 'error'); return; }
         let target;
         if (edit) {
           target = src;
@@ -2379,11 +2379,11 @@ function programForm(src, mode) {
           Object.assign(src, v);
         } else {
           let n = DB.programs.length + 1; while (get('PRG-' + pad(n))) n++;
-          target = { id: 'PRG-' + pad(n), ...v, lastRun: null, lastResult: 'Chưa chạy', state: { running: false, queue: [] } };
+          target = { id: 'PRG-' + pad(n), ...v, lastRun: null, lastResult: 'Not run yet', state: { running: false, queue: [] } };
           DB.programs.push(target); reindex();
         }
         closeModal();
-        toast(edit ? `Đã lưu ${target.name}` : `Đã tạo lịch tưới ${target.name} (${target.id})`, 'success');
+        toast(edit ? `Saved ${target.name}` : `Created irrigation program ${target.name} (${target.id})`, 'success');
         state.sched.selected = target.id;
         if (state.page === 'schedule') PAGES.schedule.render(); else go('schedule');
         if (state.drawer) liveDrawer(true);
@@ -2398,117 +2398,117 @@ Object.assign(ACTIONS, {
   'prog-run': async el => {
     const p = get(el.dataset.id); if (!p) return;
     const n = programStations(p).filter(id => usable(get(id))).length;
-    const ok = await confirmDialog({ title: 'Chạy lịch tưới ngay', message: `Bắt đầu <b>${esc(p.name)}</b> ngay bây giờ với ${n} trạm, thời lượng khoảng ${durText(programLen(p))}?`, confirmText: 'Chạy ngay' });
+    const ok = await confirmDialog({ title: 'Run Program Now', message: `Start <b>${esc(p.name)}</b> now with ${n} stations, taking about ${durText(programLen(p))}?`, confirmText: 'Run Now' });
     if (!ok) return;
-    if (!startProgram(p)) { toast('Không có trạm khả dụng để chạy chương trình này', 'error'); return; }
-    toast(`Đã bắt đầu ${p.name}`, 'success');
+    if (!startProgram(p)) { toast('No available stations to run this program', 'error'); return; }
+    toast(`Started ${p.name}`, 'success');
     simPumps(); refreshView(); updateLive();
   },
   'prog-stop': async el => {
     const p = get(el.dataset.id); if (!p) return;
-    const ok = await confirmDialog({ title: 'Dừng lịch tưới', message: `Dừng <b>${esc(p.name)}</b>? Tất cả trạm đang tưới và đang chờ của chương trình sẽ dừng ngay.`, confirmText: 'Dừng lịch', danger: true });
+    const ok = await confirmDialog({ title: 'Stop Irrigation Program', message: `Stop <b>${esc(p.name)}</b>? All irrigating and waiting stations for this program will stop immediately.`, confirmText: 'Stop Program', danger: true });
     if (!ok) return;
-    stopProgram(p); p.lastRun = Date.now(); p.lastResult = 'Dừng thủ công';
-    toast(`Đã dừng ${p.name}`, 'warning');
+    stopProgram(p); p.lastRun = Date.now(); p.lastResult = 'Stopped manually';
+    toast(`Stopped ${p.name}`, 'warning');
     simPumps(); refreshView(); updateLive();
   },
   'prog-toggle': el => ACTIONS[get(el.dataset.id).enabled ? 'prog-pause' : 'prog-enable'](el),
-  'prog-enable': el => { const p = get(el.dataset.id); p.enabled = true; toast(`Đã kích hoạt ${p.name}`, 'success'); refreshView(); },
+  'prog-enable': el => { const p = get(el.dataset.id); p.enabled = true; toast(`Activated ${p.name}`, 'success'); refreshView(); },
   'prog-pause': async el => {
     const p = get(el.dataset.id);
     if (p.state.running) {
-      const ok = await confirmDialog({ title: 'Tạm dừng lịch tưới', message: `<b>${esc(p.name)}</b> đang chạy. Tạm dừng sẽ dừng ngay tất cả trạm của chương trình. Tiếp tục?`, confirmText: 'Tạm dừng', danger: true });
+      const ok = await confirmDialog({ title: 'Pause Irrigation Program', message: `<b>${esc(p.name)}</b> is currently running. Pausing will immediately stop all stations in this program. Continue?`, confirmText: 'Pause', danger: true });
       if (!ok) return;
       stopProgram(p); simPumps();
     }
-    p.enabled = false; toast(`Đã tạm dừng ${p.name}`, 'warning'); refreshView();
+    p.enabled = false; toast(`Paused ${p.name}`, 'warning'); refreshView();
   },
   'prog-delete': async el => {
     const p = get(el.dataset.id); if (!p) return;
-    const ok = await confirmDialog({ title: 'Xóa lịch tưới', message: `Xóa vĩnh viễn <b>${esc(p.name)}</b> (${p.id})?${p.state.running ? ' Chương trình đang chạy sẽ bị dừng.' : ''} Thao tác này không thể hoàn tác.`, confirmText: 'Xóa', danger: true });
+    const ok = await confirmDialog({ title: 'Delete Irrigation Program', message: `Permanently delete <b>${esc(p.name)}</b> (${p.id})?${p.state.running ? ' The running program will be stopped.' : ''} This action cannot be undone.`, confirmText: 'Delete', danger: true });
     if (!ok) return;
     if (p.state.running) stopProgram(p);
     DB.programs = DB.programs.filter(x => x !== p); reindex();
     if (state.sched.selected === p.id) state.sched.selected = null;
     if (state.drawer && state.drawer.id === p.id) closeDrawer();
-    toast(`Đã xóa ${p.name}`, 'warning');
+    toast(`Deleted ${p.name}`, 'warning');
     simPumps(); refreshView();
   }
 });
 
-/* ================= 17. Lưu lượng & Máy bơm ================= */
+/* ================= 17. Flow & Pumps ================= */
 const GAUGE_LEN = 216.77;
 const pumpState = p => p.status === 'fault' ? 'fault' : p.status !== 'running' ? 'stopped' : (p.highFlag || p.temp > 70) ? 'warn' : 'running';
 const pumpSig = p => `${p.status}|${p.mode}|${pumpState(p)}|${p.setSpeed}`;
 function pumpBadge(p) {
   const k = pumpState(p);
-  return k === 'warn' ? b('warn', p.highFlag ? 'Áp suất cao' : 'Nhiệt độ cao') : k === 'running' ? b('run', 'Đang chạy') : k === 'fault' ? b('err', 'Sự cố') : b('idle', 'Đã dừng');
+  return k === 'warn' ? b('warn', p.highFlag ? 'High Pressure' : 'High Temperature') : k === 'running' ? b('run', 'Running') : k === 'fault' ? b('err', 'Fault') : b('idle', 'Stopped');
 }
 function pumpCardHTML(p) {
   const k = pumpState(p), frac = clamp(p.flow / p.rated, 0, 1), man = p.mode === 'manual';
   return `<div class="pump-card ${k}" data-pump="${p.id}">
     <div class="pc-head"><div><h3>${esc(p.name)}</h3><p>${p.id} · ${esc(p.type)}</p></div>${pumpBadge(p)}</div>
     <div class="pc-mid">
-      <div class="gauge" data-tip="Lưu lượng so với định mức ${fmt(p.rated)} GPM"><svg viewBox="0 0 116 116" aria-hidden="true">
+      <div class="gauge" data-tip="Flow relative to rated ${fmt(p.rated)} GPM"><svg viewBox="0 0 116 116" aria-hidden="true">
         <circle class="g-track" cx="58" cy="58" r="46" fill="none" stroke-width="10" stroke-linecap="round" transform="rotate(135 58 58)" stroke-dasharray="${GAUGE_LEN} 999"/>
         <circle class="g-val" data-k="gauge" cx="58" cy="58" r="46" fill="none" stroke-width="10" stroke-linecap="round" transform="rotate(135 58 58)" stroke-dasharray="${(frac * GAUGE_LEN).toFixed(1)} 999"/></svg>
         <div class="gauge-num"><strong data-k="flow">${fmt(p.flow)}</strong><span>GPM · <b data-k="pct">${fmt(frac * 100)}</b>%</span></div></div>
       <dl class="pc-metrics">
-        <div><dt>Mục tiêu</dt><dd data-k="target">${fmt(p.target)} GPM</dd></div>
-        <div><dt>Áp suất</dt><dd data-k="pressure">${p.status === 'running' ? fmt(p.pressure, 1) + ' PSI' : '—'}</dd></div>
-        <div><dt>Tốc độ</dt><dd data-k="speed">${p.speed}%</dd></div>
-        <div><dt>Công suất</dt><dd data-k="power">${fmt(p.power, 1)} kW</dd></div>
-        <div><dt>Nhiệt độ</dt><dd data-k="temp">${fmt(p.temp, 1)} °C</dd></div>
-        <div><dt>Giờ chạy</dt><dd data-k="runtime">${hoursText(p.runtime)}</dd></div>
+        <div><dt>Target</dt><dd data-k="target">${fmt(p.target)} GPM</dd></div>
+        <div><dt>Pressure</dt><dd data-k="pressure">${p.status === 'running' ? fmt(p.pressure, 1) + ' PSI' : '—'}</dd></div>
+        <div><dt>Speed</dt><dd data-k="speed">${p.speed}%</dd></div>
+        <div><dt>Power</dt><dd data-k="power">${fmt(p.power, 1)} kW</dd></div>
+        <div><dt>Temperature</dt><dd data-k="temp">${fmt(p.temp, 1)} °C</dd></div>
+        <div><dt>Runtime</dt><dd data-k="runtime">${hoursText(p.runtime)}</dd></div>
       </dl>
     </div>
-    ${k === 'warn' ? `<div class="pc-warn">${icon('alert')}${p.highFlag ? `Áp suất vượt ngưỡng ${SETTINGS.pressureMax} PSI – kiểm tra van xả áp` : 'Nhiệt độ động cơ cao'}</div>` : ''}
-    <div class="pc-extra"><span>Định mức <b>${fmt(p.rated)} GPM</b> · <b>${p.kw} kW</b></span><span>Khởi động hôm nay <b>${p.starts}</b></span></div>
+    ${k === 'warn' ? `<div class="pc-warn">${icon('alert')}${p.highFlag ? `Pressure exceeds ${SETTINGS.pressureMax} PSI threshold – check relief valve` : 'High motor temperature'}</div>` : ''}
+    <div class="pc-extra"><span>Rated <b>${fmt(p.rated)} GPM</b> · <b>${p.kw} kW</b></span><span>Starts today <b>${p.starts}</b></span></div>
     <div class="pc-controls">
-      <div class="row"><div class="seg" role="group" aria-label="Chế độ vận hành">
-        <button data-action="pump-mode" data-id="${p.id}" data-mode="auto" aria-pressed="${!man}">Tự động</button>
-        <button data-action="pump-mode" data-id="${p.id}" data-mode="manual" aria-pressed="${man}">Thủ công</button></div>
-        <div class="speed-ctl" data-tip="${man ? 'Điều chỉnh tốc độ biến tần' : 'Chuyển sang Thủ công để chỉnh tốc độ'}">
-          <button class="icon-btn sm" data-action="pump-speed" data-id="${p.id}" data-d="-5" aria-label="Giảm tốc độ" ${man && p.setSpeed > 30 ? '' : 'disabled'}>${icon('minus')}</button>
+      <div class="row"><div class="seg" role="group" aria-label="Operating mode">
+        <button data-action="pump-mode" data-id="${p.id}" data-mode="auto" aria-pressed="${!man}">Auto</button>
+        <button data-action="pump-mode" data-id="${p.id}" data-mode="manual" aria-pressed="${man}">Manual</button></div>
+        <div class="speed-ctl" data-tip="${man ? 'Adjust VFD speed' : 'Switch to Manual to adjust speed'}">
+          <button class="icon-btn sm" data-action="pump-speed" data-id="${p.id}" data-d="-5" aria-label="Decrease speed" ${man && p.setSpeed > 30 ? '' : 'disabled'}>${icon('minus')}</button>
           <output>${man ? p.setSpeed : p.speed}%</output>
-          <button class="icon-btn sm" data-action="pump-speed" data-id="${p.id}" data-d="5" aria-label="Tăng tốc độ" ${man && p.setSpeed < 100 ? '' : 'disabled'}>${icon('plus')}</button></div></div>
+          <button class="icon-btn sm" data-action="pump-speed" data-id="${p.id}" data-d="5" aria-label="Increase speed" ${man && p.setSpeed < 100 ? '' : 'disabled'}>${icon('plus')}</button></div></div>
       <div class="row">
-        <button class="btn btn-sm btn-water" data-action="pump-start" data-id="${p.id}" ${man && p.status !== 'running' ? '' : 'disabled'} style="flex:1">${icon('play')}Khởi động</button>
-        <button class="btn btn-sm btn-danger" data-action="pump-stop" data-id="${p.id}" ${man && p.status === 'running' ? '' : 'disabled'} style="flex:1">${icon('stop')}Dừng</button></div>
-      ${man ? '' : '<span class="muted" style="font-size:11.5px">Chế độ tự động: máy bơm khởi động/dừng theo nhu cầu lưu lượng</span>'}
+        <button class="btn btn-sm btn-water" data-action="pump-start" data-id="${p.id}" ${man && p.status !== 'running' ? '' : 'disabled'} style="flex:1">${icon('play')}Start</button>
+        <button class="btn btn-sm btn-danger" data-action="pump-stop" data-id="${p.id}" ${man && p.status === 'running' ? '' : 'disabled'} style="flex:1">${icon('stop')}Stop</button></div>
+      ${man ? '' : '<span class="muted" style="font-size:11.5px">Auto mode: pump starts/stops based on flow demand</span>'}
     </div>
   </div>`;
 }
 function pumpSummaryHTML() {
   const f = state.flow, on = DB.pumps.filter(p => p.status === 'running');
   const cell = (l, v, u, s) => `<div><div class="fs-label">${l}</div><div class="fs-value">${v}<small>${u}</small></div><div class="kpi-sub">${s}</div></div>`;
-  return cell('Tổng lưu lượng', fmt(f.current), 'GPM', `${fmt(f.current / SETTINGS.flowMax * 100)}% giới hạn`) + cell('Nhu cầu mục tiêu', fmt(f.target), 'GPM', `${DB.stations.filter(s => s.status === 'running').length} trạm đang tưới`) +
-    cell('Áp suất đường ống', fmt(f.pressure, 1), 'PSI', `Ngưỡng ${SETTINGS.pressureMax} PSI`) + cell('Máy bơm đang chạy', `${on.length}/${DB.pumps.length}`, '', on.map(p => p.id).join(', ') || 'Không có') +
-    cell('Công suất điện', fmt(sum(DB.pumps.map(p => p.power)), 1), 'kW', `≈ ${fmt(sum(DB.pumps.map(p => p.power)) * 1850 / 1000, 0)} nghìn đ/giờ`) + cell('Nước hôm nay', fmt(state.volToday), 'm³', `Mực hồ ${fmt((get('WL-01') || {}).value, 2)} m`);
+  return cell('Total Flow', fmt(f.current), 'GPM', `${fmt(f.current / SETTINGS.flowMax * 100)}% of limit`) + cell('Target Demand', fmt(f.target), 'GPM', `${DB.stations.filter(s => s.status === 'running').length} stations irrigating`) +
+    cell('Pipeline Pressure', fmt(f.pressure, 1), 'PSI', `Threshold ${SETTINGS.pressureMax} PSI`) + cell('Pumps Running', `${on.length}/${DB.pumps.length}`, '', on.map(p => p.id).join(', ') || 'None') +
+    cell('Power Consumption', fmt(sum(DB.pumps.map(p => p.power)), 1), 'kW', `≈ $${fmt(sum(DB.pumps.map(p => p.power)) * 0.12, 1)}/hr`) + cell('Water Today', fmt(state.volToday), 'm³', `Lake level ${fmt((get('WL-01') || {}).value, 2)} m`);
 }
 function drawPumpCharts() {
   const h = state.flowHist.slice(-80);
   const lab = h.map(x => fmtTime(new Date(x.t)));
   chart($('#pp-flow'), { type: 'line', labels: lab, unit: 'GPM', floor: 0, lastDot: true, labelW: 72,
-    series: [{ name: 'Lưu lượng thực tế', data: h.map(x => x.cur), color: COLORS.water, fill: true, width: 2.2 }, { name: 'Lưu lượng mục tiêu', data: h.map(x => x.target), color: COLORS.ink, dash: true, width: 1.4 }],
-    lines: [{ y: SETTINGS.flowMax, color: COLORS.red, label: `Tối đa ${fmt(SETTINGS.flowMax)} GPM` }, { y: SETTINGS.flowMin, color: COLORS.amber, label: `Tối thiểu ${fmt(SETTINGS.flowMin)} GPM` }] });
+    series: [{ name: 'Actual Flow', data: h.map(x => x.cur), color: COLORS.water, fill: true, width: 2.2 }, { name: 'Target Flow', data: h.map(x => x.target), color: COLORS.ink, dash: true, width: 1.4 }],
+    lines: [{ y: SETTINGS.flowMax, color: COLORS.red, label: `Max ${fmt(SETTINGS.flowMax)} GPM` }, { y: SETTINGS.flowMin, color: COLORS.amber, label: `Min ${fmt(SETTINGS.flowMin)} GPM` }] });
   chart($('#pp-press'), { type: 'line', labels: lab, unit: 'PSI', dec: 1, lastDot: true, labelW: 72, min: 40, max: 100,
-    series: [{ name: 'Áp suất', data: h.map(x => x.press), color: COLORS.violet, width: 2 }], lines: [{ y: SETTINGS.pressureMax, color: COLORS.red, label: 'Ngưỡng cao' }, { y: 55, color: COLORS.amber, label: 'Ngưỡng thấp' }] });
-  chart($('#pp-share'), { type: 'bar', labels: DB.pumps.map(p => p.id), unit: 'GPM', series: [{ name: 'Lưu lượng hiện tại', data: DB.pumps.map(p => p.flow), color: COLORS.water }, { name: 'Định mức', data: DB.pumps.map(p => p.rated), color: '#C9D8E6' }] });
+    series: [{ name: 'Pressure', data: h.map(x => x.press), color: COLORS.violet, width: 2 }], lines: [{ y: SETTINGS.pressureMax, color: COLORS.red, label: 'High Threshold' }, { y: 55, color: COLORS.amber, label: 'Low Threshold' }] });
+  chart($('#pp-share'), { type: 'bar', labels: DB.pumps.map(p => p.id), unit: 'GPM', series: [{ name: 'Current Flow', data: DB.pumps.map(p => p.flow), color: COLORS.water }, { name: 'Rated', data: DB.pumps.map(p => p.rated), color: '#C9D8E6' }] });
 }
 PAGES.pumps = {
   render() {
     const el = $('#page-pumps');
-    el.innerHTML = pageHead('Quản lý lưu lượng & máy bơm', 'Trạm bơm chính · 3 bơm chính biến tần, 1 bơm bù áp, 1 bơm tăng áp',
-      `<button class="btn" data-action="pumps-auto">${icon('refresh')}Đặt tất cả về Tự động</button><button class="btn" data-go="sensors">${icon('sensor')}Cảm biến lưu lượng</button>`) +
+    el.innerHTML = pageHead('Flow & Pump Management', 'Main Pump Station · 3 VFD main pumps, 1 jockey pump, 1 booster pump',
+      `<button class="btn" data-action="pumps-auto">${icon('refresh')}Set All to Auto</button><button class="btn" data-go="sensors">${icon('sensor')}Flow Sensors</button>`) +
       `<div class="panel summary-strip" id="pp-sum">${pumpSummaryHTML()}</div>
       <div class="pump-grid" id="pp-grid">${DB.pumps.map(pumpCardHTML).join('')}</div>
-      <div class="panel"><div class="panel-head"><h3>Lưu lượng thời gian thực <span class="sub">khoảng ${Math.round(80 * SETTINGS.interval / 60)} phút gần nhất</span></h3>
-        <div class="legend"><span><i style="background:${COLORS.water}"></i>Thực tế</span><span><i style="background:${COLORS.ink}"></i>Mục tiêu</span><span><i style="background:${COLORS.red}"></i>Tối đa</span><span><i style="background:${COLORS.amber}"></i>Tối thiểu</span></div></div>
+      <div class="panel"><div class="panel-head"><h3>Real-time Flow <span class="sub">last ~${Math.round(80 * SETTINGS.interval / 60)} minutes</span></h3>
+        <div class="legend"><span><i style="background:${COLORS.water}"></i>Actual</span><span><i style="background:${COLORS.ink}"></i>Target</span><span><i style="background:${COLORS.red}"></i>Max</span><span><i style="background:${COLORS.amber}"></i>Min</span></div></div>
         <div class="chart-box h-300"><canvas id="pp-flow"></canvas></div></div>
       <div class="charts-2" style="margin-top:16px">
-        <div class="panel"><div class="panel-head"><h3>Áp suất đường ống chính</h3></div><div class="chart-box h-220"><canvas id="pp-press"></canvas></div></div>
-        <div class="panel"><div class="panel-head"><h3>Phân bổ lưu lượng theo máy bơm</h3><div class="legend"><span><i style="background:${COLORS.water}"></i>Hiện tại</span><span><i style="background:#C9D8E6"></i>Định mức</span></div></div><div class="chart-box h-220"><canvas id="pp-share"></canvas></div></div>
+        <div class="panel"><div class="panel-head"><h3>Main Pipeline Pressure</h3></div><div class="chart-box h-220"><canvas id="pp-press"></canvas></div></div>
+        <div class="panel"><div class="panel-head"><h3>Flow Distribution by Pump</h3><div class="legend"><span><i style="background:${COLORS.water}"></i>Current</span><span><i style="background:#C9D8E6"></i>Rated</span></div></div><div class="chart-box h-220"><canvas id="pp-share"></canvas></div></div>
       </div>`;
     this._sigs = {};
     DB.pumps.forEach(p => { this._sigs[p.id] = pumpSig(p); });
@@ -2537,7 +2537,7 @@ Object.assign(ACTIONS, {
     const p = get(el.dataset.id), m = el.dataset.mode; if (p.mode === m) return;
     p.mode = m;
     if (m === 'manual') p.setSpeed = clamp(Math.round((p.speed || 70) / 5) * 5, 30, 100);
-    toast(`${p.id} chuyển sang chế độ ${m === 'auto' ? 'Tự động' : 'Thủ công'}`, 'info');
+    toast(`${p.id} switched to ${m === 'auto' ? 'Auto' : 'Manual'} mode`, 'info');
     simPumps(); updateLive();
   },
   'pump-speed': el => {
@@ -2548,23 +2548,23 @@ Object.assign(ACTIONS, {
   'pump-start': el => {
     const p = get(el.dataset.id);
     p.status = 'running'; p.starts++;
-    toast(`Đã khởi động ${p.name} ở ${p.setSpeed}% tốc độ`, 'success');
+    toast(`Started ${p.name} at ${p.setSpeed}% speed`, 'success');
     simPumps(); updateLive();
   },
   'pump-stop': async el => {
     const p = get(el.dataset.id);
     const dem = state.flow.target, other = DB.pumps.filter(x => x !== p && x.status === 'running' && !x.jockey);
-    const ok = await confirmDialog({ title: 'Dừng máy bơm', danger: true, confirmText: 'Dừng máy bơm',
-      message: `Dừng <b>${esc(p.name)}</b> (${p.id}) đang cấp ${fmt(p.flow)} GPM?${dem > 0 && !other.length ? ' <b>Không còn bơm chính nào chạy</b>, các trạm đang tưới có thể thiếu áp.' : ''}` });
+    const ok = await confirmDialog({ title: 'Stop Pump', danger: true, confirmText: 'Stop Pump',
+      message: `Stop <b>${esc(p.name)}</b> (${p.id}) currently supplying ${fmt(p.flow)} GPM?${dem > 0 && !other.length ? ' <b>No main pumps will be running</b>, irrigating stations may lack pressure.' : ''}` });
     if (!ok) return;
     p.status = 'stopped';
-    toast(`Đã dừng ${p.name}`, 'warning');
+    toast(`Stopped ${p.name}`, 'warning');
     simPumps(); updateLive();
   },
-  'pumps-auto': () => { DB.pumps.forEach(p => { p.mode = 'auto'; }); toast('Tất cả máy bơm đã chuyển sang chế độ Tự động', 'success'); simPumps(); updateLive(); }
+  'pumps-auto': () => { DB.pumps.forEach(p => { p.mode = 'auto'; }); toast('All pumps switched to Auto mode', 'success'); simPumps(); updateLive(); }
 });
 
-/* ================= 18. Cảm biến ================= */
+/* ================= 18. Sensors ================= */
 function sensorFiltered() {
   const f = state.sensors, q = f.q.trim().toLowerCase();
   return DB.sensors.filter(s => (f.type === 'all' || s.type === f.type) && (f.status === 'all' || s.status === f.status) && (f.course === 'all' || s.mapCourse === f.course || s.courseId === f.course) && (!q || [s.id, s.location, SENSOR_TYPES[s.type].short].join(' ').toLowerCase().includes(q)));
@@ -2573,26 +2573,26 @@ function typeTilesHTML() {
   return Object.entries(SENSOR_TYPES).map(([k, T]) => {
     const list = DB.sensors.filter(s => s.type === k), warn = list.filter(s => s.status !== 'normal').length;
     const val = k === 'flow' ? (get('FS-01') || list[0] || {}).value : k === 'rain' ? Math.max(0, ...list.map(s => s.value)) : avg(list.map(s => s.value));
-    const lab = { flow: 'Tổng trạm bơm', pressure: 'Trung bình', moisture: 'Trung bình', temperature: 'Trung bình', rain: 'Cao nhất', level: 'Trung bình' }[k];
-    return `<button class="type-tile" data-type="${k}" aria-pressed="${state.sensors.type === k}"><span class="tt-top">${T.short}${icon(T.icon)}</span><span class="tt-val">${fmt(val, T.dec)}<small>${T.unit}</small></span><span class="tt-sub">${lab} · ${list.length} cảm biến${warn ? ` · <b>${warn} cảnh báo</b>` : ''}</span></button>`;
+    const lab = { flow: 'Total Pump Station', pressure: 'Average', moisture: 'Average', temperature: 'Average', rain: 'Peak', level: 'Average' }[k];
+    return `<button class="type-tile" data-type="${k}" aria-pressed="${state.sensors.type === k}"><span class="tt-top">${T.short}${icon(T.icon)}</span><span class="tt-val">${fmt(val, T.dec)}<small>${T.unit}</small></span><span class="tt-sub">${lab} · ${list.length} sensors${warn ? ` · <b>${warn} warnings</b>` : ''}</span></button>`;
   }).join('');
 }
 const SEN_COLS = [
-  { key: 'id', label: 'Mã', render: s => `<b>${s.id}</b>` },
-  { key: 'type', label: 'Loại', render: s => `<span class="tag t-sensor">${SENSOR_TYPES[s.type].short}</span>` },
-  { key: 'location', label: 'Vị trí', render: s => `${esc(s.location)}<span class="cell-sub">${esc(courseName(s.mapCourse))}${s.holeId ? ' · ' + esc(get(s.holeId).name) : ''}</span>` },
-  { key: 'value', label: 'Giá trị', cls: 'num', render: s => `<span class="val-cell ${s.status === 'warning' ? 'ping-mid' : ''}">${fmt(s.value, SENSOR_TYPES[s.type].dec)}<small>${SENSOR_TYPES[s.type].unit}</small></span>` },
-  { key: 'trend', label: 'Xu hướng 24h', sort: false, render: s => sparkSVG(s.history.map(p => p.v), s.status === 'warning' ? COLORS.amber : COLORS.water) },
-  { key: 'lim', label: 'Ngưỡng', sort: false, render: s => `<span class="muted">${sensorLimitsText(s)}</span>` },
-  { key: 'battery', label: 'Pin', cls: 'num', render: s => s.battery == null ? '<span class="muted">Nguồn lưới</span>' : `<span class="${s.battery < 30 ? 'ping-bad' : ''}">${s.battery}%</span>` },
-  { key: 'status', label: 'Trạng thái', render: s => senBadge(s.status) },
-  { key: 'lastUpdate', label: 'Cập nhật', render: s => `<span class="muted">${ago(s.lastUpdate)}</span>` }
+  { key: 'id', label: 'Code', render: s => `<b>${s.id}</b>` },
+  { key: 'type', label: 'Type', render: s => `<span class="tag t-sensor">${SENSOR_TYPES[s.type].short}</span>` },
+  { key: 'location', label: 'Location', render: s => `${esc(s.location)}<span class="cell-sub">${esc(courseName(s.mapCourse))}${s.holeId ? ' · ' + esc(get(s.holeId).name) : ''}</span>` },
+  { key: 'value', label: 'Value', cls: 'num', render: s => `<span class="val-cell ${s.status === 'warning' ? 'ping-mid' : ''}">${fmt(s.value, SENSOR_TYPES[s.type].dec)}<small>${SENSOR_TYPES[s.type].unit}</small></span>` },
+  { key: 'trend', label: '24h Trend', sort: false, render: s => sparkSVG(s.history.map(p => p.v), s.status === 'warning' ? COLORS.amber : COLORS.water) },
+  { key: 'lim', label: 'Threshold', sort: false, render: s => `<span class="muted">${sensorLimitsText(s)}</span>` },
+  { key: 'battery', label: 'Battery', cls: 'num', render: s => s.battery == null ? '<span class="muted">Mains Power</span>' : `<span class="${s.battery < 30 ? 'ping-bad' : ''}">${s.battery}%</span>` },
+  { key: 'status', label: 'Status', render: s => senBadge(s.status) },
+  { key: 'lastUpdate', label: 'Updated', render: s => `<span class="muted">${ago(s.lastUpdate)}</span>` }
 ];
 function renderSensorTable() {
   const w = $('#sen-table'); if (!w) return;
   const rows = sensorFiltered();
   keepScroll(w, () => { w.innerHTML = tableHTML('sen-tbl', SEN_COLS, rows, state.sensors.sort, { rowCls: s => state.drawer && state.drawer.id === s.id ? 'sel' : '' }); });
-  $('#sen-foot').innerHTML = `<span>Hiển thị <b>${rows.length}</b> / ${DB.sensors.length} cảm biến</span><span>${DB.sensors.filter(s => s.status === 'warning').length} cảnh báo · ${DB.sensors.filter(s => s.status === 'offline').length} mất tín hiệu</span>`;
+  $('#sen-foot').innerHTML = `<span>Showing <b>${rows.length}</b> / ${DB.sensors.length} sensors</span><span>${DB.sensors.filter(s => s.status === 'warning').length} warnings · ${DB.sensors.filter(s => s.status === 'offline').length} signal lost</span>`;
 }
 function drawSensorCharts() {
   const H = id => (get(id) || { history: [] }).history;
@@ -2601,30 +2601,30 @@ function drawSensorCharts() {
   const avgAt = (list, i) => avg(list.map(s => s.history[i] ? s.history[i].v : 0));
   const lowest = [...moist].sort((a, c) => a.value - c.value)[0], highest = [...moist].sort((a, c) => c.value - a.value)[0];
   const common = { type: 'line', labels: lab, labelW: 56, lastDot: true };
-  chart($('#sc-moist'), { ...common, unit: '%', dec: 1, series: [{ name: 'Trung bình toàn sân', data: base.map((_, i) => avgAt(moist, i)), color: COLORS.turf, width: 2.4 }, ...(lowest ? [{ name: `${lowest.id} (thấp nhất)`, data: lowest.history.map(p => p.v), color: COLORS.amber }] : []), ...(highest ? [{ name: `${highest.id} (cao nhất)`, data: highest.history.map(p => p.v), color: COLORS.water }] : [])], lines: [{ y: SETTINGS.moistureMin, color: COLORS.red, label: `Ngưỡng ${SETTINGS.moistureMin}%` }] });
-  chart($('#sc-flow'), { ...common, unit: 'GPM', floor: 0, series: [{ name: 'FS-01 Trạm bơm', data: H('FS-01').map(p => p.v), color: COLORS.water, fill: true }, { name: 'FS-02 Sân Bắc', data: H('FS-02').map(p => p.v), color: COLORS.teal }, { name: 'FS-05 Nhánh Hố 12', data: H('FS-05').map(p => p.v), color: COLORS.amber }] });
-  chart($('#sc-press'), { ...common, unit: 'PSI', dec: 1, series: [{ name: 'PS-01 Đầu đẩy', data: H('PS-01').map(p => p.v), color: COLORS.violet, width: 2.2 }, { name: 'PS-03 Cuối tuyến Hố 09', data: H('PS-03').map(p => p.v), color: COLORS.teal }], lines: [{ y: SETTINGS.pressureMax, color: COLORS.red, label: 'Ngưỡng cao' }] });
-  chart($('#sc-temp'), { ...common, unit: '°C', dec: 1, series: [{ name: 'TS-01 Không khí', data: H('TS-01').map(p => p.v), color: COLORS.red, width: 2.2 }, { name: 'TS-02 Đất Hố 05', data: H('TS-02').map(p => p.v), color: COLORS.amber }, { name: 'TS-03 Đất Hố 14', data: H('TS-03').map(p => p.v), color: COLORS.turf }] });
+  chart($('#sc-moist'), { ...common, unit: '%', dec: 1, series: [{ name: 'Course Average', data: base.map((_, i) => avgAt(moist, i)), color: COLORS.turf, width: 2.4 }, ...(lowest ? [{ name: `${lowest.id} (lowest)`, data: lowest.history.map(p => p.v), color: COLORS.amber }] : []), ...(highest ? [{ name: `${highest.id} (highest)`, data: highest.history.map(p => p.v), color: COLORS.water }] : [])], lines: [{ y: SETTINGS.moistureMin, color: COLORS.red, label: `Threshold ${SETTINGS.moistureMin}%` }] });
+  chart($('#sc-flow'), { ...common, unit: 'GPM', floor: 0, series: [{ name: 'FS-01 Pump Station', data: H('FS-01').map(p => p.v), color: COLORS.water, fill: true }, { name: 'FS-02 North Course', data: H('FS-02').map(p => p.v), color: COLORS.teal }, { name: 'FS-05 Hole 12 Branch', data: H('FS-05').map(p => p.v), color: COLORS.amber }] });
+  chart($('#sc-press'), { ...common, unit: 'PSI', dec: 1, series: [{ name: 'PS-01 Discharge', data: H('PS-01').map(p => p.v), color: COLORS.violet, width: 2.2 }, { name: 'PS-03 Hole 09 Line End', data: H('PS-03').map(p => p.v), color: COLORS.teal }], lines: [{ y: SETTINGS.pressureMax, color: COLORS.red, label: 'High Threshold' }] });
+  chart($('#sc-temp'), { ...common, unit: '°C', dec: 1, series: [{ name: 'TS-01 Air', data: H('TS-01').map(p => p.v), color: COLORS.red, width: 2.2 }, { name: 'TS-02 Hole 05 Soil', data: H('TS-02').map(p => p.v), color: COLORS.amber }, { name: 'TS-03 Hole 14 Soil', data: H('TS-03').map(p => p.v), color: COLORS.turf }] });
 }
 PAGES.sensors = {
   render() {
     const el = $('#page-sensors'), f = state.sensors;
     const lg = arr => `<div class="legend">${arr.map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join('')}</div>`;
-    el.innerHTML = pageHead('Cảm biến', `${DB.sensors.length} cảm biến: lưu lượng, áp suất, độ ẩm đất, nhiệt độ, mưa, mực nước`, `<button class="btn" data-action="sen-export">${icon('download')}Xuất CSV</button>`) +
+    el.innerHTML = pageHead('Sensors', `${DB.sensors.length} sensors: flow, pressure, soil moisture, temperature, rain, water level`, `<button class="btn" data-action="sen-export">${icon('download')}Export CSV</button>`) +
       `<div class="type-tiles" id="sen-tiles">${typeTilesHTML()}</div>
       <div class="charts-2">
-        <div class="panel"><div class="panel-head"><h3>Độ ẩm đất</h3>${lg([[COLORS.turf, 'Trung bình'], [COLORS.amber, 'Thấp nhất'], [COLORS.water, 'Cao nhất']])}</div><div class="chart-box h-220"><canvas id="sc-moist"></canvas></div></div>
-        <div class="panel"><div class="panel-head"><h3>Lưu lượng</h3>${lg([[COLORS.water, 'FS-01'], [COLORS.teal, 'FS-02'], [COLORS.amber, 'FS-05']])}</div><div class="chart-box h-220"><canvas id="sc-flow"></canvas></div></div>
-        <div class="panel"><div class="panel-head"><h3>Áp suất</h3>${lg([[COLORS.violet, 'PS-01'], [COLORS.teal, 'PS-03']])}</div><div class="chart-box h-220"><canvas id="sc-press"></canvas></div></div>
-        <div class="panel"><div class="panel-head"><h3>Nhiệt độ</h3>${lg([[COLORS.red, 'Không khí'], [COLORS.amber, 'Đất Hố 05'], [COLORS.turf, 'Đất Hố 14']])}</div><div class="chart-box h-220"><canvas id="sc-temp"></canvas></div></div>
+        <div class="panel"><div class="panel-head"><h3>Soil Moisture</h3>${lg([[COLORS.turf, 'Average'], [COLORS.amber, 'Lowest'], [COLORS.water, 'Highest']])}</div><div class="chart-box h-220"><canvas id="sc-moist"></canvas></div></div>
+        <div class="panel"><div class="panel-head"><h3>Flow</h3>${lg([[COLORS.water, 'FS-01'], [COLORS.teal, 'FS-02'], [COLORS.amber, 'FS-05']])}</div><div class="chart-box h-220"><canvas id="sc-flow"></canvas></div></div>
+        <div class="panel"><div class="panel-head"><h3>Pressure</h3>${lg([[COLORS.violet, 'PS-01'], [COLORS.teal, 'PS-03']])}</div><div class="chart-box h-220"><canvas id="sc-press"></canvas></div></div>
+        <div class="panel"><div class="panel-head"><h3>Temperature</h3>${lg([[COLORS.red, 'Air'], [COLORS.amber, 'Hole 05 Soil'], [COLORS.turf, 'Hole 14 Soil']])}</div><div class="chart-box h-220"><canvas id="sc-temp"></canvas></div></div>
       </div>
       <div class="panel">
-        <div class="panel-head"><h3>Danh sách cảm biến</h3>${f.type !== 'all' ? `<button class="chip" data-action="sen-type-clear" aria-pressed="true">${SENSOR_TYPES[f.type].short} ${icon('x')}</button>` : ''}</div>
+        <div class="panel-head"><h3>Sensor List</h3>${f.type !== 'all' ? `<button class="chip" data-action="sen-type-clear" aria-pressed="true">${SENSOR_TYPES[f.type].short} ${icon('x')}</button>` : ''}</div>
         <div class="filters" id="sen-filters">
-          <div class="field search-field"><label for="sen-q">Tìm kiếm</label>${icon('search')}<input class="input" id="sen-q" placeholder="Mã hoặc vị trí cảm biến" value="${esc(f.q)}"></div>
-          <div class="field"><label for="sen-course">Sân golf</label><select class="select" id="sen-course"><option value="all">Tất cả sân</option>${DB.courses.map(c => `<option value="${c.id}" ${f.course === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
-          <div class="field"><label for="sen-type">Loại</label><select class="select" id="sen-type"><option value="all">Tất cả loại</option>${Object.entries(SENSOR_TYPES).map(([k, T]) => `<option value="${k}" ${f.type === k ? 'selected' : ''}>${T.short}</option>`).join('')}</select></div>
-          <div class="field"><label for="sen-status">Trạng thái</label><select class="select" id="sen-status"><option value="all">Tất cả</option>${Object.entries(SENSOR_ST).map(([k, v]) => `<option value="${k}" ${f.status === k ? 'selected' : ''}>${v.label}</option>`).join('')}</select></div>
+          <div class="field search-field"><label for="sen-q">Search</label>${icon('search')}<input class="input" id="sen-q" placeholder="Sensor code or location" value="${esc(f.q)}"></div>
+          <div class="field"><label for="sen-course">Golf Course</label><select class="select" id="sen-course"><option value="all">All Courses</option>${DB.courses.map(c => `<option value="${c.id}" ${f.course === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
+          <div class="field"><label for="sen-type">Type</label><select class="select" id="sen-type"><option value="all">All Types</option>${Object.entries(SENSOR_TYPES).map(([k, T]) => `<option value="${k}" ${f.type === k ? 'selected' : ''}>${T.short}</option>`).join('')}</select></div>
+          <div class="field"><label for="sen-status">Status</label><select class="select" id="sen-status"><option value="all">All</option>${Object.entries(SENSOR_ST).map(([k, v]) => `<option value="${k}" ${f.status === k ? 'selected' : ''}>${v.label}</option>`).join('')}</select></div>
         </div>
         <div class="table-wrap max-h" id="sen-table"></div><div class="table-foot" id="sen-foot"></div>
       </div>`;
@@ -2646,10 +2646,10 @@ PAGES.sensors = {
 };
 Object.assign(ACTIONS, {
   'sen-type-clear': () => { state.sensors.type = 'all'; PAGES.sensors.render(); },
-  'sen-export': () => downloadCSV(`cam-bien-${isoDate(new Date())}.csv`, [['Mã', 'Loại', 'Vị trí', 'Sân', 'Giá trị', 'Đơn vị', 'Trạng thái', 'Cập nhật'], ...sortRows(sensorFiltered(), SEN_COLS, state.sensors.sort).map(s => [s.id, SENSOR_TYPES[s.type].short, s.location, courseName(s.mapCourse), fmt(s.value, SENSOR_TYPES[s.type].dec), SENSOR_TYPES[s.type].unit, SENSOR_ST[s.status].label, fmtDT(s.lastUpdate)])])
+  'sen-export': () => downloadCSV(`sensors-${isoDate(new Date())}.csv`, [['Code', 'Type', 'Location', 'Course', 'Value', 'Unit', 'Status', 'Updated'], ...sortRows(sensorFiltered(), SEN_COLS, state.sensors.sort).map(s => [s.id, SENSOR_TYPES[s.type].short, s.location, courseName(s.mapCourse), fmt(s.value, SENSOR_TYPES[s.type].dec), SENSOR_TYPES[s.type].unit, SENSOR_ST[s.status].label, fmtDT(s.lastUpdate)])])
 });
 
-/* ================= 19. Bản đồ tưới ================= */
+/* ================= 19. Irrigation Map ================= */
 const MAP_W = 1000, MAP_H = 620;
 function mapBaseSVG(c) {
   const r = mulberry32(c.ci * 97 + 11);
@@ -2663,7 +2663,7 @@ function mapBaseSVG(c) {
     ${trees.map(([x, y, s]) => `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${s.toFixed(1)}" fill="#6F9E5E" opacity=".75"/><circle cx="${(x - s * .25).toFixed(0)}" cy="${(y - s * .25).toFixed(0)}" r="${(s * .55).toFixed(1)}" fill="#86B271" opacity=".8"/>`).join('')}
     <ellipse cx="${c.lake[0]}" cy="${c.lake[1]}" rx="78" ry="48" fill="#6FA8CC" stroke="#A9CFE3" stroke-width="4"/>
     <ellipse cx="${c.lake[0] - 10}" cy="${c.lake[1] - 8}" rx="46" ry="22" fill="#82B6D6"/>
-    <text class="m-label light" x="${c.lake[0]}" y="${c.lake[1] + 4}" text-anchor="middle">${c.id === 'C03' ? 'Hồ điều hòa' : 'Hồ chứa'}</text>
+    <text class="m-label light" x="${c.lake[0]}" y="${c.lake[1] + 4}" text-anchor="middle">${c.id === 'C03' ? 'Retention Lake' : 'Reservoir'}</text>
     ${holes.map(h => `<path d="${path(h.geo)}" fill="none" stroke="#8DB978" stroke-width="84" stroke-linecap="round" opacity=".55"/>`).join('')}
     ${holes.map(h => `<path d="${path(h.geo)}" fill="none" stroke="#B9DE93" stroke-width="44" stroke-linecap="round"/><path d="${path(h.geo)}" fill="none" stroke="url(#mow)" stroke-width="44" stroke-linecap="round"/>`).join('')}
     ${holes.map(h => { const g = h.geo, nn = bezN(g, 0.97), p0 = bez(g, 0.08), bk = [g.g[0] - nn[0] * 36, g.g[1] - nn[1] * 36], bk2 = bez(g, 0.66);
@@ -2673,9 +2673,9 @@ function mapBaseSVG(c) {
         <line x1="${g.g[0]}" y1="${g.g[1]}" x2="${g.g[0]}" y2="${g.g[1] - 26}" stroke="#15302A" stroke-width="1.6"/><path d="M${g.g[0]},${g.g[1] - 26} l14,5 l-14,5z" fill="#CF3F2E"/>
         <rect x="${(p0[0] - 11).toFixed(0)}" y="${(p0[1] - 7).toFixed(0)}" width="22" height="14" rx="3" fill="#CDE8A8" stroke="#A9D58A" stroke-width="2"/>
         <circle cx="${(g.t[0] - nn[0] * 34).toFixed(0)}" cy="${(g.t[1] - nn[1] * 34).toFixed(0)}" r="11" fill="#135040"/><text class="m-hole-no" x="${(g.t[0] - nn[0] * 34).toFixed(0)}" y="${(g.t[1] - nn[1] * 34 + 4).toFixed(0)}" text-anchor="middle">${h.no}</text>`; }).join('')}
-    <g><rect x="${c.pumpHouse[0] - 26}" y="${c.pumpHouse[1] - 16}" width="52" height="32" rx="4" fill="#E8EEE9" stroke="#15302A" stroke-width="1.5"/><text class="m-label" x="${c.pumpHouse[0]}" y="${c.pumpHouse[1] + 30}" text-anchor="middle">Trạm bơm</text>
+    <g><rect x="${c.pumpHouse[0] - 26}" y="${c.pumpHouse[1] - 16}" width="52" height="32" rx="4" fill="#E8EEE9" stroke="#15302A" stroke-width="1.5"/><text class="m-label" x="${c.pumpHouse[0]}" y="${c.pumpHouse[1] + 30}" text-anchor="middle">Pump Station</text>
       <circle cx="${c.pumpHouse[0] - 10}" cy="${c.pumpHouse[1]}" r="6" fill="#1B7BD3"/><circle cx="${c.pumpHouse[0] + 8}" cy="${c.pumpHouse[1]}" r="6" fill="#1B7BD3"/></g>
-    <g><rect x="${c.club[0] - 40}" y="${c.club[1] - 18}" width="80" height="36" rx="5" fill="#F4EFE4" stroke="#8A7D63" stroke-width="1.5"/><text class="m-label" x="${c.club[0]}" y="${c.club[1] + 4}" text-anchor="middle">Nhà CLB</text></g>`;
+    <g><rect x="${c.club[0] - 40}" y="${c.club[1] - 18}" width="80" height="36" rx="5" fill="#F4EFE4" stroke="#8A7D63" stroke-width="1.5"/><text class="m-label" x="${c.club[0]}" y="${c.club[1] + 4}" text-anchor="middle">Clubhouse</text></g>`;
 }
 function mapDynSVG(c) {
   const L = state.map.layers, fs = state.map.status, sel = state.map.selected;
@@ -2701,7 +2701,7 @@ function mapDynSVG(c) {
 function mapCountHTML(c) {
   const sts = DB.stations.filter(s => s.courseId === c.id);
   const n = k => sts.filter(s => s.status === k).length;
-  return `<div><strong style="color:var(--water-2)">${n('running')}</strong><span>Đang tưới</span></div><div><strong>${n('waiting')}</strong><span>Đang chờ</span></div><div><strong style="color:var(--turf)">${n('idle') + n('completed')}</strong><span>Sẵn sàng / Xong</span></div><div><strong style="color:var(--red)">${n('error') + n('offline')}</strong><span>Lỗi / Mất kết nối</span></div>`;
+  return `<div><strong style="color:var(--water-2)">${n('running')}</strong><span>Irrigating</span></div><div><strong>${n('waiting')}</strong><span>Waiting</span></div><div><strong style="color:var(--turf)">${n('idle') + n('completed')}</strong><span>Ready / Done</span></div><div><strong style="color:var(--red)">${n('error') + n('offline')}</strong><span>Error / Disconnected</span></div>`;
 }
 function applyVB() { const svg = $('#map-svg'); if (svg) svg.setAttribute('viewBox', state.map.vb.map(v => v.toFixed(1)).join(' ')); }
 function zoomMap(f, cx, cy) {
@@ -2719,41 +2719,41 @@ function liveMap() {
   $('#map-count').innerHTML = mapCountHTML(c);
 }
 function mapTip(el, e) {
-  if (el.dataset.st) { const s = get(el.dataset.st); showTipAt(`<div class="tt-title">${s.id} · ${esc(s.name)}</div><div class="tt-row"><span>${esc(get(s.holeId).name)}, ${AREA[s.type].name}</span></div><div class="tt-row"><span>Trạng thái</span><b>${STATION_ST[s.status].label}</b></div>${s.status === 'running' ? `<div class="tt-row"><span>Còn lại</span><b>${durText(s.duration - s.elapsed)}</b></div>` : ''}<div class="tt-row"><span>Lưu lượng</span><b>${s.flow} GPM</b></div>`, e.clientX, e.clientY); }
-  else if (el.dataset.sat) { const d = get(el.dataset.sat); showTipAt(`<div class="tt-title">${d.id}</div><div class="tt-row"><span>${esc(d.name)}</span></div><div class="tt-row"><span>Trạng thái</span><b>${EQ_ST[d.status].label}</b></div><div class="tt-row"><span>Ping</span><b>${d.ping == null ? '—' : d.ping + ' ms'}</b></div>`, e.clientX, e.clientY); }
-  else if (el.dataset.sen) { const s = get(el.dataset.sen), T = SENSOR_TYPES[s.type]; showTipAt(`<div class="tt-title">${s.id} · ${T.short}</div><div class="tt-row"><span>${esc(s.location)}</span></div><div class="tt-row"><span>Giá trị</span><b>${fmt(s.value, T.dec)} ${T.unit}</b></div><div class="tt-row"><span>Trạng thái</span><b>${SENSOR_ST[s.status].label}</b></div>`, e.clientX, e.clientY); }
+  if (el.dataset.st) { const s = get(el.dataset.st); showTipAt(`<div class="tt-title">${s.id} · ${esc(s.name)}</div><div class="tt-row"><span>${esc(get(s.holeId).name)}, ${AREA[s.type].name}</span></div><div class="tt-row"><span>Status</span><b>${STATION_ST[s.status].label}</b></div>${s.status === 'running' ? `<div class="tt-row"><span>Remaining</span><b>${durText(s.duration - s.elapsed)}</b></div>` : ''}<div class="tt-row"><span>Flow</span><b>${s.flow} GPM</b></div>`, e.clientX, e.clientY); }
+  else if (el.dataset.sat) { const d = get(el.dataset.sat); showTipAt(`<div class="tt-title">${d.id}</div><div class="tt-row"><span>${esc(d.name)}</span></div><div class="tt-row"><span>Status</span><b>${EQ_ST[d.status].label}</b></div><div class="tt-row"><span>Ping</span><b>${d.ping == null ? '—' : d.ping + ' ms'}</b></div>`, e.clientX, e.clientY); }
+  else if (el.dataset.sen) { const s = get(el.dataset.sen), T = SENSOR_TYPES[s.type]; showTipAt(`<div class="tt-title">${s.id} · ${T.short}</div><div class="tt-row"><span>${esc(s.location)}</span></div><div class="tt-row"><span>Value</span><b>${fmt(s.value, T.dec)} ${T.unit}</b></div><div class="tt-row"><span>Status</span><b>${SENSOR_ST[s.status].label}</b></div>`, e.clientX, e.clientY); }
 }
 PAGES.map = {
   render() {
     if (!get(state.map.courseId)) state.map.courseId = DB.courses[0] ? DB.courses[0].id : null;
     const c = get(state.map.courseId), el = $('#page-map');
     const L = state.map.layers;
-    const chips = [['all', 'Tất cả'], ['running', 'Đang tưới'], ['waiting', 'Đang chờ'], ['idle', 'Sẵn sàng'], ['error', 'Lỗi']];
+    const chips = [['all', 'All'], ['running', 'Irrigating'], ['waiting', 'Waiting'], ['idle', 'Ready'], ['error', 'Error']];
     const hasGeo = c && DB.holes.some(h => h.courseId === c.id && h.geo);
-    el.innerHTML = pageHead('Bản đồ tưới', 'Bản đồ tương tác các hố, trạm tưới, bộ điều khiển, cảm biến và đường ống. Nhấn vào trạm để xem chi tiết và điều khiển.',
+    el.innerHTML = pageHead('Irrigation Map', 'Interactive map of holes, irrigation stations, controllers, sensors, and pipes. Click a station to view details and control.',
       `<div class="seg" id="map-course">${DB.courses.map(x => `<button data-c="${x.id}" aria-pressed="${x.id === state.map.courseId}">${esc(x.name)}</button>`).join('')}</div>`) +
       `<div class="map-layout">
         <div class="panel map-panel">
-          <div class="panel-head"><h3>${c ? esc(c.name) : 'Chưa có sân'} <span class="sub">${c ? esc(c.en) + ' · ' + DB.holes.filter(h => h.courseId === c.id).length + ' hố' : ''}</span></h3>
+          <div class="panel-head"><h3>${c ? esc(c.name) : 'No course'} <span class="sub">${c ? esc(c.en) + ' · ' + DB.holes.filter(h => h.courseId === c.id).length + ' holes' : ''}</span></h3>
             <div class="chips" id="map-status">${chips.map(([k, l]) => `<button class="chip" data-s="${k}" aria-pressed="${state.map.status === k}">${l}</button>`).join('')}</div></div>
           ${hasGeo ? `<div class="map-stage" id="map-stage">
-            <svg id="map-svg" viewBox="${state.map.vb.join(' ')}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Bản đồ ${esc(c.name)}"><g>${mapBaseSVG(c)}</g><g id="m-dyn"></g></svg>
-            <div class="map-zoom"><button id="mz-in" aria-label="Phóng to">${icon('plus')}</button><button id="mz-out" aria-label="Thu nhỏ">${icon('minus')}</button><button id="mz-reset" aria-label="Đặt lại khung nhìn">${icon('refresh')}</button></div>
-            <div class="map-hint">Kéo để di chuyển · Cuộn để phóng to</div></div>` : `<div class="empty-state" style="padding:80px 20px">${icon('map')}Sân này chưa có dữ liệu bản đồ số hóa.</div>`}
+            <svg id="map-svg" viewBox="${state.map.vb.join(' ')}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map of ${esc(c.name)}"><g>${mapBaseSVG(c)}</g><g id="m-dyn"></g></svg>
+            <div class="map-zoom"><button id="mz-in" aria-label="Zoom in">${icon('plus')}</button><button id="mz-out" aria-label="Zoom out">${icon('minus')}</button><button id="mz-reset" aria-label="Reset view">${icon('refresh')}</button></div>
+            <div class="map-hint">Drag to pan · Scroll to zoom</div></div>` : `<div class="empty-state" style="padding:80px 20px">${icon('map')}This course has no digitized map data yet.</div>`}
         </div>
         <div class="map-side">
-          <div class="panel"><div class="panel-head"><h3>Tình trạng trạm</h3></div><div class="panel-body"><div class="map-count" id="map-count">${c ? mapCountHTML(c) : ''}</div></div></div>
-          <div class="panel"><div class="panel-head"><h3>Lớp hiển thị</h3></div><div class="panel-body layer-list" id="map-layers">
-            ${[['stations', 'Trạm tưới'], ['satellites', 'Bộ điều khiển'], ['sensors', 'Cảm biến'], ['pipes', 'Đường ống']].map(([k, l]) => `<label class="switch"><input type="checkbox" data-layer="${k}" ${L[k] ? 'checked' : ''}><span class="track"></span>${l}</label>`).join('')}</div></div>
-          <div class="panel"><div class="panel-head"><h3>Chú giải</h3></div><div class="panel-body legend-list">
-            <div><span class="lg-dot" style="background:#2E9A5E"></span>Trạm sẵn sàng / trực tuyến</div>
-            <div><span class="lg-dot" style="background:#1B7BD3"></span>Đang tưới</div>
-            <div><span class="lg-dot" style="background:#fff;box-shadow:0 0 0 2px #1B7BD3"></span>Đang chờ</div>
-            <div><span class="lg-dot" style="background:#E2A11A"></span>Cảnh báo</div>
-            <div><span class="lg-dot" style="background:#CF3F2E"></span>Lỗi / Ngoại tuyến</div>
-            <div><span class="lg-sq" style="background:#135040"></span>Bộ điều khiển (Satellite)</div>
-            <div><span class="lg-dia" style="background:#6D5BD0"></span>Cảm biến</div>
-            <div><span class="lg-line"></span>Đường ống (nét động khi có nước)</div>
+          <div class="panel"><div class="panel-head"><h3>Station Status</h3></div><div class="panel-body"><div class="map-count" id="map-count">${c ? mapCountHTML(c) : ''}</div></div></div>
+          <div class="panel"><div class="panel-head"><h3>Display Layers</h3></div><div class="panel-body layer-list" id="map-layers">
+            ${[['stations', 'Irrigation Stations'], ['satellites', 'Controllers'], ['sensors', 'Sensors'], ['pipes', 'Pipes']].map(([k, l]) => `<label class="switch"><input type="checkbox" data-layer="${k}" ${L[k] ? 'checked' : ''}><span class="track"></span>${l}</label>`).join('')}</div></div>
+          <div class="panel"><div class="panel-head"><h3>Legend</h3></div><div class="panel-body legend-list">
+            <div><span class="lg-dot" style="background:#2E9A5E"></span>Station ready / online</div>
+            <div><span class="lg-dot" style="background:#1B7BD3"></span>Irrigating</div>
+            <div><span class="lg-dot" style="background:#fff;box-shadow:0 0 0 2px #1B7BD3"></span>Waiting</div>
+            <div><span class="lg-dot" style="background:#E2A11A"></span>Warning</div>
+            <div><span class="lg-dot" style="background:#CF3F2E"></span>Error / Offline</div>
+            <div><span class="lg-sq" style="background:#135040"></span>Controller (Satellite)</div>
+            <div><span class="lg-dia" style="background:#6D5BD0"></span>Sensor</div>
+            <div><span class="lg-line"></span>Pipe (animated when flowing)</div>
             <div><span class="lg-dot" style="background:#D3EEB0;box-shadow:0 0 0 1px #A9D58A"></span>Green · <span class="lg-sq" style="background:#B9DE93"></span>Fairway</div>
           </div></div>
         </div>
@@ -2796,96 +2796,96 @@ PAGES.map = {
   live() { liveMap(); }
 };
 
-/* ================= 20. Chẩn đoán ================= */
+/* ================= 20. Diagnostics ================= */
 Object.assign(state.diag, { status: 'all', sort: { key: 'status', dir: 1 }, pct: 0 });
 const DIAG_ORDER = { offline: 0, warning: 1, online: 2 };
-const DIAG_KIND = { SAT: 'Bộ điều khiển', DEC: 'Bộ giải mã', RAD: 'Radio' };
+const DIAG_KIND = { SAT: 'Controller', DEC: 'Decoder', RAD: 'Radio' };
 function diagDevices() {
   const f = state.diag.filter, st = state.diag.status;
   return [...DB.satellites, ...DB.decoders, ...DB.radios].filter(d => inCtx(d)
     && (f === 'all' || d.id.startsWith(f)) && (st === 'all' || d.status === st));
 }
 function diagSignal(d) {
-  if (d.id.startsWith('RAD')) return d.signal == null ? '<span class="ping-bad">Không có</span>' : `${sigBars(d.signal)}${d.signal} dBm`;
+  if (d.id.startsWith('RAD')) return d.signal == null ? '<span class="ping-bad">None</span>' : `${sigBars(d.signal)}${d.signal} dBm`;
   if (d.id.startsWith('SAT')) return d.signal == null ? '—' : `${sigPct(d.signal)}${d.signal}%`;
-  return d.status === 'offline' ? '<span class="ping-bad">Không có</span>' : `${fmt(d.voltage, 1)} V · ${fmt(d.current)} mA`;
+  return d.status === 'offline' ? '<span class="ping-bad">None</span>' : `${fmt(d.voltage, 1)} V · ${fmt(d.current)} mA`;
 }
 const DIAG_COLS = [
-  { key: 'id', label: 'Thiết bị', render: d => `<b>${d.id}</b><span class="cell-sub">${esc(d.name || d.model || d.type)}</span>` },
-  { key: 'kind', label: 'Loại', sortVal: d => d.id.slice(0, 3), render: d => DIAG_KIND[d.id.slice(0, 3)] },
-  { key: 'site', label: 'Khu vực', sortVal: d => d.siteId, render: d => `${esc(get(d.siteId).name)}<span class="cell-sub">${esc(courseName(d.courseId))}</span>` },
-  { key: 'status', label: 'Trạng thái', sortVal: d => DIAG_ORDER[d.status], render: d => eqBadge(d.status) + (d.rebooting ? '<span class="cell-sub">Đang khởi động lại…</span>' : '') },
+  { key: 'id', label: 'Device', render: d => `<b>${d.id}</b><span class="cell-sub">${esc(d.name || d.model || d.type)}</span>` },
+  { key: 'kind', label: 'Type', sortVal: d => d.id.slice(0, 3), render: d => DIAG_KIND[d.id.slice(0, 3)] },
+  { key: 'site', label: 'Area', sortVal: d => d.siteId, render: d => `${esc(get(d.siteId).name)}<span class="cell-sub">${esc(courseName(d.courseId))}</span>` },
+  { key: 'status', label: 'Status', sortVal: d => DIAG_ORDER[d.status], render: d => eqBadge(d.status) + (d.rebooting ? '<span class="cell-sub">Restarting…</span>' : '') },
   { key: 'ping', label: 'Ping', cls: 'num', sortVal: d => d.status === 'offline' ? 1e9 : d.ping, render: d => pingText(d.status === 'offline' ? null : d.ping) },
-  { key: 'signal', label: 'Tín hiệu', sort: false, render: diagSignal },
-  { key: 'errorCode', label: 'Mã lỗi / thông báo', sortVal: d => d.errorCode || 'zz', render: d => d.errorCode ? `<span class="err-code">${d.errorCode}</span><span class="cell-sub">${esc(d.errorMsg)}</span>` : '<span class="muted">—</span>' },
-  { key: 'lastSeen', label: 'Giao tiếp gần nhất', sortVal: d => -d.lastSeen, render: d => `<span class="${d.status === 'offline' ? 'ping-bad' : ''}">${ago(d.lastSeen)}</span>` },
-  { key: 'lastOk', label: 'Thành công gần nhất', sortVal: d => -d.lastOk, render: d => fmtDT(d.lastOk) }
+  { key: 'signal', label: 'Signal', sort: false, render: diagSignal },
+  { key: 'errorCode', label: 'Error Code / Message', sortVal: d => d.errorCode || 'zz', render: d => d.errorCode ? `<span class="err-code">${d.errorCode}</span><span class="cell-sub">${esc(d.errorMsg)}</span>` : '<span class="muted">—</span>' },
+  { key: 'lastSeen', label: 'Last Contact', sortVal: d => -d.lastSeen, render: d => `<span class="${d.status === 'offline' ? 'ping-bad' : ''}">${ago(d.lastSeen)}</span>` },
+  { key: 'lastOk', label: 'Last Success', sortVal: d => -d.lastOk, render: d => fmtDT(d.lastOk) }
 ];
 const ERROR_CODES = [
-  ['E-120', 'Áp suất đầu đẩy máy bơm vượt ngưỡng', 'Kiểm tra van xả áp, giảm tốc độ biến tần, kiểm tra van tay đóng nhầm.'],
-  ['E-214', 'Bộ điều khiển phản hồi chậm (> 800 ms)', 'Kiểm tra đường truyền, nhiễu radio, tải CPU của bộ điều khiển.'],
-  ['E-305', 'Dòng điện solenoid bất thường', 'Đo điện trở cuộn solenoid, kiểm tra mối nối chống nước tại hộp van.'],
-  ['E-401', 'Bộ giải mã không phản hồi lệnh truy vấn', 'Kiểm tra cáp 2 dây, cầu chì bảo vệ sét, thay bộ giải mã nếu cần.'],
-  ['E-502', 'Mất liên kết vô tuyến với trung tâm', 'Kiểm tra nguồn và anten bộ lặp, vật cản mới trong đường truyền.'],
-  ['E-510', 'Tín hiệu radio yếu dưới -85 dBm', 'Điều chỉnh hướng anten, kiểm tra cáp đồng trục và đầu nối.']
+  ['E-120', 'Pump discharge pressure exceeds threshold', 'Check the relief valve, reduce VFD speed, check for a mistakenly closed manual valve.'],
+  ['E-214', 'Controller responding slowly (> 800 ms)', 'Check the comm line, radio interference, and controller CPU load.'],
+  ['E-305', 'Abnormal solenoid current', 'Measure solenoid coil resistance, check the waterproof connection at the valve box.'],
+  ['E-401', 'Decoder not responding to query commands', 'Check the 2-wire cable, lightning protection fuse, replace the decoder if needed.'],
+  ['E-502', 'Lost radio link with central controller', 'Check the repeater power and antenna, and any new obstruction in the signal path.'],
+  ['E-510', 'Radio signal weak below -85 dBm', 'Adjust antenna orientation, check the coaxial cable and connectors.']
 ];
 function diagSummaryHTML() {
   const all = [...DB.satellites, ...DB.decoders, ...DB.radios].filter(inCtx);
   const n = s => all.filter(d => d.status === s).length;
   const pings = all.filter(d => d.status !== 'offline' && d.ping != null).map(d => d.ping);
   const cell = (l, v, u, s) => `<div><div class="fs-label">${l}</div><div class="fs-value">${v}<small>${u}</small></div><div class="kpi-sub">${s}</div></div>`;
-  return cell('Trực tuyến', n('online'), `/ ${all.length}`, `${fmt(n('online') / (all.length || 1) * 100, 1)}% thiết bị`) + cell('Cảnh báo', n('warning'), 'thiết bị', 'Tín hiệu yếu / phản hồi chậm')
-    + cell('Ngoại tuyến', n('offline'), 'thiết bị', `${DB.stations.filter(s => s.status === 'offline' && inCtx(s)).length} trạm bị ảnh hưởng`) + cell('Ping trung bình', fmt(avg(pings)), 'ms', `Cao nhất ${fmt(Math.max(0, ...pings))} ms`);
+  return cell('Online', n('online'), `/ ${all.length}`, `${fmt(n('online') / (all.length || 1) * 100, 1)}% of devices`) + cell('Warning', n('warning'), 'devices', 'Weak signal / slow response')
+    + cell('Offline', n('offline'), 'devices', `${DB.stations.filter(s => s.status === 'offline' && inCtx(s)).length} stations affected`) + cell('Average Ping', fmt(avg(pings)), 'ms', `Highest ${fmt(Math.max(0, ...pings))} ms`);
 }
 function renderDiagTable() {
   const w = $('#dg-table'); if (!w) return;
   const rows = diagDevices();
   keepScroll(w, () => { w.innerHTML = tableHTML('dg-t', DIAG_COLS, rows, state.diag.sort, { rowCls: d => d.status === 'offline' ? 'sel' : '' }); });
-  $('#dg-foot').textContent = `${rows.length} thiết bị`;
+  $('#dg-foot').textContent = `${rows.length} devices`;
   $('#dg-sum').innerHTML = diagSummaryHTML();
 }
 function renderConsole() {
   const c = $('#dg-console'); if (!c) return;
   c.innerHTML = state.diag.log.length ? state.diag.log.map(l => `<div class="ln"><time>${l.t}</time><span class="${l.c}">${l.m}</span></div>`).join('')
-    : '<div class="ln placeholder">Nhấn “Chạy chẩn đoán” để kiểm tra kết nối toàn bộ thiết bị hiện trường, máy bơm và cảm biến.</div>';
+    : '<div class="ln placeholder">Click "Run Diagnostics" to check connectivity for all field equipment, pumps, and sensors.</div>';
   c.scrollTop = c.scrollHeight;
   $('#dg-prog').style.width = state.diag.pct + '%';
   const btn = $('#dg-run');
   btn.disabled = state.diag.running;
-  btn.innerHTML = state.diag.running ? `${icon('refresh')}Đang chẩn đoán…` : `${icon('play')}Chạy chẩn đoán`;
-  $('#dg-last').textContent = state.diag.lastRun ? `Lần chạy gần nhất: ${fmtDT(state.diag.lastRun)}` : 'Chưa chạy trong phiên này';
+  btn.innerHTML = state.diag.running ? `${icon('refresh')}Running diagnostics…` : `${icon('play')}Run Diagnostics`;
+  $('#dg-last').textContent = state.diag.lastRun ? `Last run: ${fmtDT(state.diag.lastRun)}` : 'Not run in this session yet';
 }
 function runDiagnostics() {
   if (state.diag.running) return;
   const scope = state.diag.scope, inScope = o => scope === 'all' || o.courseId === scope;
   const steps = [];
   const add = (c, m) => steps.push({ c, m });
-  add('run', `▶ Bắt đầu chẩn đoán: ${scope === 'all' ? 'toàn hệ thống' : courseName(scope)}`);
-  add('ok', '✓ Máy chủ điều khiển trung tâm: phản hồi 4 ms, CSDL đồng bộ');
+  add('run', `▶ Starting diagnostics: ${scope === 'all' ? 'entire system' : courseName(scope)}`);
+  add('ok', '✓ Central control server: responding 4 ms, database synced');
   DB.satellites.filter(inScope).forEach(s => {
-    if (s.status === 'offline') add('err', `✗ Bộ điều khiển ${s.id}: không phản hồi (${s.errorCode || 'E-401'})`);
-    else if (s.status === 'warning') add('warn', `⚠ Bộ điều khiển ${s.id} phản hồi chậm (${fmt(s.ping)} ms)`);
-    else add('ok', `✓ Kết nối Satellite ${s.id} (${fmt(s.ping)} ms, ${s.comm})`);
+    if (s.status === 'offline') add('err', `✗ Controller ${s.id}: not responding (${s.errorCode || 'E-401'})`);
+    else if (s.status === 'warning') add('warn', `⚠ Controller ${s.id} responding slowly (${fmt(s.ping)} ms)`);
+    else add('ok', `✓ Connected to Satellite ${s.id} (${fmt(s.ping)} ms, ${s.comm})`);
     DB.decoders.filter(d => d.satelliteId === s.id).forEach(d => {
-      if (d.status === 'offline') add('err', `✗ Bộ giải mã ${d.id} không phản hồi – ${eqStations(d).length} trạm không thể điều khiển`);
-      else if (d.status === 'warning') add('warn', `⚠ Bộ giải mã ${d.id}: ${d.errorMsg.toLowerCase()} (${d.errorCode})`);
-      else add('ok', `✓ Kết nối Decoder ${d.id} (${eqStations(d).length} kênh, ${fmt(d.voltage, 1)} V)`);
+      if (d.status === 'offline') add('err', `✗ Decoder ${d.id} not responding – ${eqStations(d).length} stations cannot be controlled`);
+      else if (d.status === 'warning') add('warn', `⚠ Decoder ${d.id}: ${d.errorMsg.toLowerCase()} (${d.errorCode})`);
+      else add('ok', `✓ Connected to Decoder ${d.id} (${eqStations(d).length} channels, ${fmt(d.voltage, 1)} V)`);
     });
   });
   DB.radios.filter(inScope).forEach(r => {
     const no = r.id.split('-')[1];
-    if (r.status === 'offline') add('err', `⚠ Radio ${no} mất kết nối (${r.errorCode})`);
-    else if (r.status === 'warning') add('warn', `⚠ Radio ${no} tín hiệu yếu (${r.signal} dBm)`);
-    else add('ok', `✓ Kiểm tra Radio ${no} (${r.signal} dBm)`);
+    if (r.status === 'offline') add('err', `⚠ Radio ${no} disconnected (${r.errorCode})`);
+    else if (r.status === 'warning') add('warn', `⚠ Radio ${no} weak signal (${r.signal} dBm)`);
+    else add('ok', `✓ Checked Radio ${no} (${r.signal} dBm)`);
   });
   if (scope === 'all' || scope === 'C01') {
     const on = DB.pumps.filter(p => p.status === 'running');
-    add('ok', `✓ Trạm bơm: ${on.length}/${DB.pumps.length} máy đang chạy, áp suất ${fmt(state.flow.pressure, 1)} PSI`);
-    DB.pumps.filter(p => p.status === 'running' && p.pressure > SETTINGS.pressureMax).forEach(p => add('warn', `⚠ Máy bơm ${p.id} áp suất cao ${fmt(p.pressure, 1)} PSI (E-120)`));
+    add('ok', `✓ Pump Station: ${on.length}/${DB.pumps.length} pumps running, pressure ${fmt(state.flow.pressure, 1)} PSI`);
+    DB.pumps.filter(p => p.status === 'running' && p.pressure > SETTINGS.pressureMax).forEach(p => add('warn', `⚠ Pump ${p.id} high pressure ${fmt(p.pressure, 1)} PSI (E-120)`));
   }
   const sens = DB.sensors.filter(s => scope === 'all' || s.courseId === scope || s.mapCourse === scope);
-  add('ok', `✓ Cảm biến: ${sens.filter(s => s.status !== 'offline').length}/${sens.length} phản hồi`);
-  sens.filter(s => s.status === 'warning').forEach(s => add('warn', `⚠ Cảm biến ${s.id} ngoài ngưỡng (${fmt(s.value, SENSOR_TYPES[s.type].dec)} ${SENSOR_TYPES[s.type].unit})`));
+  add('ok', `✓ Sensors: ${sens.filter(s => s.status !== 'offline').length}/${sens.length} responding`);
+  sens.filter(s => s.status === 'warning').forEach(s => add('warn', `⚠ Sensor ${s.id} out of range (${fmt(s.value, SENSOR_TYPES[s.type].dec)} ${SENSOR_TYPES[s.type].unit})`));
   const nOk = steps.filter(s => s.c === 'ok').length, nW = steps.filter(s => s.c === 'warn').length, nE = steps.filter(s => s.c === 'err').length;
   state.diag = Object.assign(state.diag, { running: true, log: [], pct: 0 });
   const t0 = Date.now();
@@ -2899,9 +2899,9 @@ function runDiagnostics() {
       setTimeout(next, 120 + rand() * 180);
     } else {
       state.diag.running = false; state.diag.lastRun = Date.now();
-      state.diag.log.push({ t: fmtTime(new Date()), c: 'sum', m: `Hoàn tất: ${steps.length - 1} kiểm tra · ${nOk - 1} đạt · ${nW} cảnh báo · ${nE} lỗi · ${fmt((Date.now() - t0) / 1000, 1)} giây` });
+      state.diag.log.push({ t: fmtTime(new Date()), c: 'sum', m: `Complete: ${steps.length - 1} checks · ${nOk - 1} passed · ${nW} warnings · ${nE} errors · ${fmt((Date.now() - t0) / 1000, 1)} seconds` });
       if (state.page === 'diagnostics') renderConsole();
-      toast(`Chẩn đoán hoàn tất: ${nW} cảnh báo, ${nE} lỗi`, nE ? 'warning' : 'success');
+      toast(`Diagnostics complete: ${nW} warnings, ${nE} errors`, nE ? 'warning' : 'success');
     }
   };
   if (state.page === 'diagnostics') renderConsole();
@@ -2911,23 +2911,23 @@ PAGES.diagnostics = {
   render() {
     const el = $('#page-diagnostics');
     const f = state.diag;
-    el.innerHTML = pageHead('Chẩn đoán', 'Kiểm tra truyền thông bộ điều khiển, bộ giải mã, radio, máy bơm và cảm biến',
-      `<button class="btn" data-go="equipment/satellites">${icon('chip')}Thiết bị hiện trường</button>`) + `
+    el.innerHTML = pageHead('Diagnostics', 'Check connectivity for controllers, decoders, radios, pumps, and sensors',
+      `<button class="btn" data-go="equipment/satellites">${icon('chip')}Field Equipment</button>`) + `
       <div class="diag-layout">
         <div class="grid">
           <div class="panel diag-summary" id="dg-sum"></div>
-          <div class="panel"><div class="panel-head"><h2>Trạng thái truyền thông</h2><span class="small muted" id="dg-foot"></span></div>
-            <div class="filters"><div class="chips" id="dg-chips">${[['all', 'Tất cả'], ['SAT', 'Bộ điều khiển'], ['DEC', 'Bộ giải mã'], ['RAD', 'Radio']].map(([k, l]) => `<button class="chip" data-f="${k}" aria-pressed="${f.filter === k}">${l}</button>`).join('')}</div>
-              <span class="spacer"></span><div class="field"><label for="dg-status">Trạng thái</label><select class="select" id="dg-status">${[['all', 'Tất cả'], ['online', 'Trực tuyến'], ['warning', 'Cảnh báo'], ['offline', 'Ngoại tuyến']].map(([k, l]) => `<option value="${k}" ${f.status === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
+          <div class="panel"><div class="panel-head"><h2>Comm Status</h2><span class="small muted" id="dg-foot"></span></div>
+            <div class="filters"><div class="chips" id="dg-chips">${[['all', 'All'], ['SAT', 'Controllers'], ['DEC', 'Decoders'], ['RAD', 'Radio']].map(([k, l]) => `<button class="chip" data-f="${k}" aria-pressed="${f.filter === k}">${l}</button>`).join('')}</div>
+              <span class="spacer"></span><div class="field"><label for="dg-status">Status</label><select class="select" id="dg-status">${[['all', 'All'], ['online', 'Online'], ['warning', 'Warning'], ['offline', 'Offline']].map(([k, l]) => `<option value="${k}" ${f.status === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
             <div class="table-wrap max-h" id="dg-table"></div></div>
         </div>
         <div class="grid">
-          <div class="panel"><div class="panel-head"><h2>Chẩn đoán hệ thống</h2></div>
-            <div class="diag-ctrl"><div class="field"><label for="dg-scope">Phạm vi kiểm tra</label><select class="select" id="dg-scope"><option value="all">Toàn hệ thống</option>${DB.courses.map(c => `<option value="${c.id}" ${f.scope === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
-              <button class="btn btn-primary" id="dg-run">${icon('play')}Chạy chẩn đoán</button>
+          <div class="panel"><div class="panel-head"><h2>System Diagnostics</h2></div>
+            <div class="diag-ctrl"><div class="field"><label for="dg-scope">Check Scope</label><select class="select" id="dg-scope"><option value="all">Entire System</option>${DB.courses.map(c => `<option value="${c.id}" ${f.scope === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
+              <button class="btn btn-primary" id="dg-run">${icon('play')}Run Diagnostics</button>
               <div class="progress"><span id="dg-prog" style="width:0"></span></div><span class="small muted" id="dg-last"></span></div>
             <div class="console" id="dg-console" aria-live="polite"></div></div>
-          <div class="panel"><div class="panel-head"><h2>Tra cứu mã lỗi</h2></div><div class="panel-body"><div class="mini-list">${ERROR_CODES.map(([c, t, fix]) => `<div style="flex-direction:column;align-items:flex-start;gap:2px"><span><span class="err-code">${c}</span> · <b>${t}</b></span><span class="small muted">${fix}</span></div>`).join('')}</div></div></div>
+          <div class="panel"><div class="panel-head"><h2>Error Code Reference</h2></div><div class="panel-body"><div class="mini-list">${ERROR_CODES.map(([c, t, fix]) => `<div style="flex-direction:column;align-items:flex-start;gap:2px"><span><span class="err-code">${c}</span> · <b>${t}</b></span><span class="small muted">${fix}</span></div>`).join('')}</div></div></div>
         </div>
       </div>`;
     renderDiagTable(); renderConsole();
@@ -2941,7 +2941,7 @@ PAGES.diagnostics = {
   live() { renderDiagTable(); }
 };
 
-/* ================= 21. Báo cáo ================= */
+/* ================= 21. Reports ================= */
 function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 const srand = key => mulberry32(hashStr(key));
 const sr = (key, a, b2) => a + srand(key)() * (b2 - a);
@@ -2967,13 +2967,13 @@ function repGroups() {
   if (r.course !== 'all') return DB.sites.filter(s => s.courseId === r.course).map(s => ({ name: s.name, holes: hs.filter(h => h.siteId === s.id) }));
   return DB.courses.map(c => ({ name: c.name, holes: hs.filter(h => h.courseId === c.id) }));
 }
-const REP_TABS = { water: 'Lượng nước sử dụng', runtime: 'Thời gian tưới', pumps: 'Hiệu suất máy bơm', flow: 'Lịch sử lưu lượng', sensor: 'Lịch sử cảm biến', equipment: 'Tình trạng thiết bị', schedule: 'Lịch sử lịch tưới' };
+const REP_TABS = { water: 'Water Usage', runtime: 'Irrigation Runtime', pumps: 'Pump Performance', flow: 'Flow History', sensor: 'Sensor History', equipment: 'Equipment Status', schedule: 'Schedule History' };
 function repEquipOptions(tab) {
-  if (tab === 'pumps') return [['all', 'Tất cả máy bơm'], ...DB.pumps.map(p => [p.id, `${p.id} – ${p.name}`])];
+  if (tab === 'pumps') return [['all', 'All Pumps'], ...DB.pumps.map(p => [p.id, `${p.id} – ${p.name}`])];
   if (tab === 'sensor') return Object.entries(SENSOR_TYPES).filter(([k]) => k !== 'rain').map(([k, t]) => [k, t.name]);
-  if (tab === 'equipment') return [['all', 'Tất cả thiết bị'], ['SAT', 'Bộ điều khiển'], ['DEC', 'Bộ giải mã'], ['RAD', 'Thiết bị Radio']];
-  if (tab === 'flow') return [['all', 'Toàn hệ thống (FS-01)'], ...DB.sensors.filter(s => s.type === 'flow').map(s => [s.id, `${s.id} – ${s.location}`])];
-  return [['all', 'Tất cả bộ điều khiển'], ...DB.satellites.filter(s => state.reports.site === 'all' || s.siteId === state.reports.site).map(s => [s.id, `${s.id} – ${s.name}`])];
+  if (tab === 'equipment') return [['all', 'All Devices'], ['SAT', 'Controllers'], ['DEC', 'Decoders'], ['RAD', 'Radio Devices']];
+  if (tab === 'flow') return [['all', 'Entire System (FS-01)'], ...DB.sensors.filter(s => s.type === 'flow').map(s => [s.id, `${s.id} – ${s.location}`])];
+  return [['all', 'All Controllers'], ...DB.satellites.filter(s => state.reports.site === 'all' || s.siteId === state.reports.site).map(s => [s.id, `${s.id} – ${s.name}`])];
 }
 const rCell = (l, v, u, s = '') => `<div><div class="fs-label">${l}</div><div class="fs-value">${v}<small>${u}</small></div><div class="kpi-sub">${s}</div></div>`;
 function buildReport(tab, days) {
@@ -2986,9 +2986,9 @@ function buildReport(tab, days) {
     const tot = sum(totals), prev = tot * sr(r.from + r.to + 'prev', 0.9, 1.12);
     const mx = Math.max(...totals), mi = totals.indexOf(mx);
     return {
-      stats: rCell('Tổng lượng nước', fmt(tot), 'm³', `≈ ${fmt(tot * 264.17)} gallon`) + rCell('Trung bình / ngày', fmt(tot / days.length), 'm³', `${days.length} ngày`) + rCell('Ngày cao nhất', fmt(mx), 'm³', labels[mi]) + rCell('So với kỳ trước', (tot >= prev ? '+' : '') + fmt((tot - prev) / prev * 100, 1), '%', `Kỳ trước ${fmt(prev)} m³`),
-      title: 'Lượng nước theo ngày (m³)', chart: { type: 'bar', stacked: true, labels, unit: 'm³', series: groups.map((g, i) => ({ name: g.name, data: data[i], color: SERIES[i % SERIES.length] })) },
-      cols: ['Ngày', ...groups.map(g => g.name), 'Tổng (m³)', 'Lượng mưa (mm)', 'ET₀ (mm)'],
+      stats: rCell('Total Water Volume', fmt(tot), 'm³', `≈ ${fmt(tot * 264.17)} gallons`) + rCell('Average / Day', fmt(tot / days.length), 'm³', `${days.length} days`) + rCell('Peak Day', fmt(mx), 'm³', labels[mi]) + rCell('vs Previous Period', (tot >= prev ? '+' : '') + fmt((tot - prev) / prev * 100, 1), '%', `Previous period ${fmt(prev)} m³`),
+      title: 'Daily Water Volume (m³)', chart: { type: 'bar', stacked: true, labels, unit: 'm³', series: groups.map((g, i) => ({ name: g.name, data: data[i], color: SERIES[i % SERIES.length] })) },
+      cols: ['Date', ...groups.map(g => g.name), 'Total (m³)', 'Rainfall (mm)', 'ET₀ (mm)'],
       rows: days.map((d, i) => [fmtDate(d), ...data.map(s => fmt(s[i], 1)), `<b>${fmt(totals[i], 1)}</b>`, fmt(weatherOf(d).mm, 1), fmt(weatherOf(d).et0, 1)])
     };
   }
@@ -3002,9 +3002,9 @@ function buildReport(tab, days) {
     });
     const T = sum(rows.map(x => x.hours));
     return {
-      stats: rCell('Tổng thời gian tưới', fmt(T, 1), 'giờ-trạm') + rCell('Số lượt tưới', fmt(sum(rows.map(x => x.runs))), 'lượt') + rCell('Trung bình mỗi hố', fmt(T / (rows.length || 1), 1), 'giờ') + rCell('Tỉ lệ hoàn thành', fmt(avg(rows.map(x => x.comp)), 1), '%'),
-      title: 'Thời gian tưới theo hố (giờ)', chart: { type: 'bar', labels: rows.map(x => x.h.name.replace('Hố ', 'H')), unit: 'giờ', dec: 1, series: [{ name: 'Thời gian tưới', data: rows.map(x => x.hours), color: COLORS.water }] },
-      cols: ['Hố', 'Sân', 'Số trạm', 'Tổng thời gian (giờ)', 'Số lượt', 'TB mỗi lượt (phút)', 'Hoàn thành'],
+      stats: rCell('Total Irrigation Time', fmt(T, 1), 'station-hours') + rCell('Irrigation Runs', fmt(sum(rows.map(x => x.runs))), 'runs') + rCell('Average per Hole', fmt(T / (rows.length || 1), 1), 'hours') + rCell('Completion Rate', fmt(avg(rows.map(x => x.comp)), 1), '%'),
+      title: 'Irrigation Time by Hole (hours)', chart: { type: 'bar', labels: rows.map(x => x.h.name.replace('Hole ', 'H')), unit: 'hours', dec: 1, series: [{ name: 'Irrigation Time', data: rows.map(x => x.hours), color: COLORS.water }] },
+      cols: ['Hole', 'Course', 'Stations', 'Total Time (hours)', 'Runs', 'Avg per Run (min)', 'Completion'],
       rows: rows.map(x => [`<b>${x.h.name}</b>`, esc(courseName(x.h.courseId)), x.sts, fmt(x.hours, 1), fmt(x.runs), fmt(x.runs ? x.hours * 60 / x.runs : 0, 1), `${fmt(x.comp, 1)}%`])
     };
   }
@@ -3017,9 +3017,9 @@ function buildReport(tab, days) {
       return { p, H, fl, pr: 70 + sr(p.id + 'pr', 0, 6) + (p.anomaly ? 14 : 0), kwh, eff: kwh ? fl * 60 * H * GAL_TO_M3 / kwh : 0, starts: Math.round(sum(hrs[i].map(h => h > 0.5 ? (p.jockey ? 5 : 2) : 0))), warn: p.anomaly ? days.length * 2 : 0 };
     });
     return {
-      stats: rCell('Tổng giờ chạy', fmt(sum(rows.map(x => x.H)), 1), 'giờ') + rCell('Điện năng tiêu thụ', fmt(sum(rows.map(x => x.kwh))), 'kWh', `≈ ${fmt(sum(rows.map(x => x.kwh)) * 1.85, 0)} nghìn đồng`) + rCell('Hiệu suất trung bình', fmt(avg(rows.filter(x => x.H).map(x => x.eff)), 2), 'm³/kWh') + rCell('Số lần khởi động', fmt(sum(rows.map(x => x.starts))), 'lần'),
-      title: 'Giờ chạy máy bơm theo ngày', chart: { type: 'bar', labels, unit: 'giờ', dec: 1, series: pumps.map((p, i) => ({ name: p.id, data: hrs[i], color: SERIES[i % SERIES.length] })) },
-      cols: ['Máy bơm', 'Giờ chạy', 'Lưu lượng TB (GPM)', 'Áp suất TB (PSI)', 'Điện năng (kWh)', 'Hiệu suất (m³/kWh)', 'Số lần khởi động', 'Cảnh báo'],
+      stats: rCell('Total Runtime', fmt(sum(rows.map(x => x.H)), 1), 'hours') + rCell('Power Consumption', fmt(sum(rows.map(x => x.kwh))), 'kWh', `≈ $${fmt(sum(rows.map(x => x.kwh)) * 0.12, 0)}`) + rCell('Average Efficiency', fmt(avg(rows.filter(x => x.H).map(x => x.eff)), 2), 'm³/kWh') + rCell('Start Count', fmt(sum(rows.map(x => x.starts))), 'times'),
+      title: 'Daily Pump Runtime', chart: { type: 'bar', labels, unit: 'hours', dec: 1, series: pumps.map((p, i) => ({ name: p.id, data: hrs[i], color: SERIES[i % SERIES.length] })) },
+      cols: ['Pump', 'Runtime', 'Avg Flow (GPM)', 'Avg Pressure (PSI)', 'Power (kWh)', 'Efficiency (m³/kWh)', 'Start Count', 'Warnings'],
       rows: rows.map(x => [`<b>${x.p.id}</b> ${esc(x.p.name)}`, fmt(x.H, 1), fmt(x.fl), fmt(x.pr, 1), fmt(x.kwh), fmt(x.eff, 2), x.starts, x.warn ? `<span class="err-code">${x.warn}</span>` : '0'])
     };
   }
@@ -3027,9 +3027,9 @@ function buildReport(tab, days) {
     const scale = r.equip === 'all' ? 1 : r.equip === 'FS-05' ? 0.1 : 0.34;
     const rows = days.map(d => { const w = weatherOf(d), k = isoDate(d) + r.equip; const peak = sr(k + 'p', 1480, 2080) * (w.rain ? 0.55 : 1) * scale; return { d, peak, hour: `0${Math.floor(sr(k + 'h', 4, 6))}:${pad(Math.floor(sr(k + 'm', 0, 59)))}`, avgF: peak * sr(k + 'a', 0.62, 0.74), vol: sum(hs.map(h => holeVol(h, d))) * scale, over: scale === 1 && peak > SETTINGS.flowMax ? Math.ceil(sr(k + 'o', 1, 4)) : 0 }; });
     return {
-      stats: rCell('Lưu lượng đỉnh', fmt(Math.max(...rows.map(x => x.peak))), 'GPM') + rCell('TB trong giờ tưới', fmt(avg(rows.map(x => x.avgF))), 'GPM') + rCell('Tổng thể tích', fmt(sum(rows.map(x => x.vol))), 'm³') + rCell('Vượt ngưỡng tối đa', sum(rows.map(x => x.over)), 'lần', `Ngưỡng ${fmt(SETTINGS.flowMax)} GPM`),
-      title: 'Lưu lượng đỉnh và trung bình theo ngày (GPM)', chart: { type: 'line', labels, unit: 'GPM', floor: 0, series: [{ name: 'Đỉnh', data: rows.map(x => x.peak), color: COLORS.water, fill: true }, { name: 'Trung bình giờ tưới', data: rows.map(x => x.avgF), color: COLORS.turf }], lines: scale === 1 ? [{ y: SETTINGS.flowMax, color: COLORS.red, label: 'Tối đa' }] : [] },
-      cols: ['Ngày', 'Lưu lượng đỉnh (GPM)', 'Giờ đạt đỉnh', 'TB giờ tưới (GPM)', 'Thể tích (m³)', 'Vượt ngưỡng'],
+      stats: rCell('Peak Flow', fmt(Math.max(...rows.map(x => x.peak))), 'GPM') + rCell('Avg During Irrigation', fmt(avg(rows.map(x => x.avgF))), 'GPM') + rCell('Total Volume', fmt(sum(rows.map(x => x.vol))), 'm³') + rCell('Over Max Threshold', sum(rows.map(x => x.over)), 'times', `Threshold ${fmt(SETTINGS.flowMax)} GPM`),
+      title: 'Daily Peak & Average Flow (GPM)', chart: { type: 'line', labels, unit: 'GPM', floor: 0, series: [{ name: 'Peak', data: rows.map(x => x.peak), color: COLORS.water, fill: true }, { name: 'Irrigation Avg', data: rows.map(x => x.avgF), color: COLORS.turf }], lines: scale === 1 ? [{ y: SETTINGS.flowMax, color: COLORS.red, label: 'Max' }] : [] },
+      cols: ['Date', 'Peak Flow (GPM)', 'Peak Time', 'Irrigation Avg (GPM)', 'Volume (m³)', 'Over Threshold'],
       rows: rows.map(x => [fmtDate(x.d), fmt(x.peak), x.hour, fmt(x.avgF), fmt(x.vol, 1), x.over])
     };
   }
@@ -3040,9 +3040,9 @@ function buildReport(tab, days) {
     const lo = type === 'moisture' ? SETTINGS.moistureMin : null;
     const data = sens.map(s => days.map(d => { const w = weatherOf(d), k = s.id + isoDate(d); let v = type === 'flow' ? (s.id === 'FS-01' ? 1250 : 380) * w.factor * sr(k, 0.85, 1.1) * 0.4 : s.value + sr(k, -1, 1) * (type === 'moisture' ? 2.4 : type === 'level' ? 0.08 : 1.2); if (type === 'moisture' && w.rain) v += 4; return Math.max(0, v); }));
     return {
-      stats: rCell('Số cảm biến', sens.length, 'thiết bị', T.name) + rCell('Giá trị trung bình', fmt(avg(data.flat()), T.dec), T.unit) + rCell('Thấp nhất', fmt(Math.min(...data.flat()), T.dec), T.unit) + rCell('Cao nhất', fmt(Math.max(...data.flat()), T.dec), T.unit),
-      title: `${T.name} – trung bình ngày (${T.unit})`, chart: { type: 'line', labels, unit: T.unit, dec: T.dec, series: sens.map((s, i) => ({ name: s.id, data: data[i], color: SERIES[i % SERIES.length], width: 1.8 })), lines: lo ? [{ y: lo, color: COLORS.amber, label: 'Ngưỡng dưới' }] : [] },
-      cols: ['Cảm biến', 'Vị trí', 'Thấp nhất', 'Cao nhất', 'Trung bình', 'Số ngày vượt ngưỡng', 'Trạng thái hiện tại'],
+      stats: rCell('Sensor Count', sens.length, 'devices', T.name) + rCell('Average Value', fmt(avg(data.flat()), T.dec), T.unit) + rCell('Lowest', fmt(Math.min(...data.flat()), T.dec), T.unit) + rCell('Highest', fmt(Math.max(...data.flat()), T.dec), T.unit),
+      title: `${T.name} – Daily Average (${T.unit})`, chart: { type: 'line', labels, unit: T.unit, dec: T.dec, series: sens.map((s, i) => ({ name: s.id, data: data[i], color: SERIES[i % SERIES.length], width: 1.8 })), lines: lo ? [{ y: lo, color: COLORS.amber, label: 'Lower Threshold' }] : [] },
+      cols: ['Sensor', 'Location', 'Lowest', 'Highest', 'Average', 'Days Over Threshold', 'Current Status'],
       rows: sens.map((s, i) => { const L = type === 'moisture' ? SETTINGS.moistureMin : s.lo; return [`<b>${s.id}</b>`, esc(s.location), fmt(Math.min(...data[i]), T.dec), fmt(Math.max(...data[i]), T.dec), fmt(avg(data[i]), T.dec), data[i].filter(v => (L != null && v < L) || (s.hi != null && v > s.hi)).length, SENSOR_ST[s.status].label]; })
     };
   }
@@ -3052,9 +3052,9 @@ function buildReport(tab, days) {
     const daily = days.map(d => avg(devs.map(x => clamp(up(x) + sr(x.id + isoDate(d), -1.2, 0.6), 80, 100))));
     const inc = devs.map(d => d.status === 'online' ? Math.round(sr(d.id + 'i', 0, 1.4)) : Math.round(sr(d.id + 'i', 2, 6)));
     return {
-      stats: rCell('Tỉ lệ sẵn sàng', fmt(avg(daily), 2), '%') + rCell('Thiết bị trực tuyến', devs.filter(d => d.status === 'online').length, `/ ${devs.length}`) + rCell('Sự cố trong kỳ', sum(inc), 'lần') + rCell('Thời gian khắc phục TB', fmt(sr(r.from + 'mttr', 1.2, 3.8), 1), 'giờ', 'MTTR'),
-      title: 'Tỉ lệ sẵn sàng thiết bị theo ngày (%)', chart: { type: 'line', labels, unit: '%', dec: 2, min: 90, max: 100, series: [{ name: 'Sẵn sàng', data: daily, color: COLORS.turf, fill: true }] },
-      cols: ['Thiết bị', 'Loại', 'Khu vực', 'Trạng thái hiện tại', 'Thời gian hoạt động', 'Số lần mất kết nối', 'Mã lỗi gần nhất'],
+      stats: rCell('Uptime Rate', fmt(avg(daily), 2), '%') + rCell('Devices Online', devs.filter(d => d.status === 'online').length, `/ ${devs.length}`) + rCell('Incidents in Period', sum(inc), 'times') + rCell('Avg Recovery Time', fmt(sr(r.from + 'mttr', 1.2, 3.8), 1), 'hours', 'MTTR'),
+      title: 'Daily Equipment Uptime Rate (%)', chart: { type: 'line', labels, unit: '%', dec: 2, min: 90, max: 100, series: [{ name: 'Uptime', data: daily, color: COLORS.turf, fill: true }] },
+      cols: ['Device', 'Type', 'Area', 'Current Status', 'Uptime', 'Disconnections', 'Last Error Code'],
       rows: devs.map((d, i) => [`<b>${d.id}</b>`, DIAG_KIND[d.id.slice(0, 3)], esc(siteLabel(d.siteId)), EQ_ST[d.status].label, `${fmt(up(d), 2)}%`, inc[i], d.errorCode || '—'])
     };
   }
@@ -3064,11 +3064,11 @@ function buildReport(tab, days) {
   days.forEach(d => DB.programs.filter(p => p.enabled && p.days.includes(weekday(d)) && p.holeIds.some(h => hIds.has(h))).forEach(p => {
     if (sameDay(d, now) && hmToMin(p.start) > nowMin()) return;
     const w = weatherOf(d), k = p.id + isoDate(d), bad = programStations(p).filter(id => !usable(get(id))).length;
-    let res = 'done', label = 'Hoàn thành';
-    if (w.rain && p.priority !== 'high') { res = 'skip'; label = 'Hoãn do mưa'; }
-    else if (sr(k + 'x', 0, 1) < 0.05) { res = 'stop'; label = 'Dừng thủ công'; }
-    else if (bad) { res = 'warn'; label = `Hoàn thành, bỏ qua ${bad} trạm`; }
-    if (sameDay(d, now) && p.state.running) { res = 'run'; label = 'Đang chạy'; }
+    let res = 'done', label = 'Completed';
+    if (w.rain && p.priority !== 'high') { res = 'skip'; label = 'Postponed due to rain'; }
+    else if (sr(k + 'x', 0, 1) < 0.05) { res = 'stop'; label = 'Stopped manually'; }
+    else if (bad) { res = 'warn'; label = `Completed, skipped ${bad} stations`; }
+    if (sameDay(d, now) && p.state.running) { res = 'run'; label = 'Running'; }
     const len = programLen(p) * (res === 'stop' ? 0.4 : 1);
     runs.push({ d, p, res, label, end: minToHM(hmToMin(p.start) + len), n: programStations(p).length - bad, vol: res === 'skip' ? 0 : programVolume(p) * (res === 'stop' ? 0.4 : 1) * sr(k, 0.95, 1.05) });
   }));
@@ -3076,19 +3076,19 @@ function buildReport(tab, days) {
   const cnt = (res, d) => runs.filter(x => (!res || res.includes(x.res)) && (!d || sameDay(x.d, d))).length;
   const RB = { done: 'done', warn: 'warn', skip: 'idle', stop: 'err', run: 'run' };
   return {
-    stats: rCell('Tổng lượt chạy', runs.length, 'lượt') + rCell('Hoàn thành', cnt(['done', 'warn']), 'lượt', `${fmt(cnt(['done', 'warn']) / (runs.length || 1) * 100, 1)}%`) + rCell('Hoãn / dừng', cnt(['skip', 'stop']), 'lượt', 'Do mưa hoặc thao tác thủ công') + rCell('Tổng lượng nước', fmt(sum(runs.map(x => x.vol))), 'm³'),
-    title: 'Kết quả lượt chạy theo ngày', chart: { type: 'bar', stacked: true, labels, unit: 'lượt', series: [{ name: 'Hoàn thành', data: days.map(d => cnt(['done', 'run'], d)), color: COLORS.turf }, { name: 'Bỏ qua trạm lỗi', data: days.map(d => cnt(['warn'], d)), color: COLORS.amber }, { name: 'Hoãn / dừng', data: days.map(d => cnt(['skip', 'stop'], d)), color: COLORS.slate }] },
-    cols: ['Ngày', 'Chương trình', 'Sân', 'Bắt đầu', 'Kết thúc', 'Số trạm', 'Lượng nước (m³)', 'Kết quả'],
+    stats: rCell('Total Runs', runs.length, 'runs') + rCell('Completed', cnt(['done', 'warn']), 'runs', `${fmt(cnt(['done', 'warn']) / (runs.length || 1) * 100, 1)}%`) + rCell('Postponed / Stopped', cnt(['skip', 'stop']), 'runs', 'Due to rain or manual action') + rCell('Total Water Volume', fmt(sum(runs.map(x => x.vol))), 'm³'),
+    title: 'Daily Run Results', chart: { type: 'bar', stacked: true, labels, unit: 'runs', series: [{ name: 'Completed', data: days.map(d => cnt(['done', 'run'], d)), color: COLORS.turf }, { name: 'Skipped Faulty Stations', data: days.map(d => cnt(['warn'], d)), color: COLORS.amber }, { name: 'Postponed / Stopped', data: days.map(d => cnt(['skip', 'stop'], d)), color: COLORS.slate }] },
+    cols: ['Date', 'Program', 'Course', 'Start', 'End', 'Stations', 'Water Volume (m³)', 'Result'],
     rows: runs.slice(0, 300).map(x => [fmtDate(x.d), `<b>${x.p.id}</b> ${esc(x.p.name)}`, esc(courseName(x.p.courseId)), x.p.start, x.end, x.n, fmt(x.vol, 1), b(RB[x.res], x.label)])
   };
 }
 function repValidate() {
   const r = state.reports, f = new Date(r.from + 'T00:00'), t = new Date(r.to + 'T00:00');
-  if (!r.from || isNaN(f)) return ['from', 'Ngày bắt đầu không hợp lệ'];
-  if (!r.to || isNaN(t)) return ['to', 'Ngày kết thúc không hợp lệ'];
-  if (f > t) return ['to', 'Ngày kết thúc phải sau ngày bắt đầu'];
-  if (t > new Date()) return ['to', 'Không thể chọn ngày trong tương lai'];
-  if ((t - f) / 864e5 > 61) return ['from', 'Khoảng thời gian tối đa 62 ngày'];
+  if (!r.from || isNaN(f)) return ['from', 'Invalid start date'];
+  if (!r.to || isNaN(t)) return ['to', 'Invalid end date'];
+  if (f > t) return ['to', 'End date must be after start date'];
+  if (t > new Date()) return ['to', 'Cannot select a future date'];
+  if ((t - f) / 864e5 > 61) return ['from', 'Maximum range is 62 days'];
   return null;
 }
 let lastReport = null;
@@ -3104,8 +3104,8 @@ function renderReportBody() {
     <div class="panel-head" style="border-bottom:0"><h2>${rep.title}</h2>${rep.chart.series.length > 1 ? `<div class="legend">${rep.chart.series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')}</div>` : ''}</div>
     <div class="chart-box h-260"><canvas id="rp-chart"></canvas></div>
     <div class="table-wrap max-h" style="border-top:1px solid var(--line-2)"><table class="table"><thead><tr>${rep.cols.map((c, i) => `<th class="${i ? 'num' : ''}">${c}</th>`).join('')}</tr></thead>
-      <tbody>${rep.rows.map(r => `<tr>${r.map((v, i) => `<td class="${i && !/badge/.test(v) && !/<b>[A-Z]/.test(v) ? 'num' : ''}">${v}</td>`).join('')}</tr>`).join('') || `<tr class="empty"><td colspan="${rep.cols.length}">Không có dữ liệu trong khoảng thời gian đã chọn.</td></tr>`}</tbody></table></div>
-    <div class="table-foot"><span>${rep.rows.length} dòng · ${fmtDate(new Date(state.reports.from))} – ${fmtDate(new Date(state.reports.to))}</span><span>Dữ liệu mô phỏng</span></div>`;
+      <tbody>${rep.rows.map(r => `<tr>${r.map((v, i) => `<td class="${i && !/badge/.test(v) && !/<b>[A-Z]/.test(v) ? 'num' : ''}">${v}</td>`).join('')}</tr>`).join('') || `<tr class="empty"><td colspan="${rep.cols.length}">No data in the selected time range.</td></tr>`}</tbody></table></div>
+    <div class="table-foot"><span>${rep.rows.length} rows · ${fmtDate(new Date(state.reports.from))} – ${fmtDate(new Date(state.reports.to))}</span><span>Simulated data</span></div>`;
   chart($('#rp-chart'), Object.assign({ labelW: 48 }, rep.chart));
 }
 PAGES.reports = {
@@ -3119,17 +3119,17 @@ PAGES.reports = {
     const holes = DB.holes.filter(h => (r.course === 'all' || h.courseId === r.course) && (r.site === 'all' || h.siteId === r.site));
     if (r.hole !== 'all' && !holes.some(h => h.id === r.hole)) r.hole = 'all';
     const sel = (name, label, list, val) => `<div class="field"><label>${label}</label><select class="select" name="${name}">${list.map(([k, l]) => `<option value="${k}" ${val === k ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select><div class="field-error"></div></div>`;
-    $('#page-reports').innerHTML = pageHead('Báo cáo', 'Thống kê vận hành hệ thống tưới – nước, thời gian tưới, máy bơm, cảm biến và thiết bị',
-      `<button class="btn" id="rp-print">${icon('report')}In báo cáo</button><button class="btn btn-primary" id="rp-csv">${icon('download')}Xuất CSV</button>`) + `
+    $('#page-reports').innerHTML = pageHead('Reports', 'Irrigation system operational statistics – water, runtime, pumps, sensors, and equipment',
+      `<button class="btn" id="rp-print">${icon('report')}Print Report</button><button class="btn btn-primary" id="rp-csv">${icon('download')}Export CSV</button>`) + `
       <div class="panel"><div class="tabs" id="rp-tabs" role="tablist">${Object.entries(REP_TABS).map(([k, l]) => `<button class="tab" role="tab" data-tab="${k}" aria-selected="${r.tab === k}">${l}</button>`).join('')}</div>
         <form class="filters" id="rp-filters" onsubmit="return false">
-          <div class="field"><label>Từ ngày</label><input class="input" type="date" name="from" value="${r.from}" max="${isoDate(new Date())}"><div class="field-error"></div></div>
-          <div class="field"><label>Đến ngày</label><input class="input" type="date" name="to" value="${r.to}" max="${isoDate(new Date())}"><div class="field-error"></div></div>
-          <div class="field"><label>Nhanh</label><div class="seg" id="rp-quick"><button type="button" data-q="0">Hôm nay</button><button type="button" data-q="6">7 ngày</button><button type="button" data-q="29">30 ngày</button></div></div>
-          ${sel('course', 'Sân golf', [['all', 'Tất cả sân'], ...DB.courses.map(c => [c.id, c.name])], r.course)}
-          ${sel('site', 'Khu vực', [['all', 'Tất cả khu vực'], ...sites.map(s => [s.id, s.name])], r.site)}
-          ${sel('hole', 'Hố golf', [['all', 'Tất cả hố'], ...holes.map(h => [h.id, h.name])], r.hole)}
-          ${sel('equip', r.tab === 'sensor' ? 'Loại cảm biến' : 'Thiết bị', opts, r.equip)}
+          <div class="field"><label>From Date</label><input class="input" type="date" name="from" value="${r.from}" max="${isoDate(new Date())}"><div class="field-error"></div></div>
+          <div class="field"><label>To Date</label><input class="input" type="date" name="to" value="${r.to}" max="${isoDate(new Date())}"><div class="field-error"></div></div>
+          <div class="field"><label>Quick</label><div class="seg" id="rp-quick"><button type="button" data-q="0">Today</button><button type="button" data-q="6">7 days</button><button type="button" data-q="29">30 days</button></div></div>
+          ${sel('course', 'Golf Course', [['all', 'All Courses'], ...DB.courses.map(c => [c.id, c.name])], r.course)}
+          ${sel('site', 'Area', [['all', 'All Areas'], ...sites.map(s => [s.id, s.name])], r.site)}
+          ${sel('hole', 'Golf Hole', [['all', 'All Holes'], ...holes.map(h => [h.id, h.name])], r.hole)}
+          ${sel('equip', r.tab === 'sensor' ? 'Sensor Type' : 'Device', opts, r.equip)}
         </form>
         <div id="rp-body"></div></div>`;
     renderReportBody();
@@ -3142,22 +3142,22 @@ PAGES.reports = {
     $('#rp-quick').onclick = e => { const q = e.target.closest('[data-q]'); if (!q) return; r.to = isoDate(new Date()); r.from = isoDate(addDays(new Date(), -q.dataset.q)); this.render(); };
     $('#rp-print').onclick = () => window.print();
     $('#rp-csv').onclick = () => {
-      if (!lastReport) { toast('Không có dữ liệu để xuất – kiểm tra lại bộ lọc', 'error'); return; }
+      if (!lastReport) { toast('No data to export – check your filters', 'error'); return; }
       const txt = h => { const d = document.createElement('div'); d.innerHTML = String(h); return d.textContent.trim(); };
-      downloadCSV(`bao-cao-${r.tab}-${r.from}_${r.to}.csv`, [lastReport.cols, ...lastReport.rows.map(row => row.map(txt))]);
+      downloadCSV(`report-${r.tab}-${r.from}_${r.to}.csv`, [lastReport.cols, ...lastReport.rows.map(row => row.map(txt))]);
     };
   }
 };
 
-/* ================= 22. Cài đặt ================= */
+/* ================= 22. Settings ================= */
 const SET_FIELDS = [
-  ['clubName', 'text', 'Tên câu lạc bộ', v => v.trim().length >= 3 ? '' : 'Tên tối thiểu 3 ký tự'],
-  ['interval', 'number', 'Chu kỳ cập nhật dữ liệu (giây)', v => v >= 1 && v <= 30 ? '' : 'Giá trị từ 1 đến 30 giây'],
-  ['simStep', 'number', 'Thời gian mô phỏng mỗi chu kỳ (phút)', v => v >= 0.1 && v <= 5 ? '' : 'Giá trị từ 0,1 đến 5 phút'],
-  ['pressureMax', 'number', 'Áp suất tối đa (PSI)', v => v >= 60 && v <= 120 ? '' : 'Giá trị từ 60 đến 120 PSI'],
-  ['flowMin', 'number', 'Lưu lượng tối thiểu (GPM)', v => v >= 0 && v <= 1000 ? '' : 'Giá trị từ 0 đến 1.000 GPM'],
-  ['flowMax', 'number', 'Lưu lượng tối đa (GPM)', (v, all) => v >= 500 && v <= 5000 ? (v > all.flowMin ? '' : 'Phải lớn hơn lưu lượng tối thiểu') : 'Giá trị từ 500 đến 5.000 GPM'],
-  ['moistureMin', 'number', 'Độ ẩm đất tối thiểu (%)', v => v >= 5 && v <= 40 ? '' : 'Giá trị từ 5 đến 40%']
+  ['clubName', 'text', 'Club Name', v => v.trim().length >= 3 ? '' : 'Name must be at least 3 characters'],
+  ['interval', 'number', 'Data Update Interval (seconds)', v => v >= 1 && v <= 30 ? '' : 'Value from 1 to 30 seconds'],
+  ['simStep', 'number', 'Simulated Time per Cycle (minutes)', v => v >= 0.1 && v <= 5 ? '' : 'Value from 0.1 to 5 minutes'],
+  ['pressureMax', 'number', 'Max Pressure (PSI)', v => v >= 60 && v <= 120 ? '' : 'Value from 60 to 120 PSI'],
+  ['flowMin', 'number', 'Min Flow (GPM)', v => v >= 0 && v <= 1000 ? '' : 'Value from 0 to 1,000 GPM'],
+  ['flowMax', 'number', 'Max Flow (GPM)', (v, all) => v >= 500 && v <= 5000 ? (v > all.flowMin ? '' : 'Must be greater than min flow') : 'Value from 500 to 5,000 GPM'],
+  ['moistureMin', 'number', 'Min Soil Moisture (%)', v => v >= 5 && v <= 40 ? '' : 'Value from 5 to 40%']
 ];
 function applySettings() {
   $('#club-name').textContent = SETTINGS.clubName;
@@ -3171,20 +3171,20 @@ PAGES.settings = {
     const inp = ([k, t, l]) => `<div class="field"><label for="set-${k}">${l}</label><input class="input" id="set-${k}" name="${k}" type="${t}" ${t === 'number' ? 'step="any"' : ''} value="${esc(S[k])}"><div class="field-error"></div></div>`;
     const sw = (k, l, sub) => `<label class="switch"><input type="checkbox" name="${k}" ${S[k] ? 'checked' : ''}><span class="track"></span><span>${l}${sub ? `<span class="cell-sub muted small">${sub}</span>` : ''}</span></label>`;
     const F = k => SET_FIELDS.find(f => f[0] === k);
-    $('#page-settings').innerHTML = pageHead('Cài đặt', 'Cấu hình hệ thống, ngưỡng cảnh báo và mô phỏng dữ liệu') + `
+    $('#page-settings').innerHTML = pageHead('Settings', 'System configuration, alert thresholds, and data simulation') + `
       <form id="set-form" novalidate onsubmit="return false"><div class="settings-grid">
-        <div class="panel"><div class="panel-head"><h2>Thông tin sân golf</h2></div><div class="panel-body">${inp(F('clubName'))}
-          <div class="field"><label>Địa điểm</label><input class="input" value="${esc(CLUB.location)}" disabled></div>
-          <div class="field"><label>Múi giờ</label><select class="select" disabled><option>(GMT+07:00) Hà Nội, Bangkok, Jakarta</option></select></div>
-          <div class="field"><label>Đơn vị đo</label><select class="select" disabled><option>Lưu lượng GPM · Áp suất PSI · Thể tích m³</option></select></div></div></div>
-        <div class="panel"><div class="panel-head"><h2>Mô phỏng dữ liệu</h2><span class="badge b-run">Live Demo</span></div><div class="panel-body">${inp(F('interval'))}${inp(F('simStep'))}
-          ${sw('autoDemo', 'Tự động khởi chạy lịch tưới mô phỏng', 'Khi ít hơn 2 chương trình đang chạy, hệ thống sẽ tự khởi động chương trình kế tiếp')}</div></div>
-        <div class="panel"><div class="panel-head"><h2>Ngưỡng cảnh báo</h2></div><div class="panel-body">${inp(F('pressureMax'))}<div class="form-grid">${inp(F('flowMin'))}${inp(F('flowMax'))}</div>${inp(F('moistureMin'))}</div></div>
-        <div class="panel"><div class="panel-head"><h2>Thông báo</h2></div><div class="panel-body">
-          ${sw('notifyCritical', 'Cảnh báo nghiêm trọng', 'Mất kết nối thiết bị, sự cố máy bơm')}${sw('notifyWarning', 'Cảnh báo', 'Áp suất cao, lưu lượng bất thường, độ ẩm thấp')}${sw('notifyInfo', 'Thông tin', 'Lịch tưới bắt đầu / hoàn thành, thiết bị phục hồi')}
-          <div class="note-box">${icon('info')}<span>Tất cả thông báo vẫn được lưu trong danh sách chuông thông báo; tùy chọn này chỉ ảnh hưởng tới thông báo bật lên.</span></div></div></div>
+        <div class="panel"><div class="panel-head"><h2>Golf Course Information</h2></div><div class="panel-body">${inp(F('clubName'))}
+          <div class="field"><label>Location</label><input class="input" value="${esc(CLUB.location)}" disabled></div>
+          <div class="field"><label>Time Zone</label><select class="select" disabled><option>(GMT+07:00) Hanoi, Bangkok, Jakarta</option></select></div>
+          <div class="field"><label>Units</label><select class="select" disabled><option>Flow GPM · Pressure PSI · Volume m³</option></select></div></div></div>
+        <div class="panel"><div class="panel-head"><h2>Data Simulation</h2><span class="badge b-run">Live Demo</span></div><div class="panel-body">${inp(F('interval'))}${inp(F('simStep'))}
+          ${sw('autoDemo', 'Automatically start simulated irrigation programs', 'When fewer than 2 programs are running, the system will automatically start the next program')}</div></div>
+        <div class="panel"><div class="panel-head"><h2>Alert Thresholds</h2></div><div class="panel-body">${inp(F('pressureMax'))}<div class="form-grid">${inp(F('flowMin'))}${inp(F('flowMax'))}</div>${inp(F('moistureMin'))}</div></div>
+        <div class="panel"><div class="panel-head"><h2>Notifications</h2></div><div class="panel-body">
+          ${sw('notifyCritical', 'Critical Alerts', 'Device disconnections, pump faults')}${sw('notifyWarning', 'Warnings', 'High pressure, abnormal flow, low moisture')}${sw('notifyInfo', 'Info', 'Irrigation program start/completion, device recovery')}
+          <div class="note-box">${icon('info')}<span>All notifications are still saved in the notification bell list; this option only affects pop-up toasts.</span></div></div></div>
       </div>
-      <div class="settings-foot"><button class="btn" id="set-reset">${icon('refresh')}Khôi phục mặc định</button><button class="btn btn-primary" id="set-save">${icon('check')}Lưu thay đổi</button></div></form>`;
+      <div class="settings-foot"><button class="btn" id="set-reset">${icon('refresh')}Restore Defaults</button><button class="btn btn-primary" id="set-save">${icon('check')}Save Changes</button></div></form>`;
     const form = $('#set-form');
     form.addEventListener('input', e => { const f = e.target.closest('.field'); if (f) { f.classList.remove('invalid'); const er = f.querySelector('.field-error'); if (er) er.textContent = ''; } });
     $('#set-save').onclick = () => {
@@ -3192,26 +3192,26 @@ PAGES.settings = {
       SET_FIELDS.forEach(([k, t]) => { vals[k] = t === 'number' ? parseFloat(String(fd.get(k)).replace(',', '.')) : String(fd.get(k) || ''); });
       let first = null;
       SET_FIELDS.forEach(([k, , , check]) => {
-        const v = vals[k], msg = (typeof v === 'number' && isNaN(v)) ? 'Vui lòng nhập số hợp lệ' : check(v, vals);
+        const v = vals[k], msg = (typeof v === 'number' && isNaN(v)) ? 'Please enter a valid number' : check(v, vals);
         const f = $(`[name="${k}"]`, form).closest('.field');
         f.classList.toggle('invalid', !!msg); f.querySelector('.field-error').textContent = msg;
         if (msg && !first) first = $(`[name="${k}"]`, form);
       });
-      if (first) { first.focus(); toast('Vui lòng kiểm tra lại các trường được đánh dấu', 'error'); return; }
+      if (first) { first.focus(); toast('Please review the fields marked below', 'error'); return; }
       Object.assign(SETTINGS, vals, { clubName: vals.clubName.trim() });
       ['autoDemo', 'notifyCritical', 'notifyWarning', 'notifyInfo'].forEach(k => { SETTINGS[k] = !!fd.get(k); });
       applySettings();
-      toast('Đã lưu cài đặt hệ thống', 'success');
+      toast('System settings saved', 'success');
     };
     $('#set-reset').onclick = async () => {
-      if (!await confirmDialog({ title: 'Khôi phục mặc định', message: 'Đặt lại toàn bộ cài đặt về giá trị mặc định của hệ thống?', confirmText: 'Khôi phục', danger: true })) return;
+      if (!await confirmDialog({ title: 'Restore Defaults', message: 'Reset all settings to the system defaults?', confirmText: 'Restore', danger: true })) return;
       Object.assign(SETTINGS, DEFAULT_SETTINGS); applySettings(); this.render();
-      toast('Đã khôi phục cài đặt mặc định', 'success');
+      toast('Default settings restored', 'success');
     };
   }
 };
 
-/* ================= 23. Khởi động ứng dụng ================= */
+/* ================= 23. App Initialization ================= */
 let simTimer = null;
 function restartSim() { clearInterval(simTimer); simTimer = setInterval(simTick, SETTINGS.interval * 1000); }
 (function init() {
