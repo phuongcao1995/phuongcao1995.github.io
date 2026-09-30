@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard — FinBank</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="dashboard" data-title="Dashboard">
+<div id="page">
+  <div class="page-head">
+    <div><h1 id="greet">Hello 👋</h1><p id="dateLine"></p></div>
+    <div class="chips"><a class="btn" href="transfers.html">💸 Transfer money</a><a class="btn btn-outline" href="payments.html#qr">▦ Scan QR</a></div>
+  </div>
+
+  <div id="alertSlot"></div>
+
+  <div class="grid g-main" id="topRow">
+    <div class="hero-card" id="heroCard"></div>
+    <div class="card" id="healthCard"></div>
+  </div>
+
+  <div class="grid g4 keep2 mt-2" id="statRow"></div>
+
+  <div class="card mt-2"><div class="card-head"><h3>Quick actions</h3></div><div class="quick" id="quick"></div></div>
+
+  <div class="grid g-main mt-2">
+    <div class="card"><div class="card-head"><h3>Income vs expenses</h3><span class="badge">Last 12 months</span></div><div id="chIncExp"></div></div>
+    <div class="card"><div class="card-head"><h3>Spending by category</h3><span class="badge">September</span></div><div id="chCat"></div></div>
+  </div>
+
+  <div class="grid g3 mt-2">
+    <div class="card"><div class="card-head"><h3>Account balance history</h3></div><div id="chBal"></div></div>
+    <div class="card"><div class="card-head"><h3>Monthly spending</h3></div><div id="chSpend"></div></div>
+    <div class="card"><div class="card-head"><h3>Savings progress</h3><a href="savings.html">Manage</a></div><div id="goals"></div></div>
+  </div>
+
+  <div class="grid g-main mt-2">
+    <div class="card"><div class="card-head"><h3>Recent transactions</h3><a href="transactions.html">View all</a></div><div class="list" id="recent"></div></div>
+    <div style="display:grid;gap:18px;align-content:start">
+      <div class="card"><div class="card-head"><h3>🤖 AI insights</h3><span class="badge primary">Beta</span></div><div id="insights" style="display:grid;gap:10px"></div></div>
+      <div class="card"><div class="card-head"><h3>Recommended for you</h3></div><div id="recs" class="list"></div></div>
+    </div>
+  </div>
+</div>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

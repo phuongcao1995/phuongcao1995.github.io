@@ -1,0 +1,42 @@
+/* FinBank — responsive */
+@media (max-width: 1200px) {
+  .g4 { grid-template-columns: repeat(2, 1fr); }
+  .g-main { grid-template-columns: 1fr; }
+  .quick { grid-template-columns: repeat(5, 1fr); }
+}
+@media (max-width: 960px) {
+  :root { --sidebar-w: 0px; }
+  .sidebar { display: none; }
+  .main-wrap { margin-left: 0; padding-bottom: calc(var(--bottomnav-h) + 12px); }
+  .bottomnav { display: flex; }
+  .topbar { padding: 0 16px; }
+  .search-box { display: none; }
+  .content { padding: 18px 16px; }
+  .g3 { grid-template-columns: repeat(2, 1fr); }
+  .auth-layout { grid-template-columns: 1fr; }
+  .auth-hero { display: none; }
+  .profile-btn .who { display: none; }
+}
+@media (max-width: 640px) {
+  h1 { font-size: 21px; }
+  .g2, .g3, .g4 { grid-template-columns: 1fr; }
+  .g4.keep2 { grid-template-columns: repeat(2, 1fr); }
+  .row2 { grid-template-columns: 1fr; }
+  .quick { grid-template-columns: repeat(4, 1fr); }
+  .hero-card .big { font-size: 28px; }
+  .kv { grid-template-columns: 1fr; gap: 2px; } .kv dd { margin-bottom: 10px; }
+  .modal-backdrop { align-items: flex-end; padding: 0; }
+  .modal { border-radius: 20px 20px 0 0; max-width: 100% !important; }
+  .toasts { left: 12px; right: 12px; top: 10px; } .toast { max-width: none; }
+  .otp-row input { width: 42px; height: 50px; }
+  .card { padding: 16px; }
+  .page-head { margin-bottom: 16px; }
+  .table.stack thead { display: none; }
+  .table.stack, .table.stack tbody, .table.stack tr, .table.stack td { display: block; width: 100%; }
+  .table.stack tr { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .table.stack td { border: 0; padding: 3px 0; }
+  .table.stack td[data-label]::before { content: attr(data-label) ': '; color: var(--text-3); font-size: 12px; }
+  .steps .step { font-size: 11px; }
+  .topbar .page-title { font-size: 16px; }
+  .toolbar .input, .toolbar .select { flex: 1; min-width: 120px; }
+}

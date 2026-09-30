@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sign in · CineWave</title>
+<meta name="description" content="CineWave — a fictional streaming service demo: movies, TV series, kids mode and a custom video player, built with HTML, CSS and vanilla JavaScript.">
+<meta name="theme-color" content="#0b0d14">
+<link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("cw:theme");document.documentElement.dataset.theme=t?JSON.parse(t):"dark"}catch(e){}</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="css/features.css">
+</head>
+<body data-page="login">
+<header class="site-header" id="site-header"></header>
+<main id="main" class="auth-page">
+  <div class="auth-card">
+    <a class="logo big" href="index.html"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#lg2)"/><path d="M24 18v28l22-14z" fill="#fff"/></svg><span>Cine<b>Wave</b></span></a>
+    <p class="demo-note" role="note"><b>Demo authentication.</b> Accounts exist only in this browser's localStorage and are not secure. Don't enter a real password.</p>
+    <div class="tabs" role="tablist" aria-label="Account"><button type="button" role="tab" data-tab="login" aria-selected="true">Login</button><button type="button" role="tab" data-tab="register" aria-selected="false">Register</button></div>
+    <p id="auth-msg" class="form-msg" role="alert"></p>
+    <form id="login-form" novalidate>
+      <div class="field"><label for="l-email">Email</label><input id="l-email" name="email" type="email" autocomplete="email" required><small class="err" data-err="email"></small></div>
+      <div class="field"><label for="l-pw">Password</label><div class="pw"><input id="l-pw" name="password" type="password" autocomplete="current-password" required><button type="button" class="toggle-pw">Show</button></div><small class="err" data-err="password"></small></div>
+      <div class="row-between"><label class="check"><input type="checkbox" name="remember" checked> Remember me</label><button type="button" class="link-btn" id="forgot">Forgot password?</button></div>
+      <button class="btn btn-primary btn-block btn-lg" type="submit">Login</button>
+      <div class="two"><button type="button" class="btn btn-ghost" id="use-demo">Fill demo user</button><button type="button" class="btn btn-ghost" id="use-admin">Fill admin</button></div>
+    </form>
+    <form id="register-form" hidden novalidate>
+      <div class="field"><label for="r-name">Name</label><input id="r-name" name="name" autocomplete="name" required><small class="err" data-err="name"></small></div>
+      <div class="field"><label for="r-email">Email</label><input id="r-email" name="email" type="email" autocomplete="email" required><small class="err" data-err="email"></small></div>
+      <div class="field"><label for="r-pw">Password</label><div class="pw"><input id="r-pw" name="password" type="password" autocomplete="new-password" required><button type="button" class="toggle-pw">Show</button></div><small class="err" data-err="password"></small></div>
+      <div class="field"><label for="r-pw2">Confirm password</label><input id="r-pw2" name="confirm" type="password" autocomplete="new-password" required><small class="err" data-err="confirm"></small></div>
+      <button class="btn btn-primary btn-block btn-lg" type="submit">Create account</button>
+    </form>
+  </div>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+<script src="js/storage.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>

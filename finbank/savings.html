@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Savings — FinBank</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="savings" data-title="Savings">
+<div id="page">
+<div class="page-head">
+  <div><h1>Savings</h1><p>Grow your money with term deposits and reach your goals.</p></div>
+  <button class="btn" id="quickOpen">＋ Open deposit</button>
+</div>
+<div class="tabs" role="tablist">
+  <button class="tab active" data-tab="overview" role="tab">Overview</button>
+  <button class="tab" data-tab="products" role="tab">Products</button>
+  <button class="tab" data-tab="open" role="tab">Open deposit</button>
+  <button class="tab" data-tab="calc" role="tab">Calculator</button>
+</div>
+
+<div class="tab-panel active" data-panel="overview">
+  <div class="grid g3 mb-2" id="sumStats"></div>
+  <div class="alert mb-2"><span>ℹ️</span><div><b>Early withdrawal:</b> you keep 100% of your principal, but interest is recalculated at the non-term rate of 0.5%/year for the days held. Flexible Savings can be withdrawn anytime with no penalty.</div></div>
+  <div class="card-head"><h2>My deposits</h2></div>
+  <div class="grid g2 mb-2" id="deposits"></div>
+  <div class="card-head mt-3"><h2>Savings goals</h2><button class="btn btn-outline btn-sm" id="newGoal">＋ Create goal</button></div>
+  <div class="grid g2" id="goals"></div>
+</div>
+
+<div class="tab-panel" data-panel="products"><div class="grid g3" id="products"></div></div>
+
+<div class="tab-panel" data-panel="open">
+  <div class="grid g-main" style="align-items:start">
+    <form class="card" id="openForm" novalidate>
+      <div class="card-head"><h3>Open a new deposit</h3></div>
+      <div class="field"><label for="oProd">Product</label><select class="select" id="oProd"></select></div>
+      <div class="field"><label for="oAmt">Amount (VND)</label><input class="input" id="oAmt" inputmode="numeric" placeholder="e.g. 20,000,000" autocomplete="off"><div class="hint" id="oMin"></div></div>
+      <div class="row2">
+        <div class="field"><label for="oTerm">Term</label><select class="select" id="oTerm"></select></div>
+        <div class="field"><label for="oRenew">At maturity</label><select class="select" id="oRenew"><option>Pay out at maturity</option><option>Renew principal only</option><option>Renew principal + interest</option></select></div>
+      </div>
+      <div class="field"><label for="oSrc">Source account</label><select class="select" id="oSrc"></select></div>
+      <label class="check"><input type="checkbox" id="oTerms"> I agree to the deposit terms and understand the early withdrawal rule</label>
+      <div class="err neg mt-1" id="oTermsErr" style="font-size:12.5px"></div>
+      <button class="btn btn-lg btn-block mt-2" type="submit" id="oSubmit">Continue</button>
+    </form>
+    <aside class="card" id="oSummary"></aside>
+  </div>
+</div>
+
+<div class="tab-panel" data-panel="calc">
+  <div class="grid g-main" style="align-items:start">
+    <section class="card">
+      <div class="card-head"><h3>Interest calculator</h3></div>
+      <div class="field"><label for="cPrin">Principal (VND)</label><input class="input" id="cPrin" inputmode="numeric" value="50,000,000" autocomplete="off"></div>
+      <div class="row2">
+        <div class="field"><label for="cTerm">Term</label><select class="select" id="cTerm"><option value="1">1 month</option><option value="3">3 months</option><option value="6">6 months</option><option value="12" selected>12 months</option><option value="24">24 months</option></select></div>
+        <div class="field"><label for="cRateSrc">Interest rate</label><select class="select" id="cRateSrc"></select></div>
+      </div>
+      <div class="field hidden" id="cCustomWrap"><label for="cCustom">Custom rate (% per year)</label><input class="input" id="cCustom" type="number" min="0.1" max="20" step="0.1" value="5"></div>
+      <div id="cResult"></div>
+    </section>
+    <section class="card">
+      <div class="card-head"><h3>Interest by term</h3></div>
+      <div id="cChart"></div>
+    </section>
+  </div>
+</div>
+</div>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/savings.js"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Payments & QR — FinBank</title><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/components.css"><link rel="stylesheet" href="css/responsive.css">
+<style>
+  .vf { position: relative; width: 100%; max-width: 440px; margin: 0 auto; aspect-ratio: 1; border-radius: 18px; overflow: hidden; background: radial-gradient(circle at 50% 35%, #2b3d63, #0a1020 75%); color: #cbd5f0; display: grid; place-items: end center; }
+  .vf .corner { position: absolute; width: 46px; height: 46px; border: 4px solid #2fd6a0; }
+  .vf .c1 { top: 14%; left: 14%; border-right: 0; border-bottom: 0; border-radius: 12px 0 0 0; } .vf .c2 { top: 14%; right: 14%; border-left: 0; border-bottom: 0; border-radius: 0 12px 0 0; }
+  .vf .c3 { bottom: 22%; left: 14%; border-right: 0; border-top: 0; border-radius: 0 0 0 12px; } .vf .c4 { bottom: 22%; right: 14%; border-left: 0; border-top: 0; border-radius: 0 0 12px 0; }
+  .vf .line { position: absolute; left: 14%; right: 14%; height: 3px; background: #2fd6a0; box-shadow: 0 0 16px 3px #2fd6a0; animation: vfscan 2.2s ease-in-out infinite alternate; }
+  .vf.scanning .line { animation-duration: .5s; } .vf.torch { background: radial-gradient(circle at 50% 35%, #56709f, #1a2440 75%); }
+  .vf .msg { position: relative; padding: 0 16px 18px; font-size: 13px; text-align: center; }
+  @keyframes vfscan { from { top: 16%; } to { top: 74%; } }
+  .qr-box { background: #fff; border-radius: 16px; padding: 14px; width: 100%; max-width: 280px; margin: 0 auto; position: relative; box-shadow: var(--shadow); }
+  .qr-box svg { display: block; width: 100%; height: auto; }
+  .qr-logo { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 17%; aspect-ratio: 1; background: #fff; border-radius: 8px; display: grid; place-items: center; }
+  .qr-logo b { background: var(--primary); color: #fff; width: 78%; aspect-ratio: 1; border-radius: 7px; display: grid; place-items: center; font-size: 14px; }
+  .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
+  .cat-grid .selectable { text-align: center; padding: 12px 6px; font-size: 12.5px; font-weight: 600; } .cat-grid .selectable span { display: block; font-size: 24px; margin-bottom: 4px; }
+  .amt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+  .amt-grid .selectable { text-align: center; font-weight: 700; padding: 12px 6px; }
+  .m-head { display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 14px; background: var(--surface-2); margin-bottom: 18px; }
+  .m-head .row-icon { width: 52px; height: 52px; font-size: 26px; }
+  @media (max-width: 640px) { .vf { max-width: none; border-radius: 14px; } }
+</style></head>
+<body data-page="payments" data-title="Payments & QR"><div id="page">
+  <div class="page-head"><div><h1>Payments &amp; QR</h1><p>Scan to pay, settle bills and top up your phone.</p></div></div>
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="qr" data-hash role="tab">▦ QR Pay</button>
+    <button class="tab" data-tab="bills" data-hash role="tab">🧾 Bills</button>
+    <button class="tab" data-tab="topup" data-hash role="tab">📱 Top-up</button>
+    <button class="tab" data-tab="history" data-hash role="tab">🕘 History</button>
+  </div>
+
+  <div class="tab-panel active" data-panel="qr">
+    <div class="card" style="max-width:820px;margin:0 auto">
+      <div class="chips" id="qrModes" style="margin-bottom:18px"><button class="chip active" data-mode="scan">📷 Scan QR</button><button class="chip" data-mode="gen">▦ Generate my QR</button></div>
+      <div id="qrBody"></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" data-panel="bills">
+    <div class="grid g-main">
+      <div class="card">
+        <div class="card-head"><h3>Pay a bill</h3></div>
+        <div class="cat-grid" id="catGrid"></div>
+        <div id="billForm" class="hidden" style="margin-top:20px">
+          <div class="row2">
+            <div class="field"><label for="b-prov">Service provider</label><select class="select" id="b-prov"></select></div>
+            <div class="field"><label for="b-cid">Customer ID / contract no.</label><div class="flex gap-1"><input class="input" id="b-cid" maxlength="20" placeholder="e.g. PE05010123456" autocomplete="off"><button class="btn" id="b-get" style="white-space:nowrap">Retrieve bill</button></div></div>
+          </div>
+        </div>
+        <div id="billOut" aria-live="polite"></div>
+      </div>
+      <div class="card"><div class="card-head"><h3>Saved billers</h3><span class="badge" id="billerCount">0</span></div><div class="list" id="billers"></div></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" data-panel="topup">
+    <div class="card" style="max-width:640px;margin:0 auto" id="topupBody"></div>
+  </div>
+
+  <div class="tab-panel" data-panel="history">
+    <div class="card">
+      <div class="card-head"><h3>Payment history</h3><span class="muted" id="histSum"></span></div>
+      <div class="chips" id="histChips" style="margin-bottom:12px"></div>
+      <div class="list" id="histList"></div><div id="histPager"></div>
+    </div>
+  </div>
+</div>
+<script src="js/data.js"></script><script src="js/app.js"></script><script src="js/payments.js"></script></body></html>

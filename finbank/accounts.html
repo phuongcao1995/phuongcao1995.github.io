@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Accounts — FinBank</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="accounts" data-title="Accounts">
+<div id="page">
+<div class="page-head">
+  <div><h1>Accounts</h1><p>Manage your accounts, view balances and statements.</p></div>
+  <div class="flex gap-1 wrap">
+    <button class="btn btn-outline" id="toggleAll">👁 Show numbers</button>
+    <button class="btn" id="openAcc">＋ Open new account</button>
+  </div>
+</div>
+<div class="grid g4 mb-2" id="cards"></div>
+<div class="grid g-main" style="align-items:start">
+  <section class="card" id="detail" aria-live="polite"></section>
+  <aside class="card" id="side"></aside>
+</div>
+<section class="card mt-2">
+  <div class="card-head"><h3>Transaction history</h3><span class="muted" id="histAcc"></span></div>
+  <div class="toolbar">
+    <input class="input grow" id="q" type="search" placeholder="Search description, reference, counterparty…" aria-label="Search transactions">
+    <select class="select" id="fType" aria-label="Type"><option value="">All types</option><option value="in">Money in</option><option value="out">Money out</option></select>
+    <select class="select" id="fStatus" aria-label="Status"><option value="">All statuses</option><option>Completed</option><option>Pending</option><option>Failed</option><option>Cancelled</option></select>
+    <input class="input" type="date" id="fFrom" aria-label="From date">
+    <input class="input" type="date" id="fTo" aria-label="To date">
+    <select class="select" id="fSort" aria-label="Sort"><option value="date-desc">Newest first</option><option value="date-asc">Oldest first</option><option value="amt-desc">Amount: high to low</option><option value="amt-asc">Amount: low to high</option></select>
+    <button class="btn btn-ghost btn-sm" id="fClear">Clear</button>
+  </div>
+  <div id="hist"></div>
+  <div id="pager"></div>
+</section>
+</div>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/accounts.js"></script>
+</body>
+</html>

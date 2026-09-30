@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cards — FinBank</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="cards" data-title="Cards">
+<div id="page">
+<style>
+  .card-visual { position: relative; }
+  .card-visual .frozen-tag { position: absolute; top: 14px; right: 14px; z-index: 2; background: rgba(0,0,0,.6); color: #fff; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .credit-card .row-bottom { display: flex; justify-content: space-between; align-items: flex-end; position: relative; z-index: 1; }
+  .credit-card small { opacity: .75; display: block; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; }
+  .credit-card .top { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1; }
+  .ov-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .ov-grid .stat .val { font-size: 18px; }
+  @media (max-width: 640px) { .ov-grid { grid-template-columns: 1fr 1fr; } }
+</style>
+<div class="page-head">
+  <div><h1>Cards</h1><p>Manage your credit card, controls and payments.</p></div>
+  <div class="flex gap-1 wrap">
+    <button class="btn btn-outline" id="lostBtn">🚨 Report lost card</button>
+    <button class="btn" id="payBtn">💳 Pay card bill</button>
+  </div>
+</div>
+<div id="frozenAlert"></div>
+<div class="grid g-main" style="align-items:start">
+  <div class="grid" style="gap:18px">
+    <section class="card">
+      <div class="grid g2" style="align-items:center">
+        <div class="card-visual" id="visual"></div>
+        <div>
+          <div class="flex between items-center"><b id="cName"></b><span class="badge" id="cStatus"></span></div>
+          <div class="flex gap-1 wrap mt-1">
+            <button class="btn btn-outline btn-sm" id="revealBtn">👁 Show card number</button>
+            <button class="btn btn-outline btn-sm" id="pinBtn">🔑 Change PIN</button>
+          </div>
+          <div class="mt-2">
+            <div class="flex between" style="font-size:13px"><span class="muted">Credit utilization</span><b id="utilPct"></b></div>
+            <div class="progress mt-1" id="utilBar"><i></i></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-head"><h3>Card overview</h3></div>
+      <div class="ov-grid" id="overview"></div>
+    </section>
+    <section class="card">
+      <div class="card-head"><h3>Recent card transactions</h3><a href="transactions.html?q=card">View all</a></div>
+      <div class="list" id="cardTx"></div>
+    </section>
+  </div>
+  <div class="grid" style="gap:18px">
+    <section class="card">
+      <div class="card-head"><h3>Card controls</h3></div>
+      <div id="controls"></div>
+    </section>
+    <section class="card">
+      <div class="card-head"><h3>Spending limit</h3><b id="limVal"></b></div>
+      <p class="muted" style="font-size:13px">Set the maximum amount allowed per single card transaction.</p>
+      <input type="range" id="limRange" min="1000000" max="50000000" step="1000000" class="mt-2" aria-label="Per-transaction card limit">
+      <div class="flex between muted" style="font-size:12px"><span>1M</span><span>50M</span></div>
+      <button class="btn btn-block mt-2" id="limSave" disabled>Save limit</button>
+    </section>
+  </div>
+</div>
+</div>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/cards.js"></script>
+</body>
+</html>

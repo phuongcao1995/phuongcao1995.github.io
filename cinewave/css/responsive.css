@@ -1,0 +1,121 @@
+/* CineWave — responsive.css
+   Desktop-first breakpoints: 1280 laptop · 1100 compact nav · 900 tablet · 640 mobile.
+   Mobile is a different layout (bottom nav, 2-column grid, full-bleed player), not a shrunken desktop. */
+
+@media (max-width: 1400px) { :root { --card-w: 176px; } }
+
+@media (max-width: 1100px) {
+  .nav { display: none; }
+  .only-compact { display: inline-grid !important; }
+  .btn.only-compact { display: inline-flex !important; }
+  .header-inner { gap: 10px; }
+  .watch-layout { grid-template-columns: 1fr; }
+  .watch-side { max-height: 460px; }
+  .detail-grid { grid-template-columns: 220px 1fr; gap: 28px; }
+}
+
+@media (max-width: 900px) {
+  :root { --card-w: 160px; --grid-min: 150px; }
+  body.kids { --card-w: 200px; --grid-min: 170px; }
+  .search-layout { grid-template-columns: 1fr; }
+  .filters-side { position: static; display: none; grid-template-columns: 1fr 1fr; }
+  .filters-side.open { display: grid; }
+  .filters-head { grid-column: 1 / -1; }
+  .ep { grid-template-columns: 160px 1fr auto; }
+  .hist-item { grid-template-columns: 160px 1fr; }
+  .hist-actions { grid-column: 1 / -1; }
+  .footer-inner { grid-template-columns: 1fr; }
+  .row-arrow { display: none; }
+  .detail-hero { min-height: 0; }
+}
+
+@media (max-width: 640px) {
+  :root { --header-h: 58px; --card-w: 140px; --grid-min: 140px; --gutter: 14px; }
+  body { padding-bottom: calc(60px + env(safe-area-inset-bottom)); font-size: 15px; }
+  .bottom-nav { display: flex; }
+  .toasts { bottom: 76px; right: 12px; left: 12px; max-width: none; }
+  .logo { font-size: 19px; }
+  .logo svg { width: 30px; height: 30px; }
+  .lang { display: none; }
+  .dropdown, .dropdown.notif { position: fixed; top: calc(var(--header-h) + 6px); right: 8px; left: 8px; width: auto; }
+
+  /* header search becomes a full-width bar over the header */
+  .hsearch.open { position: absolute; inset: 8px var(--gutter); background: var(--surface); z-index: 5; }
+  .hsearch.open input { width: 100%; flex: 1; }
+  .hsearch .suggest { min-width: 0; }
+
+  /* 2-column poster grid, compact cards */
+  .grid { grid-template-columns: repeat(2, 1fr); gap: 18px 12px; }
+  .card-title { font-size: 13.5px; }
+  .card-meta { font-size: 11.5px; }
+  .card-poster > .badge.kind { display: none; }
+  .row.wide .row-scroll > * { flex-basis: 268px; }
+  .row-scroll { gap: 12px; }
+
+  .hero { height: clamp(480px, 78vh, 620px); }
+  .hero.hero-sm { height: 440px; }
+  .slide-shade { background: linear-gradient(to top, var(--bg) 4%, rgba(6, 8, 14, 0.7) 45%, rgba(6, 8, 14, 0.25) 100%); }
+  .slide-content { bottom: 66px; text-align: left; }
+  .slide-content h2 { font-size: 32px; }
+  .desc { -webkit-line-clamp: 2; font-size: 14.5px; }
+  .btn-row .btn-lg { flex: 1 1 auto; padding-inline: 16px; }
+  .hero-arrows { display: none; }
+  .hero-ctrl { bottom: 22px; }
+
+  .page { padding-top: calc(var(--header-h) + 18px); }
+  .page-head { flex-direction: column; align-items: flex-start; }
+  .filters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .filters .field { min-width: 0; }
+  .filters .btn { grid-column: 1 / -1; }
+  .genre-tiles { grid-template-columns: repeat(2, 1fr); }
+  .genre-tile { min-height: 90px; }
+
+  .detail-grid { grid-template-columns: 1fr; gap: 20px; }
+  .detail-poster { width: 46%; max-width: 180px; }
+  .detail-hero { padding-top: calc(var(--header-h) + 18px); }
+  .info-grid { grid-template-columns: 1fr 1fr; }
+  .ep { grid-template-columns: 120px 1fr; gap: 12px; padding: 10px; }
+  .ep > .btn-icon { display: none; }
+  .ep-desc { display: none; }
+  .hist-item { grid-template-columns: 110px 1fr; gap: 12px; }
+  .hide-sm { display: none; }
+  .search-bar { flex-wrap: wrap; }
+  .sb-input { flex-basis: 100%; }
+  .search-bar .btn:not(.only-compact) { flex: 1; }
+  .filters-side { grid-template-columns: 1fr; }
+
+  /* player goes edge-to-edge; big touch targets */
+  .watch-page { padding-inline: 0; padding-top: var(--header-h); }
+  .watch-info, .watch-side, .watch-page > #watch > .row { margin-inline: var(--gutter); }
+  .watch-page #watch > .row { padding-inline: 0; }
+  .player { border-radius: 0; }
+  .p-btn { min-width: 46px; height: 46px; }
+  .p-controls { padding: 30px 8px 6px; }
+  .vol { display: none; }
+  .skip-intro { bottom: 84px; right: 10px; }
+  .big-play { width: 68px; height: 68px; }
+  .captions { bottom: 78px; max-width: 92%; }
+  .p-menu { right: 6px; bottom: 70px; }
+
+  .plans { grid-template-columns: 1fr; }
+  .profile-head { gap: 16px; }
+  .avatar.xl { width: 78px; height: 78px; font-size: 32px; }
+  .auth-card { padding: 22px 18px; }
+  .kids-banner { flex-direction: column; text-align: center; }
+  body.kids .grid { grid-template-columns: repeat(2, 1fr); }
+  .modal, .modal.wide { width: calc(100vw - 20px); }
+}
+
+/* touch devices: no hover overlay — tap opens details; keep list button reachable on My List */
+@media (hover: none) {
+  .card-overlay { display: none; }
+  .card:hover .card-poster { transform: none; box-shadow: none; }
+  .row-arrow { display: none; }
+}
+
+/* landscape phones: keep the player usable */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+  .watch-page { padding-top: 0; }
+  .player { aspect-ratio: auto; height: 100vh; }
+  .hero { height: 100vh; }
+}

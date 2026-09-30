@@ -54,4 +54,16 @@ const PROJECTS = [
     description: "Learn English, speak with confidence — courses, level tests, AI pronunciation coach, grammar, vocabulary and live classes for Vietnamese learners.",
     href: "englishup/index.html",
   },
+  {
+    tag: "Video Streaming",
+    title: "CineWave",
+    description: "A movie and TV streaming prototype — hero carousel, series and episodes, custom video player, kids mode, My List, watch history and membership plans.",
+    href: "cinewave/index.html",
+  },
+  {
+    tag: "Banking / FinTech",
+    title: "FinBank",
+    description: "A Vietnamese digital banking demo — transfers, VietQR, bill pay, top-up, savings, loans, cards, personal finance, security center and an admin portal.",
+    href: "finbank/index.html",
+  },
 ];

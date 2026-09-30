@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Loans — FinBank</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="loans" data-title="Loans">
+<div id="page">
+<style>
+  .amt-row { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .method-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .big-num { font-size: 30px; font-weight: 800; letter-spacing: -.02em; color: var(--primary); }
+  .loan-form-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
+  .app-card + .app-card { margin-top: 16px; }
+</style>
+<div class="page-head">
+  <div><h1>Loans</h1><p>Explore loan products, plan repayments and manage your borrowing.</p></div>
+  <button class="btn" id="quickApply">＋ Apply for a loan</button>
+</div>
+<div class="tabs" role="tablist">
+  <button class="tab active" data-tab="products" role="tab">Products</button>
+  <button class="tab" data-tab="calc" role="tab">Calculator</button>
+  <button class="tab" data-tab="apply" role="tab">Apply</button>
+  <button class="tab" data-tab="mine" role="tab">My loans</button>
+  <button class="tab" data-tab="apps" role="tab">Applications</button>
+</div>
+
+<div class="tab-panel active" data-panel="products"><div class="grid g3" id="products"></div></div>
+
+<div class="tab-panel" data-panel="calc">
+  <div class="grid g-main" style="align-items:start">
+    <section class="card">
+      <div class="card-head"><h3>Loan calculator</h3></div>
+      <div class="field"><label for="kPreset">Loan type</label><select class="select" id="kPreset"></select></div>
+      <div class="field"><label for="kAmt">Loan amount (VND)</label>
+        <div class="amt-row"><input class="input" id="kAmt" inputmode="numeric" autocomplete="off"><input type="range" id="kRange" min="10000000" max="5000000000" step="10000000" aria-label="Loan amount slider"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="kTerm">Term</label><select class="select" id="kTerm"></select></div>
+        <div class="field"><label for="kRate">Interest rate (% / year)</label><input class="input" id="kRate" type="number" min="0" max="30" step="0.1"></div>
+      </div>
+      <div class="field"><span class="label">Repayment method</span>
+        <div class="method-toggle"><button type="button" class="selectable selected" data-method="reducing"><b>Reducing balance</b><div class="muted" style="font-size:12.5px">Interest on remaining principal</div></button><button type="button" class="selectable" data-method="flat"><b>Flat rate</b><div class="muted" style="font-size:12.5px">Interest on original principal</div></button></div>
+      </div>
+    </section>
+    <section class="card" id="kResult"></section>
+  </div>
+  <section class="card mt-2">
+    <div class="card-head"><h3>Amortization schedule</h3><button class="btn btn-outline btn-sm" id="kCsv">⬇️ CSV</button></div>
+    <div id="kTable"></div><div id="kPager"></div>
+  </section>
+</div>
+
+<div class="tab-panel" data-panel="apply">
+  <section class="card" style="max-width:760px;margin:0 auto">
+    <div class="steps" id="aSteps"><div class="step current" data-n="1">Loan</div><div class="step" data-n="2">Your details</div><div class="step" data-n="3">Review</div></div>
+    <div data-a="1">
+      <div class="field"><label for="aProd">Loan product</label><select class="select" id="aProd"></select></div>
+      <div class="row2">
+        <div class="field"><label for="aAmt">Amount (VND)</label><input class="input" id="aAmt" inputmode="numeric" autocomplete="off"><div class="hint" id="aAmtHint"></div></div>
+        <div class="field"><label for="aTerm">Term</label><select class="select" id="aTerm"></select></div>
+      </div>
+      <div class="field"><label for="aPurpose">Purpose</label><select class="select" id="aPurpose"><option value="">Select purpose…</option><option>Home purchase or renovation</option><option>Vehicle purchase</option><option>Business capital</option><option>Education</option><option>Medical expenses</option><option>Debt consolidation</option><option>Other personal needs</option></select></div>
+      <div class="alert" id="aEst"></div>
+    </div>
+    <div data-a="2" class="hidden">
+      <div class="row2">
+        <div class="field"><label for="aName">Full name</label><input class="input" id="aName" readonly></div>
+        <div class="field"><label for="aPhone">Phone</label><input class="input" id="aPhone" readonly></div>
+      </div>
+      <div class="field"><label for="aEmployer">Employer</label><input class="input" id="aEmployer" maxlength="80"></div>
+      <div class="row2">
+        <div class="field"><label for="aJob">Job title</label><input class="input" id="aJob" maxlength="60"></div>
+        <div class="field"><label for="aIncome">Monthly income (VND)</label><input class="input" id="aIncome" inputmode="numeric"></div>
+      </div>
+      <div class="alert" id="aDti"></div>
+    </div>
+    <div data-a="3" class="hidden">
+      <div id="aReview"></div>
+      <label class="check mt-2"><input type="checkbox" id="aC1"> I confirm the information provided is accurate and complete.</label>
+      <label class="check mt-1"><input type="checkbox" id="aC2"> I authorize FinBank to check my credit history with the Credit Information Centre (CIC).</label>
+      <div class="err neg mt-1" id="aErr" style="font-size:12.5px"></div>
+    </div>
+    <div class="loan-form-nav"><button class="btn btn-outline" id="aBack" disabled>Back</button><button class="btn" id="aNext">Continue</button></div>
+  </section>
+</div>
+
+<div class="tab-panel" data-panel="mine"><div id="mine"></div></div>
+<div class="tab-panel" data-panel="apps"><div id="apps"></div></div>
+</div>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/loans.js"></script>
+</body>
+</html>

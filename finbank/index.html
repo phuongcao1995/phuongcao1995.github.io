@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FinBank — Digital Banking</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body class="auth-body" data-shell="none" data-page="auth">
+<div class="auth-layout">
+  <section class="auth-hero">
+    <a class="brand" href="index.html" style="padding:0"><span class="brand-mark">F</span>FinBank</a>
+    <div>
+      <h1>Banking that moves at the speed of your life.</h1>
+      <p>Transfer 24/7 via Napas, pay bills, scan VietQR, save and borrow — all in one secure app.</p>
+      <div class="hero-features">
+        <div><span>⚡</span><span>Instant transfers to 40+ Vietnamese banks</span></div>
+        <div><span>🛡️</span><span>Biometric login, OTP and real-time fraud alerts</span></div>
+        <div><span>🤖</span><span>AI insights that help you spend smarter</span></div>
+      </div>
+    </div>
+    <small style="opacity:.7;position:relative;z-index:1">Portfolio demo project · all data is fictional · no real money or credentials</small>
+  </section>
+
+  <section class="auth-panel">
+    <div class="auth-card">
+      <div id="banner"></div>
+
+      <!-- LOGIN -->
+      <form id="loginForm" class="view" novalidate>
+        <h2>Welcome back 👋</h2>
+        <p class="sub">Log in to your FinBank account.</p>
+        <div class="field"><label for="lUser">Username or phone number</label><input class="input" id="lUser" autocomplete="username" placeholder="minhanh or 0912345678"><div class="err"></div></div>
+        <div class="field"><label for="lPass">Password</label><div class="input-group"><input class="input" id="lPass" type="password" autocomplete="current-password" placeholder="••••••••"><button type="button" class="toggle" data-eye="lPass" aria-label="Show password">👁️</button></div><div class="err"></div></div>
+        <div class="auth-links"><label class="check"><input type="checkbox" id="lRemember"> Remember me</label><a href="#" data-go="forgot">Forgot password?</a></div>
+        <button class="btn btn-lg btn-block" id="loginBtn" type="submit">Log in</button>
+        <button class="btn btn-lg btn-block btn-outline mt-1" id="bioBtn" type="button">🫆 Log in with biometrics</button>
+        <p class="center mt-2 text-2">New to FinBank? <a href="#" data-go="register">Open an account</a></p>
+        <div class="demo-box"><b>Demo credentials</b><br>User: <code>minhanh</code> · Password: <code>Demo@1234</code> · OTP: <code>123456</code>
+          <div class="mt-1"><button type="button" class="btn btn-sm btn-outline" id="fillDemo">Fill for me</button></div></div>
+      </form>
+
+      <!-- REGISTER -->
+      <form id="regForm" class="view hidden" novalidate>
+        <h2>Open an account</h2>
+        <p class="sub">Takes about 3 minutes. eKYC is simulated in this demo.</p>
+        <div class="field"><label for="rName">Full name</label><input class="input" id="rName" placeholder="e.g. Tran Van Nam"><div class="err"></div></div>
+        <div class="row2">
+          <div class="field"><label for="rPhone">Phone number</label><input class="input" id="rPhone" inputmode="tel" placeholder="09xx xxx xxx"><div class="err"></div></div>
+          <div class="field"><label for="rEmail">Email</label><input class="input" id="rEmail" type="email" placeholder="you@example.vn"><div class="err"></div></div>
+        </div>
+        <div class="field"><label for="rPass">Password</label><div class="input-group"><input class="input" id="rPass" type="password" autocomplete="new-password"><button type="button" class="toggle" data-eye="rPass" aria-label="Show password">👁️</button></div><div class="progress mt-1" id="strength"><i style="width:0"></i></div><div class="hint" id="strengthTxt">Use 8+ characters with upper, lower, number and symbol.</div><div class="err"></div></div>
+        <label class="check mb-2"><input type="checkbox" id="rAgree"> <span>I agree to the <a href="#" data-terms>Terms & Privacy Policy</a></span></label>
+        <div class="err neg hidden" id="rAgreeErr" style="font-size:12.5px;margin:-8px 0 12px">Please accept the terms to continue.</div>
+        <button class="btn btn-lg btn-block" type="submit">Continue</button>
+        <p class="center mt-2 text-2">Already a customer? <a href="#" data-go="login">Log in</a></p>
+      </form>
+
+      <!-- FORGOT -->
+      <form id="forgotForm" class="view hidden" novalidate>
+        <h2>Reset password</h2>
+        <p class="sub">Enter your registered phone number. We will send a one-time code.</p>
+        <div id="fStep1">
+          <div class="field"><label for="fPhone">Phone number</label><input class="input" id="fPhone" inputmode="tel" placeholder="0912 345 678"><div class="err"></div></div>
+          <button class="btn btn-lg btn-block" type="submit">Send OTP</button>
+        </div>
+        <div id="fStep2" class="hidden">
+          <div class="field"><label for="fNew">New password</label><input class="input" id="fNew" type="password" autocomplete="new-password"><div class="err"></div></div>
+          <div class="field"><label for="fNew2">Confirm new password</label><input class="input" id="fNew2" type="password" autocomplete="new-password"><div class="err"></div></div>
+          <button class="btn btn-lg btn-block" type="submit">Update password</button>
+        </div>
+        <p class="center mt-2"><a href="#" data-go="login">← Back to log in</a></p>
+      </form>
+
+      <!-- LOCKED -->
+      <div id="lockedView" class="view hidden">
+        <div class="center"><div class="big-ico" style="background:var(--danger-50);width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-size:34px;margin:0 auto 12px">🔒</div>
+        <h2>Account temporarily locked</h2>
+        <p class="sub">Too many failed login attempts. To protect your money we locked access for <b id="lockTime">5:00</b>.</p></div>
+        <div class="alert danger"><span>⚠️</span><span>If this wasn't you, change your password immediately and contact hotline <b>1900 5555</b>. FinBank staff will never ask for your OTP or password.</span></div>
+        <button class="btn btn-lg btn-block mt-2" id="unlockBtn">Unlock with OTP</button>
+        <p class="center mt-2"><a href="#" data-go="login">← Back to log in</a></p>
+      </div>
+    </div>
+  </section>
+</div>
+<div style="position:fixed;top:14px;right:14px;z-index:5"><button class="icon-btn" id="themeBtn" aria-label="Toggle theme">🌓</button></div>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinBank Admin Portal (demo)</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    /* Admin-only additions */
+    .admin-login { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: radial-gradient(1000px 500px at 10% -10%, #2a4cff33, transparent), radial-gradient(800px 400px at 100% 110%, #0fb98133, transparent), var(--bg); }
+    .admin-login .card { width: 100%; max-width: 400px; padding: 28px; }
+    .admin-login .brand { color: var(--text); padding: 0 0 18px; }
+    .admin-chips { display: none; gap: 8px; overflow-x: auto; padding: 0 0 14px; margin: 0 -2px 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .admin-chips::-webkit-scrollbar { display: none; }
+    .admin-chips .chip { white-space: nowrap; flex: none; text-decoration: none; color: var(--text); }
+    .admin-chips .chip.active { color: #fff; }
+    .admin-chips .chip:hover { text-decoration: none; }
+    @media (max-width: 960px) { .admin-chips { display: flex; } }
+    @media (max-width: 640px) { .topbar .cust-link { display: none; } }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .kpi { display: flex; flex-direction: column; gap: 4px; padding: 16px; }
+    .kpi .val { font-size: 21px; font-weight: 800; letter-spacing: -.02em; }
+    .kpi .lbl { color: var(--text-3); font-size: 12.5px; font-weight: 500; }
+    .kpi .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 6px; }
+    .kpi svg { width: 84px; height: 28px; flex: none; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+    .split.main { grid-template-columns: 2fr 1fr; }
+    @media (max-width: 1100px) { .split, .split.main { grid-template-columns: 1fr; } }
+    .alert-row { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .alert-row:last-child { border-bottom: 0; }
+    .alert-row .grow b { display: block; }
+    .alert-row .grow small { color: var(--text-3); }
+    .alert-row .acts { display: flex; gap: 6px; }
+    .act-log { display: flex; flex-direction: column; }
+    .act-log div { padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+    .act-log div:last-child { border-bottom: 0; }
+    .act-log small { display: block; color: var(--text-3); }
+    .table td .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+    .table td.num, .table th.num { text-align: right; }
+    .sum-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 16px; }
+    .sum-row .card { flex: 1; min-width: 140px; padding: 12px 16px; }
+    .sum-row b { display: block; font-size: 18px; }
+    .sum-row span { color: var(--text-3); font-size: 12.5px; }
+    .doc-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .doc-row:last-child { border-bottom: 0; }
+    .detail-sec { margin-top: 16px; }
+    .detail-sec h4 { margin-bottom: 8px; color: var(--text-2); }
+    .textarea { min-height: 80px; resize: vertical; }
+    .chart-note { color: var(--text-3); font-size: 12.5px; margin-top: 6px; }
+    @media (max-width: 640px) {
+      .modal-body .row2 { grid-template-columns: 1fr; }
+      .table th, .table td { padding: 10px 12px; }
+    }
+    @media print {
+      .admin-chips, .modal-backdrop, .toolbar, .no-print { display: none !important; }
+      .content { padding: 0 !important; }
+    }
+  </style>
+</head>
+<body data-page="admin" data-shell="none" data-title="Admin">
+  <div id="admin-root"></div>
+  <noscript>This demo requires JavaScript.</noscript>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
